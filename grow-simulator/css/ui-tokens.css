@@ -1,0 +1,33 @@
+/*
+ * UI‑Tokens
+ *
+ * Diese Datei enthält alle Design‑Tokens (Farben, Abstände, Typografie, Radius
+ * und Schatten), die im UI‑System definiert sind. Wenn Sie weitere
+ * Komponenten erstellen, importieren Sie diese Datei, um die Konsistenz
+ * sicherzustellen. In der Hauptanwendung werden diese Variablen bereits
+ * innerhalb von styles.css definiert, hier steht eine Referenz zur reinen
+ * Dokumentation.
+ */
+
+:root {
+  --color-bg: #0a0f1a;
+  --color-surface: #141e30;
+  --color-card: #1c2a44;
+  --color-primary: #00d26a;
+  --color-accent: #007aff;
+  --color-danger: #d24038;
+  --color-info: #ffc857;
+  --color-text: #e0e6ed;
+  --color-muted: #788aa3;
+  --color-overlay: rgba(10, 15, 26, 0.8);
+  --font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-lg: 20px;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --radius: 0.5rem;
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
