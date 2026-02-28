@@ -160,6 +160,14 @@ body {
   opacity: 0.9;
 }
 
+.overlay-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+
 .info-bar {
   grid-template-columns: repeat(3, 1fr);
   padding: 10px;
