@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>GrowSim Premium</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="hud" class="hud">
+      <header class="top-row">
+        <span id="statusPill" class="pill">Stable</span>
+        <span class="pill pill-pro">Pro</span>
+      </header>
+
+      <section class="hero-card glass">
+        <div class="ring-grid">
+          <div class="ring-block">
+            <svg viewBox="0 0 120 120" class="ring-svg" aria-label="Health ring">
+              <circle class="ring-track" cx="60" cy="60" r="50"></circle>
+              <circle id="healthRing" class="ring-progress ring-health" cx="60" cy="60" r="50"></circle>
+            </svg>
+            <span>Health</span>
+          </div>
+          <div class="hero-stack">
+            <div class="hero-glow"></div>
+            <img id="plantImage" class="hero-plant" src="/assets/plant/seedling_01.png" alt="Plant" />
+            <img id="plantOverlay" class="hero-overlay hidden" src="" alt="Plant warning overlay" />
+          </div>
+          <div class="ring-block">
+            <svg viewBox="0 0 120 120" class="ring-svg" aria-label="Stress ring">
+              <circle class="ring-track" cx="60" cy="60" r="50"></circle>
+              <circle id="stressRing" class="ring-progress ring-stress" cx="60" cy="60" r="50"></circle>
+            </svg>
+            <span>Stress</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-bar glass">
+        <div>
+          <small>Next event</small>
+          <strong id="nextEventValue">34s</strong>
+        </div>
+        <div>
+          <small>Growth impulse</small>
+          <strong id="growthImpulseValue">+0.00</strong>
+        </div>
+        <div>
+          <small>Sim time</small>
+          <strong id="simTimeValue" class="pill subtle">00:00</strong>
+        </div>
+      </section>
+
+      <section class="mini-rings glass">
+        <div class="mini-item"><span>Water</span><strong id="waterValue">82%</strong></div>
+        <div class="mini-item"><span>Nutrition</span><strong id="nutritionValue">78%</strong></div>
+        <div class="mini-item"><span>Growth</span><strong id="growthValue">0%</strong></div>
+        <div class="mini-item"><span>Risk</span><strong id="riskValue">6%</strong></div>
+      </section>
+
+      <section class="action-row">
+        <button data-open-sheet="careSheet">Care</button>
+        <button data-open-sheet="diagnosisSheet">Analyze</button>
+        <button id="boostButton" type="button">
+          <span>Boost</span>
+          <small id="boostText">Ad supported · 0/6 today</small>
+        </button>
+      </section>
+
+      <section class="locked-card glass">
+        <strong>Advanced diagnosis available</strong>
+      </section>
+    </div>
+
+    <section id="careSheet" class="sheet hidden" aria-hidden="true">
+      <div class="sheet-content">
+        <h2>Care</h2>
+        <button data-care="water">Water</button>
+        <button data-care="feed">Feed</button>
+        <button data-care="prune">Prune</button>
+        <button data-open-sheet="dashboardSheet">Dashboard</button>
+        <button data-care="emergency">Emergency</button>
+        <button data-close-sheet>Close</button>
+      </div>
+    </section>
+
+    <section id="eventSheet" class="sheet hidden" aria-hidden="true">
+      <div class="sheet-content">
+        <h2 id="eventTitle">Event</h2>
+        <p id="eventText"></p>
+        <div id="eventOptions" class="option-grid"></div>
+      </div>
+    </section>
+
+    <section id="dashboardSheet" class="sheet hidden" aria-hidden="true">
+      <div class="sheet-content scrollable">
+        <h2>Dashboard / Log</h2>
+        <ul id="logList"></ul>
+        <button id="exportLogButton" type="button">Export</button>
+        <button data-close-sheet>Close</button>
+      </div>
+    </section>
+
+    <section id="diagnosisSheet" class="sheet hidden" aria-hidden="true">
+      <div class="sheet-content scrollable">
+        <h2>Diagnosis</h2>
+        <p id="diagnosisDetails"></p>
+        <button id="diagnosisCta" type="button">Run advanced diagnosis</button>
+        <button data-close-sheet>Close</button>
+      </div>
+    </section>
+
+    <script src="app.js"></script>
+  </body>
+</html>
