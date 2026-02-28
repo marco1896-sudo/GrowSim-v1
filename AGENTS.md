@@ -44,7 +44,7 @@ State must include: phase, stageName, stageIndex, stageProgress.
 ## Documentation Requirement (Reference Image)
 The premium reference image will be provided in chat.
 During implementation you must add it into:
-`/assets/premium-reference.png`
+`/docs/premium-reference.png`
 and reference it in README.md (image preview) and docs/PLAN.md (as the visual target).
 
 ## Definition of Done (PASS)
