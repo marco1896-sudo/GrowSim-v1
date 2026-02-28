@@ -145,6 +145,10 @@ const state = {
 
 const refs = {
   statusPill: document.getElementById('statusPill'),
+  plantHero: document.getElementById('plantHero'),
+  overlayLayer: document.getElementById('overlayLayer'),
+  healthValueLabel: document.getElementById('healthValueLabel'),
+  stressValueLabel: document.getElementById('stressValueLabel'),
   plantImage: document.getElementById('plantImage'),
   overlayLayer: document.getElementById('overlayLayer'),
   plantOverlay: document.getElementById('plantOverlay'),
@@ -162,6 +166,18 @@ const refs = {
   eventText: document.getElementById('eventText'),
   eventOptions: document.getElementById('eventOptions'),
   logList: document.getElementById('logList'),
+  diagnosisDetails: document.getElementById('diagnosisDetails'),
+  healthRingMount: document.getElementById('healthRingMount'),
+  stressRingMount: document.getElementById('stressRingMount'),
+  waterRingMount: document.getElementById('waterRingMount'),
+  nutritionRingMount: document.getElementById('nutritionRingMount'),
+  growthRingMount: document.getElementById('growthRingMount'),
+  riskRingMount: document.getElementById('riskRingMount')
+};
+
+const ringNodes = {};
+
+
   diagnosisDetails: document.getElementById('diagnosisDetails')
 };
 
@@ -351,29 +367,6 @@ function runEventMachine(nowMs) {
     state.event.activeEventTitle = '';
     state.event.activeEventText = '';
     state.event.activeOptions = [];
-function maybeTriggerEvent(nowMs) {
-  if (state.events.status !== 'idle') {
-    return;
-  }
-
-  if (nowMs < state.events.nextRollAtMs) {
-    return;
-  }
-
-  const nextEvent = EVENT_DEFINITIONS[Math.floor(Math.random() * EVENT_DEFINITIONS.length)];
-  state.events.status = 'activeEvent';
-  state.events.activeEvent = nextEvent;
-  openSheet('eventSheet');
-}
-
-function handleCooldown(nowMs) {
-  if (state.events.status !== 'cooldown') {
-    return;
-  }
-
-  if (nowMs >= state.events.cooldownUntilMs) {
-    state.events.status = 'idle';
-    state.events.activeEvent = null;
     scheduleNextEvent(nowMs);
   }
 }
@@ -513,6 +506,71 @@ function formatSimTime(ms) {
   return `${minutes}:${seconds}`;
 }
 
+function createRingSVG({ value = 0, size = 84, stroke = 15, variant = 'ring-mini' }) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+  svg.setAttribute('class', 'ring-svg');
+  svg.style.width = `${size}px`;
+  svg.style.height = `${size}px`;
+
+  const track = document.createElementNS(ns, 'circle');
+  track.setAttribute('class', 'ring-track');
+  track.setAttribute('cx', String(size / 2));
+  track.setAttribute('cy', String(size / 2));
+  track.setAttribute('r', String(radius));
+  track.style.strokeWidth = `${stroke}`;
+
+  const progress = document.createElementNS(ns, 'circle');
+  progress.setAttribute('class', `ring-progress ${variant}`);
+  progress.setAttribute('cx', String(size / 2));
+  progress.setAttribute('cy', String(size / 2));
+  progress.setAttribute('r', String(radius));
+  progress.style.strokeWidth = `${stroke}`;
+  progress.style.strokeDasharray = String(circumference);
+
+  svg.append(track, progress);
+
+  const setValue = (next) => {
+    const valueClamped = clamp(next, 0, 100);
+    const offset = circumference - (valueClamped / 100) * circumference;
+    progress.style.strokeDashoffset = String(offset);
+  };
+
+  setValue(value);
+  return { svg, setValue };
+}
+
+function setupRings() {
+  ringNodes.health = createRingSVG({ value: state.status.health, size: 84, stroke: 15, variant: 'ring-health' });
+  ringNodes.stress = createRingSVG({ value: state.status.stress, size: 84, stroke: 15, variant: 'ring-stress' });
+  ringNodes.water = createRingSVG({ value: state.status.water, size: 42, stroke: 8, variant: 'ring-mini' });
+  ringNodes.nutrition = createRingSVG({ value: state.status.nutrition, size: 42, stroke: 8, variant: 'ring-mini' });
+  ringNodes.growth = createRingSVG({ value: state.status.growth, size: 42, stroke: 8, variant: 'ring-mini' });
+  ringNodes.risk = createRingSVG({ value: state.status.risk, size: 42, stroke: 8, variant: 'ring-mini' });
+
+  refs.healthRingMount.appendChild(ringNodes.health.svg);
+  refs.stressRingMount.appendChild(ringNodes.stress.svg);
+  refs.waterRingMount.appendChild(ringNodes.water.svg);
+  refs.nutritionRingMount.appendChild(ringNodes.nutrition.svg);
+  refs.growthRingMount.appendChild(ringNodes.growth.svg);
+  refs.riskRingMount.appendChild(ringNodes.risk.svg);
+}
+
+function renderOverlays(currentState) {
+  const activeOverlays = currentState.ui?.visibleOverlayIds || [];
+  refs.overlayLayer.querySelectorAll('.plant-overlay').forEach((node) => {
+    const name = node.getAttribute('data-overlay');
+    node.classList.toggle('hidden', !activeOverlays.includes(name));
+  });
+}
+
+function renderPlantAndOverlays() {
+  refs.plantHero.src = `/assets/plant/${state.growth.stageName}`;
+  renderOverlays(state);
 function renderRing(node, value) {
   const total = 314;
   const offset = total - (clamp(value, 0, 100) / 100) * total;
@@ -593,6 +651,12 @@ function renderLog() {
 function render() {
   document.body.style.backgroundImage = `linear-gradient(180deg, rgba(7, 17, 30, 0.55), rgba(7, 17, 30, 0.95)), url('/assets/backgrounds/${state.ui.selectedBackground}')`;
 
+  ringNodes.health.setValue(state.status.health);
+  ringNodes.stress.setValue(state.status.stress);
+  ringNodes.water.setValue(state.status.water);
+  ringNodes.nutrition.setValue(state.status.nutrition);
+  ringNodes.growth.setValue(state.status.growth);
+  ringNodes.risk.setValue(state.status.risk);
   renderRing(refs.healthRing, state.status.health);
   renderRing(refs.stressRing, state.status.stress);
   renderPlantAndOverlays();
@@ -607,6 +671,11 @@ function render() {
   refs.growthValue.textContent = `${Math.round(state.status.growth)}%`;
   refs.riskValue.textContent = `${Math.round(state.status.risk)}%`;
   refs.boostText.textContent = `Ad supported · ${state.boost.boostUsedToday}/6 today`;
+  refs.healthValueLabel.textContent = `Health ${Math.round(state.status.health)}%`;
+  refs.stressValueLabel.textContent = `Stress ${Math.round(state.status.stress)}%`;
+
+  refs.statusPill.textContent = state.event.machineState === 'activeEvent' ? 'Attention' : 'Stable';
+  refs.diagnosisDetails.textContent = `Phase ${state.growth.phase}, stage ${state.growth.stageName}, health ${Math.round(state.status.health)}%.`;
 
   refs.statusPill.textContent = state.event.machineState === 'activeEvent' ? 'Attention' : 'Stable';
   refs.diagnosisDetails.textContent = `Phase ${state.growth.phase}, stage ${state.growth.stageName}, health ${Math.round(state.status.health)}%.`;
@@ -733,6 +802,7 @@ function tick() {
 function init() {
   initGrowthState();
   scheduleNextEvent(state.sim.nowMs);
+  setupRings();
   scheduleNextEvent(0);
   bindUI();
   pushLog('Simulation started');

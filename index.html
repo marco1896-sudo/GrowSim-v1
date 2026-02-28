@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <main id="hudRoot" class="hud-root">
     <div id="hud" class="hud">
       <header class="top-row">
         <span id="statusPill" class="pill">Stable</span>
@@ -17,6 +18,26 @@
       <section class="hero-card glass">
         <div class="ring-grid">
           <div class="ring-block">
+            <div id="healthRingMount"></div>
+            <span id="healthValueLabel">Health 0%</span>
+          </div>
+
+          <div id="plantStage" class="plant-stage">
+            <div class="hero-glow"></div>
+            <img id="plantHero" class="hero-plant" src="/assets/plant/seedling_01.png" alt="Plant" />
+            <div id="overlayLayer" class="overlay-layer" aria-hidden="true">
+              <img class="plant-overlay hidden" data-overlay="overlay_pest_mites.png" src="/assets/overlays/overlay_pest_mites.png" alt="Overlay" />
+              <img class="plant-overlay hidden" data-overlay="overlay_pest_thrips.png" src="/assets/overlays/overlay_pest_thrips.png" alt="Overlay" />
+              <img class="plant-overlay hidden" data-overlay="overlay_def_n.png" src="/assets/overlays/overlay_def_n.png" alt="Overlay" />
+              <img class="plant-overlay hidden" data-overlay="overlay_def_mg.png" src="/assets/overlays/overlay_def_mg.png" alt="Overlay" />
+              <img class="plant-overlay hidden" data-overlay="overlay_burn.png" src="/assets/overlays/overlay_burn.png" alt="Overlay" />
+              <img class="plant-overlay hidden" data-overlay="overlay_mold_warning.png" src="/assets/overlays/overlay_mold_warning.png" alt="Overlay" />
+            </div>
+          </div>
+
+          <div class="ring-block">
+            <div id="stressRingMount"></div>
+            <span id="stressValueLabel">Stress 0%</span>
             <svg viewBox="0 0 120 120" class="ring-svg" aria-label="Health ring">
               <circle class="ring-track" cx="60" cy="60" r="50"></circle>
               <circle id="healthRing" class="ring-progress ring-health" cx="60" cy="60" r="50"></circle>
@@ -56,6 +77,26 @@
       </section>
 
       <section class="mini-rings glass">
+        <div class="mini-item">
+          <div id="waterRingMount"></div>
+          <span>Water</span>
+          <strong id="waterValue">82%</strong>
+        </div>
+        <div class="mini-item">
+          <div id="nutritionRingMount"></div>
+          <span>Nutrition</span>
+          <strong id="nutritionValue">78%</strong>
+        </div>
+        <div class="mini-item">
+          <div id="growthRingMount"></div>
+          <span>Growth</span>
+          <strong id="growthValue">0%</strong>
+        </div>
+        <div class="mini-item">
+          <div id="riskRingMount"></div>
+          <span>Risk</span>
+          <strong id="riskValue">6%</strong>
+        </div>
         <div class="mini-item"><span>Water</span><strong id="waterValue">82%</strong></div>
         <div class="mini-item"><span>Nutrition</span><strong id="nutritionValue">78%</strong></div>
         <div class="mini-item"><span>Growth</span><strong id="growthValue">0%</strong></div>
@@ -74,6 +115,10 @@
       <section class="locked-card glass">
         <strong>Advanced diagnosis available</strong>
       </section>
+    </main>
+
+    <section id="careSheet" class="sheet hidden" aria-hidden="true">
+      <div class="sheet-backdrop" data-close-sheet></div>
     </div>
 
     <section id="careSheet" class="sheet hidden" aria-hidden="true">
@@ -89,6 +134,7 @@
     </section>
 
     <section id="eventSheet" class="sheet hidden" aria-hidden="true">
+      <div class="sheet-backdrop" data-close-sheet></div>
       <div class="sheet-content">
         <h2 id="eventTitle">Event</h2>
         <p id="eventText"></p>
@@ -97,6 +143,7 @@
     </section>
 
     <section id="dashboardSheet" class="sheet hidden" aria-hidden="true">
+      <div class="sheet-backdrop" data-close-sheet></div>
       <div class="sheet-content scrollable">
         <h2>Dashboard / Log</h2>
         <ul id="logList"></ul>
@@ -106,6 +153,7 @@
     </section>
 
     <section id="diagnosisSheet" class="sheet hidden" aria-hidden="true">
+      <div class="sheet-backdrop" data-close-sheet></div>
       <div class="sheet-content scrollable">
         <h2>Diagnosis</h2>
         <p id="diagnosisDetails"></p>
