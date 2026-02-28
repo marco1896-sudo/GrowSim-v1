@@ -9,6 +9,7 @@
   </head>
   <body>
     <main id="hudRoot" class="hud-root">
+    <div id="hud" class="hud">
       <header class="top-row">
         <span id="statusPill" class="pill">Stable</span>
         <span class="pill pill-pro">Pro</span>
@@ -37,6 +38,25 @@
           <div class="ring-block">
             <div id="stressRingMount"></div>
             <span id="stressValueLabel">Stress 0%</span>
+            <svg viewBox="0 0 120 120" class="ring-svg" aria-label="Health ring">
+              <circle class="ring-track" cx="60" cy="60" r="50"></circle>
+              <circle id="healthRing" class="ring-progress ring-health" cx="60" cy="60" r="50"></circle>
+            </svg>
+            <span>Health</span>
+          </div>
+          <div class="hero-stack">
+            <div class="hero-glow"></div>
+            <img id="plantImage" class="hero-plant" src="" alt="Plant" />
+            <div id="overlayLayer" class="overlay-layer" aria-hidden="true"></div>
+            <img id="plantImage" class="hero-plant" src="/assets/plant/seedling_01.png" alt="Plant" />
+            <img id="plantOverlay" class="hero-overlay hidden" src="" alt="Plant warning overlay" />
+          </div>
+          <div class="ring-block">
+            <svg viewBox="0 0 120 120" class="ring-svg" aria-label="Stress ring">
+              <circle class="ring-track" cx="60" cy="60" r="50"></circle>
+              <circle id="stressRing" class="ring-progress ring-stress" cx="60" cy="60" r="50"></circle>
+            </svg>
+            <span>Stress</span>
           </div>
         </div>
       </section>
@@ -77,6 +97,10 @@
           <span>Risk</span>
           <strong id="riskValue">6%</strong>
         </div>
+        <div class="mini-item"><span>Water</span><strong id="waterValue">82%</strong></div>
+        <div class="mini-item"><span>Nutrition</span><strong id="nutritionValue">78%</strong></div>
+        <div class="mini-item"><span>Growth</span><strong id="growthValue">0%</strong></div>
+        <div class="mini-item"><span>Risk</span><strong id="riskValue">6%</strong></div>
       </section>
 
       <section class="action-row">
@@ -95,6 +119,9 @@
 
     <section id="careSheet" class="sheet hidden" aria-hidden="true">
       <div class="sheet-backdrop" data-close-sheet></div>
+    </div>
+
+    <section id="careSheet" class="sheet hidden" aria-hidden="true">
       <div class="sheet-content">
         <h2>Care</h2>
         <button data-care="water">Water</button>

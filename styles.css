@@ -1,6 +1,8 @@
 :root {
   color-scheme: dark;
   --glass: rgba(17, 26, 40, 0.56);
+  --bg: #07111e;
+  --glass: rgba(17, 26, 40, 0.55);
   --stroke: rgba(255, 255, 255, 0.16);
   --text: #e8edf5;
   --muted: #9eb2cb;
@@ -10,6 +12,9 @@
 }
 
 * { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -28,6 +33,18 @@ body {
   display: grid;
   grid-template-rows: auto auto auto auto auto auto;
   gap: 8px;
+  background: linear-gradient(180deg, rgba(7, 17, 30, 0.55), rgba(7, 17, 30, 0.95)),
+    url('/assets/backgrounds/bg_dark_01.jpg') center / cover no-repeat;
+  overflow-x: hidden;
+}
+
+.hud {
+  width: min(100%, 440px);
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto auto auto auto auto;
+  gap: 10px;
   padding: 12px 12px max(12px, env(safe-area-inset-bottom));
 }
 
@@ -41,6 +58,16 @@ body {
 
 .top-row { grid-template-columns: 1fr 1fr; }
 .top-row .pill:last-child { justify-self: end; }
+  gap: 10px;
+}
+
+.top-row {
+  grid-template-columns: 1fr 1fr;
+}
+
+.top-row .pill:last-child {
+  justify-self: end;
+}
 
 .pill {
   display: inline-flex;
@@ -55,6 +82,15 @@ body {
 }
 
 .subtle { font-size: 11px; font-weight: 700; padding: 5px 10px; }
+.pill-pro {
+  color: #d0e3ff;
+}
+
+.subtle {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+}
 
 .glass {
   border: 1px solid var(--stroke);
@@ -65,6 +101,10 @@ body {
 }
 
 .hero-card { padding: 10px; }
+.hero-card {
+  padding: 12px;
+}
+
 .ring-grid {
   display: grid;
   grid-template-columns: 92px 1fr 92px;
@@ -81,6 +121,17 @@ body {
 }
 
 .ring-svg { overflow: visible; display: block; }
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.ring-svg {
+  width: 84px;
+  height: 84px;
+  overflow: visible;
+}
+
 .ring-track,
 .ring-progress {
   fill: none;
@@ -98,6 +149,28 @@ body {
 .plant-stage {
   position: relative;
   height: 235px;
+
+.ring-track {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+.ring-progress {
+  stroke-dasharray: 314;
+  stroke-dashoffset: 314;
+  transition: stroke-dashoffset 220ms linear;
+}
+
+.ring-health {
+  stroke: var(--ok);
+}
+
+.ring-stress {
+  stroke: var(--warn);
+}
+
+.hero-stack {
+  position: relative;
+  height: 260px;
   display: grid;
   place-items: center;
 }
@@ -108,6 +181,10 @@ body {
   height: 188px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(73, 232, 144, 0.23), rgba(73, 232, 144, 0.04) 65%, transparent 80%);
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(73, 232, 144, 0.22), rgba(73, 232, 144, 0.03) 62%, transparent 78%);
   filter: blur(10px);
 }
 
@@ -116,8 +193,17 @@ body {
   position: absolute;
   width: 220px;
   height: 220px;
+.hero-overlay {
+  position: absolute;
+  width: 230px;
+  height: 230px;
   object-fit: contain;
   object-position: center;
+}
+
+.hero-overlay {
+  pointer-events: none;
+  opacity: 0.9;
 }
 
 .overlay-layer {
@@ -175,6 +261,69 @@ button {
 .sheet-content {
   position: relative;
   width: min(100%, 430px);
+
+.info-bar small,
+.mini-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.info-bar strong,
+.mini-item strong {
+  font-size: 13px;
+}
+
+.mini-rings {
+  grid-template-columns: repeat(4, 1fr);
+  padding: 10px;
+}
+
+.mini-item {
+  text-align: center;
+}
+
+.action-row {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+button {
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: rgba(12, 24, 38, 0.74);
+  color: var(--text);
+  min-height: 52px;
+  font-weight: 600;
+}
+
+#boostButton {
+  display: grid;
+  align-content: center;
+}
+
+#boostButton small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.locked-card {
+  padding: 12px;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.sheet {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 8;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.52);
+}
+
+.sheet-content {
+  width: min(100%, 440px);
   margin: 0 auto;
   background: #0f1a2a;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -201,4 +350,30 @@ button {
   .plant-stage { height: 210px; }
   .hero-plant,
   .plant-overlay { width: 195px; height: 195px; }
+  max-height: 68dvh;
+}
+
+.option-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.scrollable {
+  overflow-y: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-height: 740px) {
+  .hero-stack {
+    height: 220px;
+  }
+
+  .hero-plant,
+  .hero-overlay {
+    width: 200px;
+    height: 200px;
+  }
 }
