@@ -1,0 +1,204 @@
+:root {
+  color-scheme: dark;
+  --glass: rgba(17, 26, 40, 0.56);
+  --stroke: rgba(255, 255, 255, 0.16);
+  --text: #e8edf5;
+  --muted: #9eb2cb;
+  --ok: #7ce8a8;
+  --warn: #ff8d85;
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(7, 17, 30, 0.5), rgba(7, 17, 30, 0.92)),
+    url('/assets/backgrounds/bg_dark_01.jpg') center / cover no-repeat fixed;
+  overflow: hidden;
+}
+
+.hud-root {
+  width: min(100%, 430px);
+  margin: 0 auto;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto auto auto auto auto;
+  gap: 8px;
+  padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+}
+
+.top-row,
+.info-bar,
+.mini-rings,
+.action-row {
+  display: grid;
+  gap: 8px;
+}
+
+.top-row { grid-template-columns: 1fr 1fr; }
+.top-row .pill:last-child { justify-self: end; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: rgba(8, 17, 28, 0.65);
+}
+
+.subtle { font-size: 11px; font-weight: 700; padding: 5px 10px; }
+
+.glass {
+  border: 1px solid var(--stroke);
+  background: var(--glass);
+  border-radius: var(--radius);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.hero-card { padding: 10px; }
+.ring-grid {
+  display: grid;
+  grid-template-columns: 92px 1fr 92px;
+  align-items: center;
+  gap: 8px;
+}
+
+.ring-block {
+  display: grid;
+  justify-items: center;
+  color: var(--muted);
+  font-size: 11px;
+  gap: 6px;
+}
+
+.ring-svg { overflow: visible; display: block; }
+.ring-track,
+.ring-progress {
+  fill: none;
+  stroke-width: 15;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+.ring-track { stroke: rgba(255, 255, 255, 0.12); }
+.ring-progress { stroke-dasharray: 314; stroke-dashoffset: 314; transition: stroke-dashoffset 180ms linear; }
+.ring-health { stroke: var(--ok); }
+.ring-stress { stroke: var(--warn); }
+.ring-mini { stroke: #8cb6ff; }
+
+.plant-stage {
+  position: relative;
+  height: 235px;
+  display: grid;
+  place-items: center;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 188px;
+  height: 188px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(73, 232, 144, 0.23), rgba(73, 232, 144, 0.04) 65%, transparent 80%);
+  filter: blur(10px);
+}
+
+.hero-plant,
+.plant-overlay {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.overlay-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.plant-overlay { pointer-events: none; }
+
+.info-bar {
+  grid-template-columns: repeat(3, 1fr);
+  padding: 10px;
+}
+.info-bar small,
+.mini-item span { display: block; color: var(--muted); font-size: 11px; }
+.info-bar strong,
+.mini-item strong { font-size: 13px; }
+
+.mini-rings {
+  grid-template-columns: repeat(4, 1fr);
+  padding: 8px;
+}
+.mini-item { text-align: center; display: grid; justify-items: center; gap: 2px; }
+
+.action-row { grid-template-columns: repeat(3, 1fr); }
+button {
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: rgba(12, 24, 38, 0.75);
+  color: var(--text);
+  min-height: 50px;
+  font-weight: 600;
+}
+#boostButton { display: grid; align-content: center; }
+#boostButton small { color: var(--muted); font-size: 11px; font-weight: 500; }
+
+.locked-card { padding: 11px; text-align: center; }
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  align-items: end;
+}
+
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.sheet-content {
+  position: relative;
+  width: min(100%, 430px);
+  margin: 0 auto;
+  background: #0f1a2a;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px 20px 0 0;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  max-height: 66dvh;
+  overflow-y: auto;
+  transform: translateY(0);
+  animation: sheet-up 180ms ease-out;
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(20px); opacity: 0.8; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.option-grid { display: grid; gap: 8px; }
+.scrollable { overflow-y: auto; }
+.hidden { display: none; }
+
+@media (max-height: 740px) {
+  .plant-stage { height: 210px; }
+  .hero-plant,
+  .plant-overlay { width: 195px; height: 195px; }
+}
