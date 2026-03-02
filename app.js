@@ -34,6 +34,7 @@ const PROD_COOLDOWN_MS = CONFIG.timing.prodCooldownMs;
 const BOOST_ADVANCE_MS = CONFIG.boostAdvanceMs;
 const MAX_HISTORY_LOG = CONFIG.maxHistoryLog;
 const PERSIST_THROTTLE_MS = CONFIG.persistThrottleMs;
+const MAX_ELAPSED_PER_TICK_MS = 5 * 60 * 1000;
 
 const DB_NAME = 'grow-sim-db';
 const DB_STORE = 'kv';
@@ -146,6 +147,9 @@ document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
   cacheUi();
+  if (!ensureRequiredUi()) {
+    return;
+  }
   bindUi();
   applyBackgroundAsset();
   await registerServiceWorker();
@@ -155,6 +159,7 @@ async function init() {
   await loadEventCatalog();
 
   ensureStateIntegrity(Date.now());
+  syncRuntimeClocks(Date.now());
   syncActiveEventFromCatalog();
   updateVisibleOverlays();
   addLog('system', 'Runtime initialisiert', {
@@ -244,7 +249,7 @@ function bindUi() {
 
 function tick() {
   const nowMs = Date.now();
-  const elapsedMs = Math.max(0, nowMs - state.sim.lastTickAtMs);
+  const elapsedMs = clamp(nowMs - state.sim.lastTickAtMs, 0, MAX_ELAPSED_PER_TICK_MS);
   const prevOpenSheet = state.ui.openSheet;
 
   state.sim.nowMs = nowMs;
@@ -274,6 +279,27 @@ function tick() {
   renderEventSheet();
   renderLogList();
   schedulePersistState();
+}
+
+function ensureRequiredUi() {
+  const requiredKeys = [
+    'statusPill', 'healthRing', 'stressRing', 'waterRing', 'nutritionRing', 'growthRing', 'riskRing',
+    'healthValue', 'stressValue', 'waterValue', 'nutritionValue', 'growthValue', 'riskValue',
+    'plantImage', 'nextEventValue', 'growthImpulseValue', 'simTimeValue', 'boostUsageText',
+    'overlayBurn', 'overlayDefMg', 'overlayDefN', 'overlayMoldWarning', 'overlayPestMites', 'overlayPestThrips',
+    'careActionBtn', 'analyzeActionBtn', 'boostActionBtn', 'openDiagnosisBtn',
+    'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
+    'confirmCareBtn', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
+    'pushSubscribeBtn', 'clearLogBtn', 'lastEventValue', 'lastChoiceValue', 'logList'
+  ];
+
+  const missing = requiredKeys.filter((key) => !ui[key]);
+  if (missing.length) {
+    console.error('GrowSim konnte nicht initialisiert werden. Fehlende UI-Elemente:', missing);
+    return false;
+  }
+
+  return true;
 }
 
 function applyStatusDrift(elapsedMs) {
@@ -1246,6 +1272,11 @@ function ensureStateIntegrity(nowMs) {
   if (typeof state.lastChoiceId !== 'string') {
     state.lastChoiceId = null;
   }
+}
+
+function syncRuntimeClocks(nowMs) {
+  state.sim.nowMs = nowMs;
+  state.sim.lastTickAtMs = nowMs;
 }
 
 async function loadEventCatalog() {
