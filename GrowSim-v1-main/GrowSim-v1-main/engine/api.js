@@ -2,12 +2,13 @@ import { recoverOrInitState } from './state.js';
 import { processOfflineTicks } from './clock.js';
 import { createStorage } from './storage.js';
 import { loadGameData } from './data.js';
-import { processEventTick } from './events.js';
+import { runSimulationTick } from './simulation.js';
 
 const subscribers = new Set();
 let stateRef = null;
 let storage = null;
 let dataRef = null;
+let liveTimer = null;
 
 function emit() {
   for (const cb of subscribers) {
@@ -17,6 +18,27 @@ function emit() {
       // subscriber errors are isolated
     }
   }
+}
+
+function runOneTick() {
+  stateRef.tick_index += 1;
+  runSimulationTick({
+    state: stateRef,
+    data: dataRef,
+    tickIndex: stateRef.tick_index
+  });
+  stateRef.last_wallclock_unix_ts = Math.floor(Date.now() / 1000);
+  storage.saveThrottled(stateRef);
+  emit();
+}
+
+function startLiveLoop() {
+  if (liveTimer !== null) {
+    clearInterval(liveTimer);
+  }
+
+  const ms = Math.max(250, stateRef.tick_seconds * 1000);
+  liveTimer = setInterval(runOneTick, ms);
 }
 
 export const Game = {
@@ -50,10 +72,9 @@ export const Game = {
       onTickBatch(chunkTicks, chunkStartTick) {
         for (let i = 1; i <= chunkTicks; i += 1) {
           const tickIndex = chunkStartTick + i;
-          processEventTick({
+          runSimulationTick({
             state: stateRef,
-            eventCatalog: dataRef.events,
-            rules: dataRef.rules,
+            data: dataRef,
             tickIndex
           });
         }
@@ -63,6 +84,7 @@ export const Game = {
     stateRef.last_persisted_tick_index = stateRef.tick_index;
     storage.persistNow(stateRef);
     emit();
+    startLiveLoop();
 
     return stateRef;
   },

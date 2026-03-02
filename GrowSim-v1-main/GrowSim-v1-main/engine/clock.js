@@ -43,14 +43,6 @@ export function processOfflineTicks({ state, nowUnixTs, onTickBatch, chunkSize =
     }
 
     state.tick_index += chunkTicks;
-
-    const sortedPlantIds = Object.keys(state.plants).sort();
-    for (const plantId of sortedPlantIds) {
-      const plant = state.plants[plantId];
-      plant.plant_tick_index += chunkTicks;
-      plant.last_processed_global_tick = state.tick_index;
-    }
-
     state.offline_backlog_ticks -= chunkTicks;
   }
 
