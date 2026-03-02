@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="de"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d111a">
+  <title>Grow Simulator MVP</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body style="background-image: linear-gradient(135deg, rgba(7, 10, 17, 0.93) 0%, rgba(9, 14, 24, 0.88) 100%), url(&quot;/assets/backgrounds/bg_dark_01.jpg&quot;);">
+  <div id="app-hud" class="app-hud">
+    <header class="top-row">
+      <span id="statusPill" class="pill">Phase: seedling</span>
+      <span class="pill pro-pill">Pro</span>
+    </header>
+
+    <main class="hud-main">
+      <section class="hero-card">
+        <div class="hero-glow" aria-hidden="true"></div>
+
+        <article id="healthRing" class="ring ring-main ring-left" style="--value:85; --ring-color:var(--color-health);">
+          <div class="ring-inner">
+            <span class="ring-label">Health</span>
+            <strong id="healthValue">85</strong>
+          </div>
+        </article>
+
+        <div class="hero-stack">
+          <img id="plantImage" class="plant-image" src="" alt="Plant stage">
+          <img id="overlayBurn" class="overlay-image hidden" src="/assets/overlays/overlay_burn.png" alt="">
+          <img id="overlayDefMg" class="overlay-image hidden" src="/assets/overlays/overlay_def_mg.png" alt="">
+          <img id="overlayDefN" class="overlay-image hidden" src="/assets/overlays/overlay_def_n.png" alt="">
+          <img id="overlayMoldWarning" class="overlay-image hidden" src="/assets/overlays/overlay_mold_warning.png" alt="">
+          <img id="overlayPestMites" class="overlay-image hidden" src="/assets/overlays/overlay_pest_mites.png" alt="">
+          <img id="overlayPestThrips" class="overlay-image hidden" src="/assets/overlays/overlay_pest_thrips.png" alt="">
+        </div>
+
+        <article id="stressRing" class="ring ring-main ring-right" style="--value:15; --ring-color:var(--color-stress);">
+          <div class="ring-inner">
+            <span class="ring-label">Stress</span>
+            <strong id="stressValue">15</strong>
+          </div>
+        </article>
+      </section>
+
+      <section class="info-bar">
+        <article class="info-tile">
+          <span class="info-label">Next event</span>
+          <strong id="nextEventValue">--:--</strong>
+        </article>
+        <article class="info-tile">
+          <span class="info-label">Growth impulse</span>
+          <strong id="growthImpulseValue">0.00</strong>
+        </article>
+        <article class="info-tile">
+          <span class="info-label">Simulation time</span>
+          <strong id="simTimeValue">--:--:--</strong>
+        </article>
+      </section>
+
+      <section class="mini-rings">
+        <article id="waterRing" class="ring ring-mini" style="--value:70; --ring-color:var(--color-water);">
+          <div class="ring-inner">
+            <span class="ring-label">Water</span>
+            <strong id="waterValue">70</strong>
+          </div>
+        </article>
+        <article id="nutritionRing" class="ring ring-mini" style="--value:65; --ring-color:var(--color-nutrition);">
+          <div class="ring-inner">
+            <span class="ring-label">Nutrition</span>
+            <strong id="nutritionValue">65</strong>
+          </div>
+        </article>
+        <article id="growthRing" class="ring ring-mini" style="--value:10; --ring-color:var(--color-growth);">
+          <div class="ring-inner">
+            <span class="ring-label">Growth</span>
+            <strong id="growthValue">10</strong>
+          </div>
+        </article>
+        <article id="riskRing" class="ring ring-mini" style="--value:20; --ring-color:var(--color-risk);">
+          <div class="ring-inner">
+            <span class="ring-label">Risk</span>
+            <strong id="riskValue">20</strong>
+          </div>
+        </article>
+      </section>
+
+      <section class="locked-card">
+        <div>
+          <strong>Advanced diagnosis available</strong>
+          <p>Open diagnosis sheet for locked placeholder content.</p>
+        </div>
+        <button id="openDiagnosisBtn" class="pill pro-pill" type="button">Pro</button>
+      </section>
+    </main>
+
+    <section class="action-panel">
+      <button id="careActionBtn" class="action-btn action-primary" type="button">Pflege</button>
+      <button id="analyzeActionBtn" class="action-btn action-secondary" type="button">Analyse</button>
+      <button id="boostActionBtn" class="action-btn action-tertiary" type="button">
+        <span class="boost-title">+30 Min beschleunigen</span>
+        <span id="boostUsageText" class="boost-sub">Ad supported · 0/6 today</span>
+      </button>
+    </section>
+  </div>
+
+  <div id="sheetBackdrop" class="sheet-backdrop hidden" aria-hidden="true"></div>
+
+  <section id="careSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Care Sheet</h2>
+      <button class="sheet-close" data-close-sheet="" type="button" aria-label="Close">X</button>
+    </header>
+    <div class="sheet-content">
+      <p>Apply a balanced care routine: moderate water, light nutrition, and stress reduction.</p>
+      <button id="confirmCareBtn" class="action-btn action-primary" type="button">Apply care now</button>
+    </div>
+  </section>
+
+  <section id="eventSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Event Sheet</h2>
+      <button class="sheet-close" data-close-sheet="" type="button" aria-label="Close">X</button>
+    </header>
+    <div class="sheet-content">
+      <p id="eventStateBadge" class="sheet-badge">State: idle</p>
+      <h3 id="eventTitle">No active event</h3>
+      <p id="eventText">Event details appear here when an event is active.</p>
+      <p id="eventMeta" class="sheet-note">Cooldown: ready</p>
+      <div id="eventOptionList" class="event-option-list"></div>
+    </div>
+  </section>
+
+  <section id="dashboardSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Dashboard / Log</h2>
+      <button class="sheet-close" data-close-sheet="" type="button" aria-label="Close">X</button>
+    </header>
+    <div class="sheet-content">
+      <div class="sheet-row">
+        <button id="pushSubscribeBtn" class="action-btn action-secondary" type="button">Enable push</button>
+        <button id="clearLogBtn" class="ghost-btn" type="button">Clear log</button>
+      </div>
+      <p class="sheet-note">Stub endpoints: <code>/api/push/subscribe</code> and <code>/api/push/schedule</code>.</p>
+      <ul id="logList" class="log-list"></ul>
+    </div>
+  </section>
+
+  <section id="diagnosisSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Diagnosis Sheet</h2>
+      <button class="sheet-close" data-close-sheet="" type="button" aria-label="Close">X</button>
+    </header>
+    <div class="sheet-content">
+      <p>This MVP includes a locked placeholder diagnosis module.</p>
+      <ul class="diagnosis-list">
+        <li>Pathogen probability heatmap (Pro)</li>
+        <li>Nutrient trend decomposition (Pro)</li>
+        <li>Root stress prediction (Pro)</li>
+      </ul>
+    </div>
+  </section>
+
+  <script src="/app.js" defer=""></script>
+
+
+</body></html>

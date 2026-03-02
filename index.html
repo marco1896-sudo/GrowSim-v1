@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d111a">
+  <title>Grow Simulator</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="app-hud" class="app-hud">
+    <header class="top-row">
+      <span id="statusPill" class="pill status-pill">Phase: Keimling</span>
+      <span class="pill pro-pill">Pro</span>
+    </header>
+
+    <main class="hud-main">
+      <section class="hero-card">
+        <div class="hero-glow" aria-hidden="true"></div>
+
+        <article id="healthRing" class="ring ring-main ring-left" style="--value:85; --ring-color:var(--color-health);">
+          <div class="ring-inner">
+            <span class="ring-label">Health</span>
+            <strong id="healthValue">85</strong>
+          </div>
+        </article>
+
+        <div class="hero-stack">
+          <img id="plantImage" class="plant-image" src="" alt="Pflanzenstadium">
+          <img id="overlayBurn" class="overlay-image hidden" src="/assets/overlays/overlay_burn.png" alt="">
+          <img id="overlayDefMg" class="overlay-image hidden" src="/assets/overlays/overlay_def_mg.png" alt="">
+          <img id="overlayDefN" class="overlay-image hidden" src="/assets/overlays/overlay_def_n.png" alt="">
+          <img id="overlayMoldWarning" class="overlay-image hidden" src="/assets/overlays/overlay_mold_warning.png" alt="">
+          <img id="overlayPestMites" class="overlay-image hidden" src="/assets/overlays/overlay_pest_mites.png" alt="">
+          <img id="overlayPestThrips" class="overlay-image hidden" src="/assets/overlays/overlay_pest_thrips.png" alt="">
+        </div>
+
+        <article id="stressRing" class="ring ring-main ring-right" style="--value:15; --ring-color:var(--color-stress);">
+          <div class="ring-inner">
+            <span class="ring-label">Stress</span>
+            <strong id="stressValue">15</strong>
+          </div>
+        </article>
+      </section>
+
+      <section class="info-bar">
+        <article class="info-tile">
+          <span class="info-label">Naechstes Ereignis</span>
+          <strong id="nextEventValue">--:--</strong>
+        </article>
+        <article class="info-tile">
+          <span class="info-label">Wachstumsimpuls</span>
+          <strong id="growthImpulseValue">0.00</strong>
+        </article>
+        <article class="info-tile">
+          <span class="info-label">Simulationszeit</span>
+          <strong id="simTimeValue">--:--:--</strong>
+        </article>
+      </section>
+
+      <section class="mini-rings">
+        <article id="waterRing" class="ring ring-mini" style="--value:70; --ring-color:var(--color-water);">
+          <div class="ring-inner">
+            <span class="mini-icon" aria-hidden="true">W</span>
+            <span class="ring-label">Water</span>
+            <strong id="waterValue">70</strong>
+          </div>
+        </article>
+        <article id="nutritionRing" class="ring ring-mini" style="--value:65; --ring-color:var(--color-nutrition);">
+          <div class="ring-inner">
+            <span class="mini-icon" aria-hidden="true">N</span>
+            <span class="ring-label">Nutrition</span>
+            <strong id="nutritionValue">65</strong>
+          </div>
+        </article>
+        <article id="growthRing" class="ring ring-mini" style="--value:10; --ring-color:var(--color-growth);">
+          <div class="ring-inner">
+            <span class="mini-icon" aria-hidden="true">G</span>
+            <span class="ring-label">Growth</span>
+            <strong id="growthValue">10</strong>
+          </div>
+        </article>
+        <article id="riskRing" class="ring ring-mini" style="--value:20; --ring-color:var(--color-risk);">
+          <div class="ring-inner">
+            <span class="mini-icon" aria-hidden="true">R</span>
+            <span class="ring-label">Risk</span>
+            <strong id="riskValue">20</strong>
+          </div>
+        </article>
+      </section>
+
+      <section class="action-panel">
+        <button id="careActionBtn" class="action-btn action-primary" type="button">Pflege</button>
+        <button id="analyzeActionBtn" class="action-btn action-secondary" type="button">Analyse</button>
+        <button id="boostActionBtn" class="action-btn action-tertiary" type="button">
+          <span class="boost-title">+30 Min beschleunigen</span>
+          <span id="boostUsageText" class="boost-sub">Werbeunterstuetzt &middot; 0/6 heute</span>
+        </button>
+      </section>
+
+      <section class="locked-card">
+        <div>
+          <strong>Erweiterte Diagnose verfuegbar</strong>
+          <p>Schalte mit Pro frei oder schaue eine Ad.</p>
+        </div>
+        <button id="openDiagnosisBtn" class="pill pro-pill" type="button">Pro</button>
+      </section>
+    </main>
+  </div>
+
+  <div id="sheetBackdrop" class="sheet-backdrop hidden" aria-hidden="true"></div>
+
+  <section id="careSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Pflege</h2>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schliessen">X</button>
+    </header>
+    <div class="sheet-content">
+      <p>Fuehre eine ausgewogene Pflege durch: moderat giessen, leicht duengen und Stress reduzieren.</p>
+      <button id="confirmCareBtn" class="action-btn action-primary" type="button">Pflege jetzt anwenden</button>
+    </div>
+  </section>
+
+  <section id="eventSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Ereignis</h2>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schliessen">X</button>
+    </header>
+    <div class="sheet-content">
+      <p id="eventStateBadge" class="sheet-badge">Status: inaktiv</p>
+      <h3 id="eventTitle">Kein aktives Ereignis</h3>
+      <p id="eventText">Ereignisdetails erscheinen hier, sobald ein Ereignis aktiv ist.</p>
+      <p id="eventMeta" class="sheet-note">Abklingzeit: bereit</p>
+      <div id="eventOptionList" class="event-option-list"></div>
+    </div>
+  </section>
+
+  <section id="dashboardSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Analyse / Protokoll</h2>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schliessen">X</button>
+    </header>
+    <div class="sheet-content">
+      <div class="sheet-row">
+        <button id="pushSubscribeBtn" class="action-btn action-secondary" type="button">Push aktivieren</button>
+        <button id="clearLogBtn" class="ghost-btn" type="button">Protokoll leeren</button>
+      </div>
+      <p class="sheet-note">Letztes Ereignis: <strong id="lastEventValue">-</strong></p>
+      <p class="sheet-note">Letzte Wahl: <strong id="lastChoiceValue">-</strong></p>
+      <p class="sheet-note">Stub-Endpunkte: <code>/api/push/subscribe</code> und <code>/api/push/schedule</code>.</p>
+      <ul id="logList" class="log-list"></ul>
+    </div>
+  </section>
+
+  <section id="diagnosisSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Diagnose</h2>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schliessen">X</button>
+    </header>
+    <div class="sheet-content">
+      <p>Dieses MVP enthaelt ein gesperrtes Platzhaltermodul fuer Diagnose.</p>
+      <ul class="diagnosis-list">
+        <li>Wahrscheinlichkeits-Heatmap fuer Pathogene (Pro)</li>
+        <li>Zerlegung der Naehrstofftrends (Pro)</li>
+        <li>Vorhersage fuer Wurzelstress (Pro)</li>
+      </ul>
+    </div>
+  </section>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
