@@ -34,7 +34,7 @@ body {
   background:
     radial-gradient(circle at 50% 35%, rgba(122, 184, 102, 0.22) 0%, rgba(11, 18, 31, 0) 44%),
     linear-gradient(165deg, rgba(4, 8, 16, 0.92) 0%, rgba(5, 9, 18, 0.82) 36%, rgba(6, 10, 18, 0.96) 100%),
-    url("/assets/backgrounds/bg_dark_01.jpg");
+    url("assets/backgrounds/bg_dark_01.jpg");
   background-size: cover;
   background-position: center;
 }

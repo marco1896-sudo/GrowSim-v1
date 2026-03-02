@@ -34,6 +34,8 @@ const PROD_COOLDOWN_MS = CONFIG.timing.prodCooldownMs;
 const BOOST_ADVANCE_MS = CONFIG.boostAdvanceMs;
 const MAX_HISTORY_LOG = CONFIG.maxHistoryLog;
 const PERSIST_THROTTLE_MS = CONFIG.persistThrottleMs;
+const MAX_ELAPSED_PER_TICK_MS = 5 * 60 * 1000;
+const APP_BASE_PATH = resolveAppBasePath();
 
 const DB_NAME = 'grow-sim-db';
 const DB_STORE = 'kv';
@@ -146,6 +148,9 @@ document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
   cacheUi();
+  if (!ensureRequiredUi()) {
+    return;
+  }
   bindUi();
   applyBackgroundAsset();
   await registerServiceWorker();
@@ -155,6 +160,7 @@ async function init() {
   await loadEventCatalog();
 
   ensureStateIntegrity(Date.now());
+  syncRuntimeClocks(Date.now());
   syncActiveEventFromCatalog();
   updateVisibleOverlays();
   addLog('system', 'Runtime initialisiert', {
@@ -244,7 +250,7 @@ function bindUi() {
 
 function tick() {
   const nowMs = Date.now();
-  const elapsedMs = Math.max(0, nowMs - state.sim.lastTickAtMs);
+  const elapsedMs = clamp(nowMs - state.sim.lastTickAtMs, 0, MAX_ELAPSED_PER_TICK_MS);
   const prevOpenSheet = state.ui.openSheet;
 
   state.sim.nowMs = nowMs;
@@ -274,6 +280,27 @@ function tick() {
   renderEventSheet();
   renderLogList();
   schedulePersistState();
+}
+
+function ensureRequiredUi() {
+  const requiredKeys = [
+    'statusPill', 'healthRing', 'stressRing', 'waterRing', 'nutritionRing', 'growthRing', 'riskRing',
+    'healthValue', 'stressValue', 'waterValue', 'nutritionValue', 'growthValue', 'riskValue',
+    'plantImage', 'nextEventValue', 'growthImpulseValue', 'simTimeValue', 'boostUsageText',
+    'overlayBurn', 'overlayDefMg', 'overlayDefN', 'overlayMoldWarning', 'overlayPestMites', 'overlayPestThrips',
+    'careActionBtn', 'analyzeActionBtn', 'boostActionBtn', 'openDiagnosisBtn',
+    'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
+    'confirmCareBtn', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
+    'pushSubscribeBtn', 'clearLogBtn', 'lastEventValue', 'lastChoiceValue', 'logList'
+  ];
+
+  const missing = requiredKeys.filter((key) => !ui[key]);
+  if (missing.length) {
+    console.error('GrowSim konnte nicht initialisiert werden. Fehlende UI-Elemente:', missing);
+    return false;
+  }
+
+  return true;
 }
 
 function applyStatusDrift(elapsedMs) {
@@ -1048,13 +1075,13 @@ function clampInt(value, min, max) {
 }
 
 function plantAssetPath(stageName) {
-  return `/assets/plant/${stageName}`;
+  return appPath(`assets/plant/${stageName}`);
 }
 
 function applyBackgroundAsset() {
   const bg = state.ui.selectedBackground === 'bg_dark_02.jpg'
-    ? '/assets/backgrounds/bg_dark_02.jpg'
-    : '/assets/backgrounds/bg_dark_01.jpg';
+    ? appPath('assets/backgrounds/bg_dark_02.jpg')
+    : appPath('assets/backgrounds/bg_dark_01.jpg');
 
   document.body.style.backgroundImage = `linear-gradient(135deg, rgba(7, 10, 17, 0.93) 0%, rgba(9, 14, 24, 0.88) 100%), url('${bg}')`;
 }
@@ -1248,13 +1275,18 @@ function ensureStateIntegrity(nowMs) {
   }
 }
 
+function syncRuntimeClocks(nowMs) {
+  state.sim.nowMs = nowMs;
+  state.sim.lastTickAtMs = nowMs;
+}
+
 async function loadEventCatalog() {
   try {
     let response = null;
     try {
-      response = await fetch(`/data/events.json?v=${EVENTS_CATALOG_VERSION}`, { cache: 'no-store' });
+      response = await fetch(appPath(`data/events.json?v=${EVENTS_CATALOG_VERSION}`), { cache: 'no-store' });
     } catch (_error) {
-      response = await fetch('/data/events.json', { cache: 'default' });
+      response = await fetch(appPath('data/events.json'), { cache: 'default' });
     }
 
     if (!response.ok) {
@@ -1457,7 +1489,7 @@ async function registerServiceWorker() {
   }
 
   try {
-    await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.register(appPath('sw.js'));
   } catch (_error) {
     // SW registration failures should not block app usage.
   }
@@ -1492,7 +1524,7 @@ async function onPushSubscribe() {
     localStorage.setItem(PUSH_SUB_KEY, JSON.stringify(subscription.toJSON()));
 
     // TODO: Replace stub call when backend is implemented.
-    await postJsonStub('/api/push/subscribe', {
+    await postJsonStub(appPath('api/push/subscribe'), {
       createdAt: Date.now(),
       subscription: subscription.toJSON()
     });
@@ -1531,7 +1563,7 @@ async function schedulePushIfAllowed(force) {
   }
 
   // TODO: Replace stub call when backend is implemented.
-  await postJsonStub('/api/push/schedule', {
+  await postJsonStub(appPath('api/push/schedule'), {
     nextEventAt: state.event.nextEventAtMs,
     cooldownUntil: state.event.cooldownUntilMs,
     subscription: subscriptionPayload
@@ -1597,4 +1629,18 @@ function dbSet(db, key, value) {
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve();
   });
+}
+
+function resolveAppBasePath() {
+  const path = window.location.pathname || '/';
+  if (path === '/' || path.endsWith('/index.html')) {
+    const base = path.replace(/\/index\.html$/, '').replace(/\/$/, '');
+    return base;
+  }
+  return path.replace(/\/$/, '');
+}
+
+function appPath(relativePath) {
+  const normalized = String(relativePath || '').replace(/^\//, '');
+  return `${APP_BASE_PATH}/${normalized}`.replace(/\/\/+/g, '/');
 }

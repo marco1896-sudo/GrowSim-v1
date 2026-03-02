@@ -1,18 +1,24 @@
 const CACHE_VERSION = 'growsim-v1-20260301';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
+const BASE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
+
+function appPath(relativePath) {
+  const normalized = String(relativePath || '').replace(/^\//, '');
+  return `${BASE_PATH}/${normalized}`.replace(/\/\/+/g, '/');
+}
 
 const APP_SHELL_FILES = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/manifest.webmanifest',
-  '/data/events.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/assets/backgrounds/bg_dark_01.jpg',
-  '/assets/backgrounds/bg_dark_02.jpg'
+  appPath(''),
+  appPath('index.html'),
+  appPath('styles.css'),
+  appPath('app.js'),
+  appPath('manifest.webmanifest'),
+  appPath('data/events.json'),
+  appPath('icons/icon-192.png'),
+  appPath('icons/icon-512.png'),
+  appPath('assets/backgrounds/bg_dark_01.jpg'),
+  appPath('assets/backgrounds/bg_dark_02.jpg')
 ];
 
 self.addEventListener('install', (event) => {
@@ -47,12 +53,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname.startsWith('/assets/')) {
+  if (url.pathname.startsWith(appPath('assets/'))) {
     event.respondWith(cacheFirst(event.request));
     return;
   }
 
-  if (url.pathname === '/data/events.json') {
+  if (url.pathname === appPath('data/events.json')) {
     event.respondWith(networkFirst(event.request, SHELL_CACHE));
     return;
   }
@@ -119,11 +125,11 @@ async function navigationFallback(request) {
   try {
     const fresh = await fetch(request);
     const shellCache = await caches.open(SHELL_CACHE);
-    shellCache.put('/index.html', fresh.clone());
+    shellCache.put(appPath('index.html'), fresh.clone());
     return fresh;
   } catch (_error) {
     const shellCache = await caches.open(SHELL_CACHE);
-    return shellCache.match('/index.html');
+    return shellCache.match(appPath('index.html'));
   }
 }
 
@@ -149,10 +155,10 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
+      icon: appPath('icons/icon-192.png'),
+      badge: appPath('icons/icon-192.png'),
       data: {
-        url: `/#event=${encodeURIComponent(payload.eventId || 'unknown')}`
+        url: `${appPath('')}#event=${encodeURIComponent(payload.eventId || 'unknown')}`
       }
     })
   );
@@ -160,7 +166,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) || '/';
+  const targetUrl = (event.notification.data && event.notification.data.url) || appPath('');
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
