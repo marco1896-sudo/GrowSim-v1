@@ -211,6 +211,7 @@ const state = {
 };
 
 const ui = {};
+const warnedUiKeys = new Set();
 let storageAdapter = null;
 let tickHandle = null;
 let persistTimer = null;
@@ -362,7 +363,10 @@ function bindUi() {
   ui.startRunBtn.addEventListener('click', onStartRun);
   ui.backdrop.addEventListener('click', closeSheet);
 
-  const analysisTabs = [ui.analysisTabOverview, ui.analysisTabDiagnosis, ui.analysisTabTimeline];
+  const analysisTabs = [ui.analysisTabOverview, ui.analysisTabDiagnosis, ui.analysisTabTimeline].filter(Boolean);
+  if (!analysisTabs.length) {
+    warnMissingUiOnce('analysisTabs');
+  }
   for (const tab of analysisTabs) {
     tab.addEventListener('click', () => {
       state.ui.analysis.activeTab = tab.dataset.analysisTab || 'overview';
@@ -1687,12 +1691,25 @@ function renderEventSheet() {
   }
 }
 
+function warnMissingUiOnce(key) {
+  if (warnedUiKeys.has(key)) {
+    return;
+  }
+  warnedUiKeys.add(key);
+  console.warn(`Missing analysis UI element: ${key}`);
+}
+
 function renderAnalysisPanel(force = false) {
   if (!force && state.ui.openSheet !== 'dashboard') {
     return;
   }
 
-  const activeTab = state.ui.analysis && state.ui.analysis.activeTab ? state.ui.analysis.activeTab : 'overview';
+  if (!ui.analysisTabOverview || !ui.analysisTabDiagnosis || !ui.analysisTabTimeline || !ui.analysisPanelOverview || !ui.analysisPanelDiagnosis || !ui.analysisPanelTimeline) {
+    warnMissingUiOnce('analysis-panel');
+    return;
+  }
+
+  const activeTab = (state.ui.analysis && state.ui.analysis.activeTab) ? state.ui.analysis.activeTab : 'overview';
   const tabMap = {
     overview: ui.analysisPanelOverview,
     diagnosis: ui.analysisPanelDiagnosis,
@@ -1713,29 +1730,42 @@ function renderAnalysisPanel(force = false) {
 }
 
 function renderAnalysisOverview() {
+  if (!ui.analysisPanelOverview) {
+    warnMissingUiOnce('analysisPanelOverview');
+    return;
+  }
+
   const stageNames = {
     1: 'Germination', 2: 'Seedling', 3: 'Early Vegetative', 4: 'Vegetative', 5: 'Late Vegetative', 6: 'Pre-flower',
     7: 'Stretch', 8: 'Early Flower', 9: 'Flower', 10: 'Late Flower', 11: 'Ripening', 12: 'Harvest Ready'
   };
 
-  const stageIndex = state.plant.stageIndex || 1;
-  const dayNight = state.simulation.isDaytime ? 'Day' : 'Night';
+  const stageIndex = Number(state.plant && state.plant.stageIndex) || 1;
+  const qualityTier = (state.plant && state.plant.lifecycle && state.plant.lifecycle.qualityTier) || 'normal';
+  const dayNight = (state.simulation && state.simulation.isDaytime) ? 'Day' : 'Night';
+  const simDay = Number(state.simulation && state.simulation.simDay) || 0;
+  const status = state.status || {};
 
   ui.analysisPanelOverview.innerHTML = `
-    <div class="analysis-metric"><strong>Stage ${stageIndex}: ${stageNames[stageIndex] || '-'}</strong><br>Quality: ${(state.plant.lifecycle && state.plant.lifecycle.qualityTier) || 'normal'}</div>
-    <div class="analysis-metric"><strong>${dayNight}</strong><br>Sim Day ${state.simulation.simDay}</div>
-    <div class="analysis-metric-grid">
-      <div class="analysis-metric">Water<br><strong>${round2(state.status.water)}</strong></div>
-      <div class="analysis-metric">Nutrition<br><strong>${round2(state.status.nutrition)}</strong></div>
-      <div class="analysis-metric">Health<br><strong>${round2(state.status.health)}</strong></div>
-      <div class="analysis-metric">Stress<br><strong>${round2(state.status.stress)}</strong></div>
-      <div class="analysis-metric">Risk<br><strong>${round2(state.status.risk)}</strong></div>
-      <div class="analysis-metric">Growth<br><strong>${round2(state.status.growth)}</strong></div>
+    <div class="gs-analysis-metric"><strong>Stage ${stageIndex}: ${stageNames[stageIndex] || '-'}</strong><br>Quality: ${escapeHtml(String(qualityTier))}</div>
+    <div class="gs-analysis-metric"><strong>${dayNight}</strong><br>Sim Day ${simDay}</div>
+    <div class="gs-analysis-metric-grid">
+      <div class="gs-analysis-metric">Water<br><strong>${round2(Number(status.water) || 0)}</strong></div>
+      <div class="gs-analysis-metric">Nutrition<br><strong>${round2(Number(status.nutrition) || 0)}</strong></div>
+      <div class="gs-analysis-metric">Health<br><strong>${round2(Number(status.health) || 0)}</strong></div>
+      <div class="gs-analysis-metric">Stress<br><strong>${round2(Number(status.stress) || 0)}</strong></div>
+      <div class="gs-analysis-metric">Risk<br><strong>${round2(Number(status.risk) || 0)}</strong></div>
+      <div class="gs-analysis-metric">Growth<br><strong>${round2(Number(status.growth) || 0)}</strong></div>
     </div>
   `;
 }
 
 function renderAnalysisDiagnosis() {
+  if (!ui.analysisPanelDiagnosis) {
+    warnMissingUiOnce('analysisPanelDiagnosis');
+    return;
+  }
+
   const drivers = diagnosisDrivers();
   const top = drivers.slice(0, 3);
   const recommendation = recommendedCareCategory(top[0]);
@@ -1744,27 +1774,32 @@ function renderAnalysisDiagnosis() {
 
   for (const item of top) {
     const node = document.createElement('div');
-    node.className = 'driver-item';
-    node.innerHTML = `<strong>${item.label}</strong><br>${item.reason}`;
+    node.className = 'gs-analysis-driver';
+    node.innerHTML = `<strong>${escapeHtml(item.label)}</strong><br>${escapeHtml(item.reason)}`;
     ui.analysisPanelDiagnosis.appendChild(node);
   }
 
   const rec = document.createElement('div');
-  rec.className = 'driver-item';
-  rec.innerHTML = `<strong>Recommended next care:</strong> ${recommendation}`;
+  rec.className = 'gs-analysis-driver';
+  rec.innerHTML = `<strong>Recommended next care:</strong> ${escapeHtml(recommendation)}`;
   ui.analysisPanelDiagnosis.appendChild(rec);
 }
 
 function diagnosisDrivers() {
   const d = [];
-  const s = state.status;
+  const s = state.status || {};
+  const stageIndex = Number(state.plant && state.plant.stageIndex) || 1;
 
-  if (s.water < 35) d.push({ score: 100 - s.water, label: 'Water Deficit', reason: 'Too dry increases stress' });
-  if (s.water > 80) d.push({ score: s.water, label: 'Overwatering', reason: 'Overwatering increases risk' });
-  if (s.nutrition < 35) d.push({ score: 95 - s.nutrition, label: 'Nutrition Deficit', reason: 'Underfeeding slows growth' });
-  if (s.nutrition > 80) d.push({ score: s.nutrition, label: 'Nutrition Excess', reason: 'Nutrient burn risk' });
-  if (s.stress > 60) d.push({ score: s.stress + 10, label: 'High Stress', reason: 'High stress blocks best ending' });
-  if (s.risk > 60) d.push({ score: s.risk + 8, label: 'High Risk', reason: 'High risk increases negative events' });
+  if ((Number(s.water) || 0) < 35) d.push({ score: 100 - s.water, label: 'Water Deficit', reason: 'Too dry increases stress' });
+  if ((Number(s.water) || 0) > 80) d.push({ score: s.water, label: 'Overwatering', reason: 'Overwatering increases risk' });
+  if ((Number(s.nutrition) || 0) < 35) d.push({ score: 95 - s.nutrition, label: 'Nutrition Deficit', reason: 'Underfeeding slows growth' });
+  if ((Number(s.nutrition) || 0) > 80) d.push({ score: s.nutrition, label: 'Nutrition Excess', reason: 'Nutrient burn risk' });
+  if ((Number(s.stress) || 0) > 60) d.push({ score: s.stress + 10, label: 'High Stress', reason: 'High stress blocks best ending' });
+  if ((Number(s.risk) || 0) > 60) d.push({ score: s.risk + 8, label: 'High Risk', reason: 'High risk increases negative events' });
+
+  if (stageIndex <= 3 && (Number(s.health) || 0) < 65) {
+    d.push({ score: 70 - (Number(s.health) || 0), label: 'Early Stage Fragility', reason: 'Early stages need stable water and nutrition' });
+  }
 
   if (!d.length) {
     d.push({ score: 1, label: 'Stable State', reason: 'No major deficit detected' });
@@ -1788,26 +1823,42 @@ function recommendedCareCategory(primaryDriver) {
 }
 
 function renderAnalysisTimeline() {
-  const actions = Array.isArray(state.history.actions) ? state.history.actions : [];
-  const events = Array.isArray(state.history.events) ? state.history.events : [];
+  if (!ui.analysisPanelTimeline) {
+    warnMissingUiOnce('analysisPanelTimeline');
+    return;
+  }
+
+  const actions = Array.isArray(state.history && state.history.actions) ? state.history.actions : [];
+  const events = Array.isArray(state.history && state.history.events) ? state.history.events : [];
+  const simNow = Number(state.simulation && state.simulation.simTimeMs) || 0;
 
   const merged = [];
   for (const item of actions) {
-    merged.push({ kind: 'action', atRealTimeMs: item.atRealTimeMs || 0, atSimTimeMs: item.atSimTimeMs || state.simulation.simTimeMs, data: item });
+    merged.push({
+      kind: 'action',
+      atRealTimeMs: Number(item.atRealTimeMs || item.realTime || 0),
+      atSimTimeMs: Number(item.atSimTimeMs || item.simTime || simNow),
+      data: item
+    });
   }
   for (const item of events) {
-    merged.push({ kind: 'event', atRealTimeMs: item.atRealTimeMs || 0, atSimTimeMs: item.atSimTimeMs || state.simulation.simTimeMs, data: item });
+    merged.push({
+      kind: 'event',
+      atRealTimeMs: Number(item.atRealTimeMs || item.realTime || 0),
+      atSimTimeMs: Number(item.atSimTimeMs || item.simTime || simNow),
+      data: item
+    });
   }
 
-  merged.sort((a, b) => b.atRealTimeMs - a.atRealTimeMs);
+  merged.sort((a, b) => (b.atRealTimeMs || b.atSimTimeMs) - (a.atRealTimeMs || a.atSimTimeMs));
   const latest = merged.slice(0, 10);
 
   ui.analysisPanelTimeline.replaceChildren();
 
   if (!latest.length) {
     const empty = document.createElement('div');
-    empty.className = 'timeline-item';
-    empty.textContent = 'No action/event history yet.';
+    empty.className = 'gs-analysis-timeline-item';
+    empty.textContent = 'No activity yet';
     ui.analysisPanelTimeline.appendChild(empty);
     return;
   }
@@ -1815,15 +1866,15 @@ function renderAnalysisTimeline() {
   for (const row of latest) {
     const simStamp = simStampFromMs(row.atSimTimeMs);
     const node = document.createElement('div');
-    node.className = 'timeline-item';
+    node.className = 'gs-analysis-timeline-item';
 
     if (row.kind === 'action') {
-      const d = row.data;
-      node.innerHTML = `<div class="timeline-meta">${simStamp} · Action</div><strong>${d.label || d.id || 'Action'}</strong><br>${formatDeltaSummary(d.deltaSummary || {})}`;
+      const d = row.data || {};
+      node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · Action</div><strong>${escapeHtml(String(d.label || d.id || 'Action'))}</strong><br>${formatDeltaSummary(d.deltaSummary || {})}`;
     } else {
-      const d = row.data;
+      const d = row.data || {};
       const note = d.learningNote ? `<details><summary>Learning note</summary>${escapeHtml(String(d.learningNote))}</details>` : '';
-      node.innerHTML = `<div class="timeline-meta">${simStamp} · Event (${escapeHtml(String(d.category || 'generic'))})</div><strong>${escapeHtml(String(d.optionLabel || d.optionId || d.eventId || 'Event'))}</strong><br>${formatDeltaSummary(d.effectsApplied || d.deltaSummary || {})}${note}`;
+      node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · Event (${escapeHtml(String(d.category || 'generic'))})</div><strong>${escapeHtml(String(d.optionLabel || d.optionId || d.eventId || 'Event'))}</strong><br>${formatDeltaSummary(d.effectsApplied || d.deltaSummary || {})}${note}`;
     }
 
     ui.analysisPanelTimeline.appendChild(node);

@@ -146,15 +146,15 @@
       <button class="sheet-close" data-close-sheet type="button" aria-label="Schliessen">X</button>
     </header>
     <div class="sheet-content analysis-content">
-      <div class="analysis-tabs" role="tablist" aria-label="Analyse Tabs">
-        <button id="analysisTabOverview" class="analysis-tab is-active" data-analysis-tab="overview" type="button">Overview</button>
-        <button id="analysisTabDiagnosis" class="analysis-tab" data-analysis-tab="diagnosis" type="button">Diagnosis</button>
-        <button id="analysisTabTimeline" class="analysis-tab" data-analysis-tab="timeline" type="button">Timeline</button>
+      <div class="gs-analysis-tabs" role="tablist" aria-label="Analyse Tabs">
+        <button id="analysisTabOverview" class="gs-analysis-tab is-active" data-analysis-tab="overview" type="button">Overview</button>
+        <button id="analysisTabDiagnosis" class="gs-analysis-tab" data-analysis-tab="diagnosis" type="button">Diagnosis</button>
+        <button id="analysisTabTimeline" class="gs-analysis-tab" data-analysis-tab="timeline" type="button">Timeline</button>
       </div>
 
-      <section id="analysisPanelOverview" class="analysis-panel" aria-live="polite"></section>
-      <section id="analysisPanelDiagnosis" class="analysis-panel hidden" aria-live="polite"></section>
-      <section id="analysisPanelTimeline" class="analysis-panel hidden" aria-live="polite"></section>
+      <section id="analysisPanelOverview" class="gs-analysis-panel gs-analysis-overview" aria-live="polite"></section>
+      <section id="analysisPanelDiagnosis" class="gs-analysis-panel gs-analysis-diagnosis hidden" aria-live="polite"></section>
+      <section id="analysisPanelTimeline" class="gs-analysis-panel gs-analysis-timeline hidden" aria-live="polite"></section>
     </div>
   </section>
 
