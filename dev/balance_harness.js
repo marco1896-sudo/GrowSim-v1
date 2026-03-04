@@ -148,9 +148,10 @@ function chooseOption(state, ev, strategy, seedKey) {
   if (!opts.length) return null;
   const scoreOption = (opt) => {
     const e = opt.effects || {};
-    if (strategy === 'aggressive') return (e.growth || 0) * 2 + (e.health || 0) - (e.stress || 0) - (e.risk || 0);
+    if (strategy === 'aggressive') return (e.growth || 0) * 2.4 + (e.health || 0) - (e.stress || 0) * 0.9 - (e.risk || 0) * 0.9;
     if (strategy === 'neglect') return -((e.stress || 0) + (e.risk || 0));
-    return (e.health || 0) - (e.stress || 0) - (e.risk || 0) + (e.growth || 0);
+    // careful: strongly prioritize low stress/risk and stable health
+    return (e.health || 0) * 2.2 - (e.stress || 0) * 3.6 - (e.risk || 0) * 3.2 + (e.water || 0) * 0.25 + (e.nutrition || 0) * 0.25;
   };
   const sorted = opts.slice().sort((a, b) => scoreOption(b) - scoreOption(a) || a.id.localeCompare(b.id));
   if (strategy === 'neglect') {
@@ -178,11 +179,17 @@ function chooseAction(state, actionsByCat, strategy, seed) {
     if (u < 0.92) return null;
   }
 
+  if (strategy === 'careful') {
+    if (s.stress > 22 || s.risk > 28) return tryPick('environment', 'low') || tryPick('environment', 'medium') || tryPick('environment');
+    if (s.water < 58) return tryPick('watering', 'low') || tryPick('watering', 'medium') || tryPick('watering');
+    if (s.nutrition < 58) return tryPick('fertilizing', 'low') || tryPick('fertilizing', 'medium') || tryPick('fertilizing');
+    return tryPick('environment', 'low') || tryPick('watering', 'low') || null;
+  }
+
   if (s.water < 45) return tryPick('watering', strategy === 'aggressive' ? 'high' : 'medium') || tryPick('watering');
   if (s.nutrition < 45) return tryPick('fertilizing', strategy === 'aggressive' ? 'high' : 'medium') || tryPick('fertilizing');
   if (s.stress > 55 || s.risk > 55) return tryPick('environment', strategy === 'aggressive' ? 'medium' : 'low') || tryPick('environment');
   if (strategy === 'aggressive') return tryPick('training', 'high') || tryPick('training', 'medium');
-  if (strategy === 'careful') return tryPick('training', 'low') || tryPick('environment', 'low');
   return null;
 }
 
@@ -257,16 +264,39 @@ function runOne(seed, strategy, actions, events) {
 
     applyOvertime(state, TIME_COMPRESSION);
 
-    // passive drift
-    state.status.water = clamp(state.status.water - 0.03 * TIME_COMPRESSION, 0, 100);
-    state.status.nutrition = clamp(state.status.nutrition - 0.01 * TIME_COMPRESSION, 0, 100);
-    state.status.stress = clamp(state.status.stress + (state.simulation.isDaytime ? 0.002 : -0.001) * TIME_COMPRESSION, 0, 100);
-    state.status.risk = clamp(state.status.risk + (state.status.stress > 60 ? 0.004 : 0.001) * TIME_COMPRESSION, 0, 100);
-    state.status.health = clamp(state.status.health + (state.status.water < 35 ? -0.01 : 0.002) * TIME_COMPRESSION - (state.status.risk > 60 ? 0.01 : 0), 0, 100);
-    state.status.growth = clamp(state.status.growth + (state.status.health > 70 ? 0.01 : -0.005) * TIME_COMPRESSION, 0, 100);
+    // passive drift with recovery band
+    state.status.water = clamp(state.status.water - 0.028 * TIME_COMPRESSION, 0, 100);
+    state.status.nutrition = clamp(state.status.nutrition - 0.008 * TIME_COMPRESSION, 0, 100);
 
-    // strategy action every 30 real min
-    if (state.simulation.realMinutes % 30 === 0) {
+    const inRecoveryBand = (
+      state.status.water >= 45 && state.status.water <= 72 &&
+      state.status.nutrition >= 45 && state.status.nutrition <= 72 &&
+      state.status.stress < 42
+    );
+
+    let stressDelta = (state.simulation.isDaytime ? 0.0008 : -0.0014) * TIME_COMPRESSION;
+    if (inRecoveryBand) stressDelta -= 0.0038 * TIME_COMPRESSION;
+    if (state.status.water < 30) stressDelta += 0.0055 * TIME_COMPRESSION;
+    if (state.status.nutrition < 30) stressDelta += 0.0048 * TIME_COMPRESSION;
+    state.status.stress = clamp(state.status.stress + stressDelta, 0, 100);
+
+    let riskDelta = (state.status.stress > 60 ? 0.0026 : 0.0006) * TIME_COMPRESSION;
+    if (inRecoveryBand) riskDelta -= 0.0023 * TIME_COMPRESSION;
+    if (state.status.water > 88 || state.status.water < 18) riskDelta += 0.0032 * TIME_COMPRESSION;
+    state.status.risk = clamp(state.status.risk + riskDelta, 0, 100);
+
+    let healthDelta = -0.0004 * TIME_COMPRESSION;
+    healthDelta -= (state.status.stress / 100) * 0.0032 * TIME_COMPRESSION;
+    healthDelta -= (state.status.risk / 100) * 0.0027 * TIME_COMPRESSION;
+    if (inRecoveryBand && state.status.risk <= 45) {
+      healthDelta += 0.0078 * TIME_COMPRESSION;
+    }
+    state.status.health = clamp(state.status.health + healthDelta, 0, 100);
+
+    state.status.growth = clamp(state.status.growth + (state.status.health > 70 ? 0.01 : -0.004) * TIME_COMPRESSION, 0, 100);
+
+    const actionInterval = strategy === 'careful' ? 10 : 30;
+    if (state.simulation.realMinutes % actionInterval === 0) {
       const action = chooseAction(state, byCat, strategy, seed);
       if (action) {
         if ((state.actions.cooldowns[action.id] || 0) > state.simulation.realMinutes) {

@@ -506,31 +506,39 @@ function applyStatusDrift(elapsedMs) {
     return;
   }
 
-  state.status.water -= 0.35 * minutes;
-  state.status.nutrition -= 0.2 * minutes;
+  state.status.water -= 0.33 * minutes;
+  state.status.nutrition -= 0.16 * minutes;
 
-  // Good conditions lower stress slowly; deficits increase it.
-  let stressDelta = 0.08 * minutes;
-  if (state.status.water >= 55 && state.status.nutrition >= 50 && state.status.risk <= 40) {
-    stressDelta -= 0.24 * minutes;
+  const inRecoveryBand = (
+    state.status.water >= 45 && state.status.water <= 72 &&
+    state.status.nutrition >= 45 && state.status.nutrition <= 72 &&
+    state.status.stress < 42
+  );
+
+  let stressDelta = 0.06 * minutes;
+  if (inRecoveryBand) {
+    stressDelta -= 0.26 * minutes;
   }
   if (state.status.water < 30) {
-    stressDelta += 0.45 * minutes;
+    stressDelta += 0.42 * minutes;
   }
   if (state.status.nutrition < 30) {
-    stressDelta += 0.35 * minutes;
+    stressDelta += 0.32 * minutes;
   }
   state.status.stress += stressDelta;
 
-  let riskDelta = 0.08 * minutes + ((state.status.stress / 100) * 0.26 * minutes);
+  let riskDelta = 0.05 * minutes + ((state.status.stress / 100) * 0.22 * minutes);
+  if (inRecoveryBand) {
+    riskDelta -= 0.14 * minutes;
+  }
   if (state.status.water > 90 || state.status.water < 18) {
-    riskDelta += 0.36 * minutes;
+    riskDelta += 0.32 * minutes;
   }
   state.status.risk += riskDelta;
 
-  let healthDelta = (-0.04 * minutes) - ((state.status.stress / 100) * 0.52 * minutes) - ((state.status.risk / 100) * 0.38 * minutes);
-  if (state.status.water >= 50 && state.status.nutrition >= 45 && state.status.stress <= 35 && state.status.risk <= 35) {
-    healthDelta += 0.22 * minutes;
+  let healthDelta = (-0.02 * minutes) - ((state.status.stress / 100) * 0.44 * minutes) - ((state.status.risk / 100) * 0.30 * minutes);
+  if (inRecoveryBand && state.status.risk <= 45) {
+    healthDelta += 0.36 * minutes;
   }
   state.status.health += healthDelta;
 
