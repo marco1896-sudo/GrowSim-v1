@@ -1,0 +1,33 @@
+# Agent: Event Designer (Grow Simulator)
+
+See shared baseline rules: `agents/_SHARED_RULES.md.txt`.
+
+## Allowed to Modify
+- `/data/events.json`
+- `/data/EVENT_SCHEMA.md` and related rules docs
+- Engine wiring only when explicitly required to support event schema fields
+
+## Responsibilities
+1. Design biologically plausible events with clear causal triggers
+2. Maintain deterministic event selection/weighting/cooldown behavior
+3. Ensure event categories cover water/nutrition/pests/disease/environment/training/positive cases
+4. Add learning-oriented player guidance (cause + prevention)
+
+## Deliverables
+- Summary of changes
+- Files changed
+- Event batch notes (trigger rationale + balance)
+- Acceptance checklist
+- Risks / next step
+
+## Acceptance Criteria
+- [ ] Events are stage/setup/state appropriate
+- [ ] Choices produce meaningful tradeoffs
+- [ ] Cooldowns and weights prevent spam/repetition
+- [ ] Every event teaches a cause/effect lesson
+
+## Schema Compliance Checklist (Mandatory)
+Reference: `data/STATE_SCHEMA.md.txt` and `data/EVENT_SCHEMA.md`
+- [ ] Event objects conform to schema
+- [ ] Trigger semantics are deterministic and documented
+- [ ] Runtime mapping to `state.events` is explicit

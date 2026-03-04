@@ -1,0 +1,434 @@
+
+# Grow Simulator — Runtime State Schema
+
+This document defines the canonical runtime `state` structure for Grow Simulator.
+All agents and code must follow this schema to avoid drift.
+
+Rules:
+- State must be deterministic and serializable (JSON safe).
+- Entire state must be persistable in localStorage as ONE object.
+- No uncontrolled randomness (`Math.random()` forbidden). Use seeded PRNG only.
+- All primary plant condition values are clamped to 0..100.
+- Prefer adding new fields under existing namespaces; do not create new top-level keys unless necessary.
+
+---
+
+## 0) Root Object
+
+```js
+state = {
+  schemaVersion,      // string, e.g. "1.0.0"
+  seed,               // string|number (global seed)
+  plantId,            // string (stable id)
+
+  setup,              // player setup choices (onboarding)
+  simulation,         // time model + day/night
+  plant,              // stage/lifecycle + asset keys
+  status,             // core condition metrics (0..100)
+
+  actions,            // catalog + cooldowns + active overtime effects
+  events,             // scheduler + event history (runtime)
+  history,            // user-facing logs (actions/events/system)
+
+  ui,                 // non-critical UI state (optional)
+  debug               // debug flags (optional; safe defaults)
+}
+````
+
+Persistence key recommendation:
+
+* `localStorage["growSimState"] = JSON.stringify(state)`
+
+---
+
+## 1) Versioning
+
+```js
+state.schemaVersion = "1.0.0"
+```
+
+Guidelines:
+
+* Bump patch for new optional fields.
+* Bump minor for new required fields with defaults.
+* Bump major for breaking schema changes.
+
+---
+
+## 2) Setup (Onboarding Profile)
+
+Holds the player’s initial configuration. This must be stable and used to weight events and baseline parameters.
+
+```js
+state.setup = {
+  mode,          // "indoor" | "outdoor" | "greenhouse"
+  light,         // "low" | "medium" | "high"  (or "led"|"hps"|"sun" later)
+  medium,        // "soil" | "coco" | "hydro"
+  potSize,       // "small" | "medium" | "large" (or liters later)
+  genetics,      // "auto" | "photo"
+  createdAtReal  // timestamp (ms)
+}
+```
+
+Defaults (if missing):
+
+* mode="indoor", light="medium", medium="soil", potSize="medium", genetics="auto"
+
+---
+
+## 3) Simulation (Time Model)
+
+Tracks simulation time compression and day/night state.
+
+```js
+state.simulation = {
+  startRealTimeMs,     // number (ms)
+  lastTickRealTimeMs,  // number (ms)
+
+  simTimeMs,           // number (ms since sim start)
+  simDay,              // integer >= 0
+  simHour,             // integer 0..23 (derived)
+  simMinute,           // integer 0..59 (derived)
+
+  timeCompression,     // number (simMs per realMs) or equivalent
+
+  dayWindow,           // { startHour: 8, endHour: 22 } // sim-time window
+  isDaytime            // boolean (derived from simHour + dayWindow)
+}
+```
+
+Deterministic rule:
+
+* `simTimeMs` increases via real-time delta * timeCompression.
+* `isDaytime` is computed solely from sim time + dayWindow.
+
+---
+
+## 4) Plant (Lifecycle & Assets)
+
+Plant stage progression and quality.
+
+```js
+state.plant = {
+  stageIndex,          // integer 1..12
+  stageKey,            // "stage_01" ... "stage_12"
+  stageStartSimDay,    // number (can be float if jittered)
+  stageJitterDays,     // optional: per-stage deterministic jitter array/map
+
+  lifecycle: {
+    totalSimDays,      // number, e.g. 56
+    stageTable,        // optional cached stage thresholds (if you cache it)
+    qualityTier,       // "perfect" | "normal" | "degraded"
+    qualityScore       // optional numeric 0..100
+  },
+
+  assets: {
+    basePath,          // e.g. "assets/plant/"
+    resolvedStagePath  // runtime resolved image path for stage
+  }
+}
+```
+
+Quality tier rules (canonical intent):
+
+* Perfect: avgHealth >= 80 AND stress low (per balance rules)
+* Normal: mid range
+* Degraded: low health or high stress
+
+---
+
+## 5) Status (Core Condition Metrics)
+
+Primary plant condition values. All are clamped to 0..100.
+
+```js
+state.status = {
+  water,       // hydration
+  nutrition,   // nutrient availability
+  health,      // overall vitality
+  stress,      // negative accumulation
+  risk,        // probability of negative events
+  growth       // growth momentum/progression modifier
+}
+```
+
+Clamping invariant:
+
+* `0 <= each <= 100`
+
+---
+
+## 6) Actions (Catalog, Cooldowns, Over-Time Effects)
+
+Runtime action system backed by `data/actions.json`.
+
+```js
+state.actions = {
+  catalog,        // array of normalized action objects (from actions.json)
+  byId,           // { [actionId]: actionObject }
+
+  cooldowns: {
+    // maps actionId -> cooldownUntilRealTimeMs
+  },
+
+  activeEffects: [
+    // list of scheduled over-time effects currently active
+    // applied each tick based on sim time (or real time if your engine uses that)
+  ],
+
+  lastResult: {
+    // optional: last applyAction result (for UI feedback)
+    ok, reason, actionId, atRealTimeMs
+  }
+}
+```
+
+Cooldown entry example:
+
+```js
+state.actions.cooldowns = {
+  "watering_medium": 1700000000000
+}
+```
+
+Active effect example:
+
+```js
+{
+  actionId: "fertilizing_low",
+  startedAtSimTimeMs: 12300000,
+  endsAtSimTimeMs: 15300000,
+  perHour: { nutrition: +1, stress: +0.2 },
+  appliedUpToSimTimeMs: 14000000
+}
+```
+
+Deterministic side effects:
+
+* Evaluated with seeded PRNG using seed+plantId+simTime/tickIndex+actionId context.
+
+---
+
+## 7) Events (Scheduler + Runtime)
+
+Runtime scheduling and recent event references.
+
+```js
+state.events = {
+  scheduler: {
+    nextEventRealTimeMs,     // number (ms)
+    lastEventRealTimeMs,     // number (ms)
+    lastEventId,             // string|null
+    deferredUntilDaytime,    // boolean
+    windowRealMinutes: { min: 30, max: 90 } // config reference
+  },
+
+  active: {
+    // currently shown event in UI (optional)
+    id, title, description, options
+  },
+
+  history: [
+    // recent triggered events (compact)
+  ]
+}
+```
+
+Event history entry example:
+
+```js
+{
+  type: "event",
+  id: "water_too_low",
+  atSimTimeMs: 22000000,
+  atRealTimeMs: 1700000000000,
+  choiceId: "water_now",
+  deltaSummary: { water: +10, stress: -2 }
+}
+```
+
+---
+
+## 8) History (User-Facing Timeline)
+
+Unified logs shown in Analysis/Timeline.
+
+```js
+state.history = {
+  actions: [],
+  events: [],
+  system: []
+}
+```
+
+Action history entry (canonical minimum):
+
+```js
+{
+  type: "action",
+  id: "watering_medium",
+  category: "watering",
+  intensity: "medium",
+  label: "Moderate watering",
+  atSimTimeMs: 142000000,
+  atRealTimeMs: 1700000000000,
+  result: "ok" | "blocked",
+  reason: "cooldown_active:123s" | "prereq_failed:water>=40",
+  deltaSummary: { water: +15, stress: -3 },
+  sideEffects: []
+}
+```
+
+System history entry example:
+
+```js
+{
+  type: "system",
+  id: "stage_transition",
+  atSimTimeMs: 150000000,
+  details: { from: 6, to: 7, qualityTier: "normal" }
+}
+```
+
+---
+
+## 9) UI (Optional, Non-Critical)
+
+UI state must be safe to reset anytime and must not affect determinism.
+
+```js
+state.ui = {
+  activeModal,          // "care"|"analysis"|"event"|null
+  care: {
+    selectedCategory,   // "watering"|"fertilizing"|"training"|"environment"|null
+    selectedActionId    // string|null
+  },
+  analysis: {
+    activeTab           // "overview"|"diagnosis"|"timeline"
+  }
+}
+```
+
+Rule:
+
+* UI state must not drive simulation outcomes directly.
+
+---
+
+## 10) Debug (Optional)
+
+```js
+state.debug = {
+  enabled,              // boolean
+  showInternalTicks,    // boolean
+  forceDaytime          // boolean (should be false in production)
+}
+```
+
+---
+
+## 11) Determinism Requirements
+
+All “random” outcomes must derive from a seeded context:
+
+Inputs allowed:
+
+* `state.seed`
+* `state.plantId`
+* `state.simulation.simTimeMs` (or tick index derived from it)
+* `purpose` string (e.g. "event_pick", "side_effect_roll")
+* optional `actionId` / `eventId`
+
+Forbidden:
+
+* direct `Math.random()`
+
+---
+
+## 12) Clamping Rules
+
+All status deltas must apply via clamp:
+
+```js
+function clamp01_100(x) { return Math.max(0, Math.min(100, x)); }
+```
+
+Apply after every:
+
+* action immediate effect
+* action over-time tick
+* event effect
+* passive metabolism tick
+
+---
+
+## 13) Ownership Boundaries (Agents)
+
+* Simulation Architect:
+
+  * state.simulation
+  * state.plant stage progression
+  * scheduler determinism
+
+* Gameplay Designer:
+
+  * data/actions.json semantics
+  * balance rules affecting deltas/cooldowns
+
+* Event Designer:
+
+  * data/events.json, triggers, outcomes
+
+* UI Builder:
+
+  * state.ui only
+  * rendering, input handling
+  * must not change simulation math
+
+---
+
+## 14) Legacy Deprecation Plan (Documentation)
+
+Current runtime still exposes legacy fields in some builds:
+
+- `state.sim`
+- `state.growth`
+- `state.event`
+- `state.historyLog`
+
+Canonical replacements are:
+
+- `state.simulation` (replaces `state.sim`)
+- `state.plant` (replaces `state.growth`)
+- `state.events` (replaces `state.event`)
+- `state.history` (replaces `state.historyLog`)
+
+### Migration intent
+1. Short term: support both shapes, but map legacy -> canonical on boot.
+2. Mid term: canonical fields become the single source of truth.
+3. End state: legacy fields are removed from persisted/runtime state.
+
+### Deprecation policy
+- New features MUST read/write canonical fields first.
+- Legacy writes are temporary compatibility bridges only.
+- Any remaining legacy dependency must be documented in iteration notes.
+
+---
+
+## 15) Migration Defaults
+
+If older saves lack fields, initialize with defaults:
+
+* schemaVersion = "1.0.0"
+* setup defaults as above
+* simulation.dayWindow = { startHour: 8, endHour: 22 }
+* plant.stageIndex = 1, stageKey="stage_01"
+* status default: { water: 50, nutrition: 50, health: 70, stress: 10, risk: 10, growth: 50 }
+* actions: { catalog: [], byId: {}, cooldowns: {}, activeEffects: [] }
+* events: { scheduler: {...}, active: null, history: [] }
+* history: { actions: [], events: [], system: [] }
+* ui: { activeModal: null, care: {...}, analysis: {...} }
+* debug: { enabled:false, showInternalTicks:false, forceDaytime:false }
+
+```
+```

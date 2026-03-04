@@ -1,0 +1,57 @@
+# Grow Simulator — Next 3 Iterations Roadmap (Planning)
+
+## Iteration 1 — Events v2 Engine Wiring (Minimal Subset)
+
+### Goals
+- Introduce runtime support for `data/EVENT_SCHEMA.md` v2 shape.
+- Keep backward compatibility with existing v1 event entries.
+- Ship a minimal v2 subset (5-8 representative events) for validation.
+
+### Scope
+- Normalization layer: v1/v2 -> canonical runtime event model.
+- Trigger evaluator with deterministic eligibility checks.
+- Weighted deterministic event pick with per-event cooldown.
+
+### Acceptance Criteria
+- [ ] v2 events load without breaking v1 fallback
+- [ ] Trigger gating works (stage/setup/status constraints)
+- [ ] Event cooldown and anti-spam behavior validated
+- [ ] Determinism gate passes (repeatable outcomes)
+
+---
+
+## Iteration 2 — Analysis/Diagnosis Panel v1
+
+### Goals
+- Deliver player-facing diagnostics (not internal debug output).
+- Show primary drivers, timeline, and recommendations.
+
+### Scope
+- Driver cards (top contributors to stress/risk/health changes)
+- Timeline list (actions + events + key system transitions)
+- Recommendation block (short, actionable suggestions)
+
+### Acceptance Criteria
+- [ ] No raw debug ticks shown to player
+- [ ] Timeline entries map to canonical history fields
+- [ ] Recommendations reflect current state deterministically
+- [ ] Mobile layout remains stable
+
+---
+
+## Iteration 3 — State Consolidation + app.js Modularization Plan
+
+### Goals
+- Make canonical schema the source of truth.
+- Reduce monolithic risk in `app.js` through clear module boundaries.
+
+### Scope
+- Migration path: legacy -> canonical write/read ownership
+- Remove/contain legacy field dependencies
+- Split architecture plan into modules (boot, sim, actions, events, ui, persistence)
+
+### Acceptance Criteria
+- [ ] Canonical fields own runtime decisions
+- [ ] Legacy fields only in migration/compat layer
+- [ ] Documented module boundary plan approved
+- [ ] No regression in smoke-test gates

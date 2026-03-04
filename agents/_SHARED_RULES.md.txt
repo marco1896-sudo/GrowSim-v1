@@ -1,0 +1,33 @@
+# Shared Rules — Grow Simulator Agents
+
+## Global Non-Negotiables
+- Vanilla HTML/CSS/JS only.
+- Offline-capable PWA must remain functional.
+- Do not rename/delete files under `/assets`.
+- Deterministic simulation only (seeded PRNG context).
+- No uncontrolled randomness (`Math.random()` forbidden in simulation/runtime decisions).
+- Prefer data-driven configuration in `/data/**`.
+
+## Planning Mode Rule
+If the request is planning/documentation only:
+- Do not modify runtime code (`app.js`, `index.html`, `styles.css`, `sw.js`, `manifest.webmanifest`) unless explicitly asked.
+- Restrict changes to docs/schemas/agent instructions.
+
+## Required Deliverables Format (every implementation response)
+1. Summary of changes
+2. Files changed
+3. Schema notes (new/updated/deprecated fields)
+4. Acceptance checklist results
+5. Open risks / next step
+
+## Required Acceptance Checklist (minimum)
+- [ ] Schema compliance verified against `data/STATE_SCHEMA.md.txt`
+- [ ] Determinism preserved (seeded PRNG only; no `Math.random` in runtime decisions)
+- [ ] Runtime smoke test passed (app loads, plant renders, loop runs, Pflege opens)
+- [ ] UX sanity passed (no user-facing debug noise, no broken mobile layout)
+
+## Mandatory Schema Compliance Checklist
+For every feature, explicitly confirm:
+- [ ] Canonical state fields updated (`state.simulation`, `state.plant`, `state.events`, `state.history`) or mapped safely
+- [ ] Legacy field usage documented if still required
+- [ ] Migration/default behavior documented
