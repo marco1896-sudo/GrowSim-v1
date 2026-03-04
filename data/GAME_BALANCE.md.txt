@@ -1,0 +1,184 @@
+# Grow Simulator — Core Game Balance
+
+This document defines the canonical gameplay parameters used by all agents.
+
+These values must remain consistent across the simulation engine, gameplay systems, and events.
+
+---
+
+# 1. Lifecycle Duration
+
+The entire plant lifecycle is compressed into:
+
+REAL TIME: ~7 days
+
+SIMULATION TIME: ~56 days
+
+Compression factor:
+
+1 real day = 8 simulation days
+
+This allows a realistic lifecycle without long waiting times.
+
+---
+
+# 2. Simulation Time Model
+
+Recommended base speed:
+
+1 real minute = 5 simulation minutes
+
+Simulation continues while the app is closed using timestamp delta calculations.
+
+---
+
+# 3. Day / Night Cycle
+
+Simulation hours:
+
+Daytime (active gameplay):  
+08:00 → 22:00
+
+Nighttime:  
+22:00 → 08:00
+
+Rules:
+
+Nighttime:
+- No gameplay events
+- Passive plant metabolism only
+
+Daytime:
+- Events may occur
+- Player actions allowed
+
+---
+
+# 4. Growth Stages
+
+12 growth stages:
+
+1 Germination  
+2 Seedling  
+3 Early Vegetative  
+4 Vegetative  
+5 Late Vegetative  
+6 Pre-flower  
+7 Stretch  
+8 Early Flower  
+9 Flower  
+10 Late Flower  
+11 Ripening  
+12 Harvest Ready
+
+Stage transitions depend on:
+
+- simulation time
+- plant health
+- stress level
+
+Poor plant care delays stage transitions.
+
+---
+
+# 5. Core Plant State Variables
+
+Each plant must maintain the following state values:
+
+water  
+nutrition  
+health  
+growth  
+stress  
+risk
+
+Range recommendation:
+
+0 → 100
+
+Meaning:
+
+water → hydration level  
+nutrition → nutrient availability  
+health → overall vitality  
+growth → stage progression modifier  
+stress → negative environmental impact  
+risk → probability of negative events
+
+---
+
+# 6. Player Action Categories
+
+Care system must include:
+
+Watering  
+Fertilizing  
+Training  
+Environment Control
+
+Each category has three intensity levels:
+
+Low  
+Medium  
+High
+
+Every action must have:
+
+- cooldown
+- positive effect
+- potential negative side effect
+
+---
+
+# 7. Event Frequency
+
+During daytime:
+
+One event every
+
+30–90 real minutes
+
+Events must use deterministic weighted selection.
+
+---
+
+# 8. Event Categories
+
+Event diversity must include:
+
+Water stress  
+Nutrient issues  
+Pests  
+Disease / mold risk  
+Environmental stress  
+Growth boosts
+
+---
+
+# 9. End Result Logic
+
+The final plant quality depends on:
+
+Average health during lifecycle  
+Stress accumulation  
+Player decision quality
+
+Possible outcomes:
+
+Perfect harvest  
+Good harvest  
+Average harvest  
+Damaged harvest  
+Failed plant
+
+---
+
+# 10. Design Philosophy
+
+The simulation should reward:
+
+- consistent care
+- correct timing
+- risk management
+
+Players should learn plant biology through gameplay.

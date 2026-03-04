@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0d111a">
-  <title>Grow Simulator</title>
+  <title>Grow-Simulator</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -23,7 +23,7 @@
 
         <article id="healthRing" class="ring ring-main ring-left" style="--value:85; --ring-color:var(--color-health);">
           <div class="ring-inner">
-            <span class="ring-label">Health</span>
+            <span class="ring-label">Gesundheit</span>
             <strong id="healthValue">85</strong>
           </div>
         </article>
@@ -48,7 +48,7 @@
 
       <section class="info-bar">
         <article class="info-tile">
-          <span class="info-label">Naechstes Ereignis</span>
+          <span class="info-label">Nächstes Ereignis</span>
           <strong id="nextEventValue">--:--</strong>
         </article>
         <article class="info-tile">
@@ -65,28 +65,28 @@
         <article id="waterRing" class="ring ring-mini" style="--value:70; --ring-color:var(--color-water);">
           <div class="ring-inner">
             <span class="mini-icon" aria-hidden="true">W</span>
-            <span class="ring-label">Water</span>
+            <span class="ring-label">Wasser</span>
             <strong id="waterValue">70</strong>
           </div>
         </article>
         <article id="nutritionRing" class="ring ring-mini" style="--value:65; --ring-color:var(--color-nutrition);">
           <div class="ring-inner">
             <span class="mini-icon" aria-hidden="true">N</span>
-            <span class="ring-label">Nutrition</span>
+            <span class="ring-label">Nährstoffe</span>
             <strong id="nutritionValue">65</strong>
           </div>
         </article>
         <article id="growthRing" class="ring ring-mini" style="--value:10; --ring-color:var(--color-growth);">
           <div class="ring-inner">
             <span class="mini-icon" aria-hidden="true">G</span>
-            <span class="ring-label">Growth</span>
+            <span class="ring-label">Wachstum</span>
             <strong id="growthValue">10</strong>
           </div>
         </article>
         <article id="riskRing" class="ring ring-mini" style="--value:20; --ring-color:var(--color-risk);">
           <div class="ring-inner">
             <span class="mini-icon" aria-hidden="true">R</span>
-            <span class="ring-label">Risk</span>
+            <span class="ring-label">Risiko</span>
             <strong id="riskValue">20</strong>
           </div>
         </article>
@@ -97,14 +97,14 @@
         <button id="analyzeActionBtn" class="action-btn action-secondary" type="button">Analyse</button>
         <button id="boostActionBtn" class="action-btn action-tertiary" type="button">
           <span class="boost-title">+30 Min beschleunigen</span>
-          <span id="boostUsageText" class="boost-sub">Werbeunterstuetzt &middot; 0/6 heute</span>
+          <span id="boostUsageText" class="boost-sub">Werbeunterstützt &middot; 0/6 heute</span>
         </button>
       </section>
 
       <section class="locked-card">
         <div>
-          <strong>Erweiterte Diagnose verfuegbar</strong>
-          <p>Schalte mit Pro frei oder schaue eine Ad.</p>
+          <strong>Erweiterte Diagnose verfügbar</strong>
+          <p>Schalte mit Pro frei oder sieh eine Anzeige.</p>
         </div>
         <button id="openDiagnosisBtn" class="pill pro-pill" type="button">Pro</button>
       </section>
@@ -116,10 +116,10 @@
   <section id="careSheet" class="bottom-sheet hidden" aria-hidden="true">
     <header class="sheet-header">
       <h2>Pflege</h2>
-      <button class="sheet-close" data-close-sheet type="button" aria-label="Schliessen">X</button>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
     </header>
     <div class="sheet-content">
-      <p class="sheet-note">Kategorie waehlen, Intensitaet antippen, Aktion direkt ausfuehren.</p>
+      <p class="sheet-note">Kategorie wählen, Intensität antippen, Aktion direkt ausführen.</p>
       <div id="careCategoryList" class="care-category-list" role="tablist" aria-label="Pflegekategorien"></div>
       <div id="careActionList" class="care-action-list" aria-live="polite"></div>
       <p id="careFeedback" class="care-feedback sheet-note" aria-live="polite">Bereit.</p>
@@ -129,7 +129,7 @@
   <section id="eventSheet" class="bottom-sheet hidden" aria-hidden="true">
     <header class="sheet-header">
       <h2>Ereignis</h2>
-      <button class="sheet-close" data-close-sheet type="button" aria-label="Schliessen">X</button>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
     </header>
     <div class="sheet-content">
       <p id="eventStateBadge" class="sheet-badge">Status: inaktiv</p>
@@ -143,13 +143,13 @@
   <section id="dashboardSheet" class="bottom-sheet hidden" aria-hidden="true">
     <header class="sheet-header">
       <h2>Analyse</h2>
-      <button class="sheet-close" data-close-sheet type="button" aria-label="Schliessen">X</button>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
     </header>
     <div class="sheet-content analysis-content">
-      <div class="gs-analysis-tabs" role="tablist" aria-label="Analyse Tabs">
-        <button id="analysisTabOverview" class="gs-analysis-tab is-active" data-analysis-tab="overview" type="button">Overview</button>
-        <button id="analysisTabDiagnosis" class="gs-analysis-tab" data-analysis-tab="diagnosis" type="button">Diagnosis</button>
-        <button id="analysisTabTimeline" class="gs-analysis-tab" data-analysis-tab="timeline" type="button">Timeline</button>
+      <div class="gs-analysis-tabs" role="tablist" aria-label="Analyse-Tabs">
+        <button id="analysisTabOverview" class="gs-analysis-tab is-active" data-analysis-tab="overview" type="button">Übersicht</button>
+        <button id="analysisTabDiagnosis" class="gs-analysis-tab" data-analysis-tab="diagnosis" type="button">Diagnose</button>
+        <button id="analysisTabTimeline" class="gs-analysis-tab" data-analysis-tab="timeline" type="button">Verlauf</button>
       </div>
 
       <section id="analysisPanelOverview" class="gs-analysis-panel gs-analysis-overview" aria-live="polite"></section>
@@ -161,28 +161,28 @@
   <section id="diagnosisSheet" class="bottom-sheet hidden" aria-hidden="true">
     <header class="sheet-header">
       <h2>Diagnose</h2>
-      <button class="sheet-close" data-close-sheet type="button" aria-label="Schliessen">X</button>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
     </header>
     <div class="sheet-content">
-      <p>Dieses MVP enthaelt ein gesperrtes Platzhaltermodul fuer Diagnose.</p>
+      <p>Dieses MVP enthält ein gesperrtes Platzhaltermodul für Diagnose.</p>
       <ul class="diagnosis-list">
-        <li>Wahrscheinlichkeits-Heatmap fuer Pathogene (Pro)</li>
-        <li>Zerlegung der Naehrstofftrends (Pro)</li>
-        <li>Vorhersage fuer Wurzelstress (Pro)</li>
+        <li>Wahrscheinlichkeits-Heatmap für Pathogene (Pro)</li>
+        <li>Zerlegung der Nährstofftrends (Pro)</li>
+        <li>Vorhersage für Wurzelstress (Pro)</li>
       </ul>
     </div>
   </section>
 
   <section id="landing" class="landing-overlay hidden" aria-hidden="true">
     <div class="landing-card">
-      <h2>Setup</h2>
-      <p class="sheet-note">Einmalige Grundeinstellungen fuer den Run.</p>
-      <label>Mode<select id="setupMode"><option value="indoor">Indoor</option><option value="outdoor">Outdoor</option><option value="greenhouse">Greenhouse</option></select></label>
-      <label>Light<select id="setupLight"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label>
-      <label>Medium<select id="setupMedium"><option value="soil" selected>Soil</option><option value="coco">Coco</option><option value="hydro">Hydro</option></select></label>
-      <label>Pot Size<select id="setupPotSize"><option value="small">Small</option><option value="medium" selected>Medium</option><option value="large">Large</option></select></label>
-      <label>Genetics<select id="setupGenetics"><option value="auto" selected>Auto</option><option value="photo">Photo</option></select></label>
-      <button id="startRunBtn" class="action-btn action-primary" type="button">Start Run</button>
+      <h2>Einrichtung</h2>
+      <p class="sheet-note">Einmalige Grundeinstellungen für diesen Durchlauf.</p>
+      <label>Modus<select id="setupMode"><option value="indoor">Indoor</option><option value="outdoor">Outdoor</option><option value="greenhouse">Gewächshaus</option></select></label>
+      <label>Licht<select id="setupLight"><option value="low">Niedrig</option><option value="medium" selected>Mittel</option><option value="high">Hoch</option></select></label>
+      <label>Substrat<select id="setupMedium"><option value="soil" selected>Erde</option><option value="coco">Kokos</option><option value="hydro">Hydroponik</option></select></label>
+      <label>Topfgröße<select id="setupPotSize"><option value="small">Klein</option><option value="medium" selected>Mittel</option><option value="large">Groß</option></select></label>
+      <label>Genetik<select id="setupGenetics"><option value="auto" selected>Autoflower</option><option value="photo">Photoperiodisch</option></select></label>
+      <button id="startRunBtn" class="action-btn action-primary" type="button">Durchlauf starten</button>
     </div>
   </section>
 

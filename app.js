@@ -60,18 +60,18 @@ const TOTAL_LIFECYCLE_SIM_DAYS = 56;
 const SIM_DAY_MS = 24 * 60 * 60 * 1000;
 
 const STAGE_DEFS = Object.freeze([
-  Object.freeze({ index: 0, id: 'germination', label: 'Germination', simDayStart: 0, phase: 'seedling', minHealth: 30, maxStress: 85 }),
-  Object.freeze({ index: 1, id: 'seedling', label: 'Seedling', simDayStart: 2, phase: 'seedling', minHealth: 35, maxStress: 80 }),
-  Object.freeze({ index: 2, id: 'early_vegetative', label: 'Early Vegetative', simDayStart: 5, phase: 'vegetative', minHealth: 40, maxStress: 75 }),
-  Object.freeze({ index: 3, id: 'vegetative', label: 'Vegetative', simDayStart: 10, phase: 'vegetative', minHealth: 42, maxStress: 72 }),
-  Object.freeze({ index: 4, id: 'late_vegetative', label: 'Late Vegetative', simDayStart: 15, phase: 'vegetative', minHealth: 45, maxStress: 70 }),
-  Object.freeze({ index: 5, id: 'pre_flower', label: 'Pre-flower', simDayStart: 20, phase: 'vegetative', minHealth: 48, maxStress: 65 }),
-  Object.freeze({ index: 6, id: 'stretch', label: 'Stretch', simDayStart: 25, phase: 'flowering', minHealth: 50, maxStress: 60 }),
-  Object.freeze({ index: 7, id: 'early_flower', label: 'Early Flower', simDayStart: 30, phase: 'flowering', minHealth: 52, maxStress: 58 }),
-  Object.freeze({ index: 8, id: 'flower', label: 'Flower', simDayStart: 36, phase: 'flowering', minHealth: 54, maxStress: 55 }),
-  Object.freeze({ index: 9, id: 'late_flower', label: 'Late Flower', simDayStart: 42, phase: 'flowering', minHealth: 55, maxStress: 52 }),
-  Object.freeze({ index: 10, id: 'ripening', label: 'Ripening', simDayStart: 48, phase: 'harvest', minHealth: 56, maxStress: 50 }),
-  Object.freeze({ index: 11, id: 'harvest_ready', label: 'Harvest Ready', simDayStart: 54, phase: 'harvest', minHealth: 0, maxStress: 100 })
+  Object.freeze({ index: 0, id: 'germination', label: 'Keimung', simDayStart: 0, phase: 'seedling', minHealth: 30, maxStress: 85 }),
+  Object.freeze({ index: 1, id: 'seedling', label: 'Keimling', simDayStart: 2, phase: 'seedling', minHealth: 35, maxStress: 80 }),
+  Object.freeze({ index: 2, id: 'early_vegetative', label: 'Frühe Vegetationsphase', simDayStart: 5, phase: 'vegetative', minHealth: 40, maxStress: 75 }),
+  Object.freeze({ index: 3, id: 'vegetative', label: 'Vegetationsphase', simDayStart: 10, phase: 'vegetative', minHealth: 42, maxStress: 72 }),
+  Object.freeze({ index: 4, id: 'late_vegetative', label: 'Späte Vegetationsphase', simDayStart: 15, phase: 'vegetative', minHealth: 45, maxStress: 70 }),
+  Object.freeze({ index: 5, id: 'pre_flower', label: 'Vorblüte', simDayStart: 20, phase: 'vegetative', minHealth: 48, maxStress: 65 }),
+  Object.freeze({ index: 6, id: 'stretch', label: 'Streckphase', simDayStart: 25, phase: 'flowering', minHealth: 50, maxStress: 60 }),
+  Object.freeze({ index: 7, id: 'early_flower', label: 'Frühe Blüte', simDayStart: 30, phase: 'flowering', minHealth: 52, maxStress: 58 }),
+  Object.freeze({ index: 8, id: 'flower', label: 'Blüte', simDayStart: 36, phase: 'flowering', minHealth: 54, maxStress: 55 }),
+  Object.freeze({ index: 9, id: 'late_flower', label: 'Späte Blüte', simDayStart: 42, phase: 'flowering', minHealth: 55, maxStress: 52 }),
+  Object.freeze({ index: 10, id: 'ripening', label: 'Reife', simDayStart: 48, phase: 'harvest', minHealth: 56, maxStress: 50 }),
+  Object.freeze({ index: 11, id: 'harvest_ready', label: 'Erntereif', simDayStart: 54, phase: 'harvest', minHealth: 0, maxStress: 100 })
 ]);
 
 const STAGE_ASSET_FALLBACK = Object.freeze({
@@ -92,7 +92,7 @@ const STAGE_ASSET_FALLBACK = Object.freeze({
 const PHASE_LABEL_DE = Object.freeze({
   seedling: 'Keimling',
   vegetative: 'Vegetativ',
-  flowering: 'Bluete',
+  flowering: 'Blüte',
   harvest: 'Ernte',
   dead: 'Tot'
 });
@@ -314,7 +314,7 @@ function showBootError(error) {
   banner.style.color = '#fff';
   banner.style.padding = '8px 10px';
   banner.style.fontSize = '12px';
-  banner.textContent = `Boot error: ${error.message}`;
+  banner.textContent = `Startfehler: ${error.message}`;
   document.body.appendChild(banner);
 }
 
@@ -604,7 +604,7 @@ function setGrowthStageIndex(stageIndex) {
   state.plant.stageKey = stageAssetKeyForIndex(safeIndex);
   state.plant.lastValidStageKey = state.plant.stageKey;
 
-  addLog('stage', `Stage erreicht: ${safeIndex + 1} ${stageDef.label}`, {
+  addLog('stage', `Stufe erreicht: ${safeIndex + 1} ${stageDef.label}`, {
     simDay: round2(simDayFloat()),
     health: round2(state.status.health),
     stress: round2(state.status.stress),
@@ -749,7 +749,7 @@ function activateEvent(nowMs) {
 
   const eligible = eligibleEventsForNow(nowMs);
   if (!eligible.length) {
-    addLog('event_roll', 'Keine passenden Ereignisse fuer aktuellen Zustand', {
+    addLog('event_roll', 'Keine passenden Ereignisse für aktuellen Zustand', {
       simDay: Math.floor(simDayFloat()),
       at: nowMs
     });
@@ -787,7 +787,7 @@ function activateEvent(nowMs) {
     learningNote: eventDef.learningNote || ''
   };
 
-  addLog('event_shown', `Ereignis ausgewaehlt: ${eventDef.id}`, {
+  addLog('event_shown', `Ereignis ausgewählt: ${eventDef.id}`, {
     title: eventDef.title,
     severity: state.events.activeSeverity,
     category: eventDef.category || 'generic'
@@ -982,7 +982,7 @@ function onEventOptionClick(optionId) {
   state.history.events.push(historyEntry);
   state.events.history.push(historyEntry);
 
-  addLog('choice', `Option gewaehlt: ${state.events.activeEventId}/${choice.id}`, {
+  addLog('choice', `Option gewählt: ${state.events.activeEventId}/${choice.id}`, {
     effects: choice.effects || {},
     sideEffects: triggeredSideEffects,
     effectsApplied: deltaSummary,
@@ -1154,7 +1154,7 @@ function applyAction(actionId) {
   const after = snapshotStatus();
   const deltaSummary = summarizeDelta(before, after);
 
-  addLog('action', `Action: ${action.label}`, {
+  addLog('action', `Aktion: ${action.label}`, {
     type: 'action',
     id: action.id,
     category: action.category,
@@ -1392,7 +1392,7 @@ function resetBoostDaily(nowMs) {
   if (state.boost.dayStamp !== currentStamp) {
     state.boost.dayStamp = currentStamp;
     state.boost.boostUsedToday = 0;
-    addLog('system', 'Taeglicher Boost-Zaehler zurueckgesetzt', { dayStamp: currentStamp });
+    addLog('system', 'Täglicher Boost-Zähler zurückgesetzt', { dayStamp: currentStamp });
   }
 }
 
@@ -1497,7 +1497,7 @@ function renderHud() {
   const phaseLabel = PHASE_LABEL_DE[state.plant.phase] || PHASE_LABEL_DE.seedling;
   const dayNight = state.simulation.isDaytime ? 'Tag' : 'Nacht';
   const statusText = `Phase: ${phaseLabel} · ${dayNight}`;
-  const boostText = `Werbeunterstuetzt · ${state.boost.boostUsedToday}/${state.boost.boostMaxPerDay} heute`;
+  const boostText = `Werbeunterstützt · ${state.boost.boostUsedToday}/${state.boost.boostMaxPerDay} heute`;
 
   if (ui.statusPill.textContent !== statusText) {
     ui.statusPill.textContent = statusText;
@@ -1581,10 +1581,10 @@ function renderCareSheet(force = false) {
   const catalog = Array.isArray(state.actions.catalog) ? state.actions.catalog : [];
   const categoryOrder = ['watering', 'fertilizing', 'training', 'environment'];
   const categoryLabels = {
-    watering: 'Watering',
-    fertilizing: 'Fertilizing',
+    watering: 'Bewässerung',
+    fertilizing: 'Düngung',
     training: 'Training',
-    environment: 'Environment'
+    environment: 'Umgebung'
   };
 
   const availableCategories = categoryOrder.filter((category) => catalog.some((action) => action.category === category));
@@ -1624,7 +1624,7 @@ function renderCareCategoryButtons(categories, labels) {
     btn.textContent = labels[category] || category;
     btn.addEventListener('click', () => {
       state.ui.care.selectedCategory = category;
-      setCareFeedback('info', `${labels[category] || category} ausgewaehlt.`);
+      setCareFeedback('info', `${labels[category] || category} ausgewählt.`);
       renderCareSheet(true);
     });
     ui.careCategoryList.appendChild(btn);
@@ -1655,15 +1655,15 @@ function renderCareActionButtons(category) {
 
     const cooldownLeft = Math.max(0, Number(state.actions.cooldowns[action.id] || 0) - Date.now());
     const cooldownText = cooldownLeft > 0
-      ? `Cooldown ${Math.ceil(cooldownLeft / 60000)}m`
-      : `Cooldown ${Math.round(action.cooldownRealMinutes || 0)}m`;
+      ? `Abklingzeit ${Math.ceil(cooldownLeft / 60000)}m`
+      : `Abklingzeit ${Math.round(action.cooldownRealMinutes || 0)}m`;
 
     button.innerHTML = `<div><strong>${action.label}</strong><div class="care-action-meta">${labelForIntensity(action.intensity)}</div></div><span class="care-action-meta">${cooldownText}</span>`;
 
     button.addEventListener('click', () => {
       const result = applyAction(action.id);
       if (result.ok) {
-        setCareFeedback('success', `${action.label} ausgefuehrt.`);
+        setCareFeedback('success', `${action.label} ausgeführt.`);
       } else {
         setCareFeedback('error', explainActionFailure(result.reason));
       }
@@ -1689,9 +1689,9 @@ function setCareFeedback(kind, text) {
 }
 
 function labelForIntensity(intensity) {
-  if (intensity === 'low') return 'Low';
-  if (intensity === 'high') return 'High';
-  return 'Medium';
+  if (intensity === 'low') return 'Niedrig';
+  if (intensity === 'high') return 'Hoch';
+  return 'Mittel';
 }
 
 function intensityRank(intensity) {
@@ -1704,16 +1704,16 @@ function intensityRank(intensity) {
 function explainActionFailure(reason) {
   const value = String(reason || 'action_failed');
   if (value.startsWith('cooldown_active:')) {
-    return `Aktion blockiert: ${value.replace('cooldown_active:', 'Cooldown noch ')}`;
+    return `Aktion blockiert: ${value.replace('cooldown_active:', 'Abklingzeit noch ')}`;
   }
   if (value.startsWith('prereq_min_failed:') || value.startsWith('prereq_max_failed:')) {
-    return `Voraussetzung nicht erfuellt (${value.split(':')[1] || 'unknown'}).`;
+    return `Voraussetzung nicht erfüllt (${value.split(':')[1] || 'unbekannt'}).`;
   }
   if (value.startsWith('outside_time_window:')) {
-    return 'Aktion nur tagsueber verfuegbar.';
+    return 'Aktion nur tagsüber verfügbar.';
   }
   if (value.startsWith('stage_too_low:')) {
-    return 'Aktion fuer diese Phase noch nicht freigeschaltet.';
+    return 'Aktion für diese Phase noch nicht freigeschaltet.';
   }
   return `Aktion blockiert (${value}).`;
 }
@@ -1728,7 +1728,7 @@ function renderEventSheet() {
   if (state.events.machineState === 'activeEvent') {
     ui.eventTitle.textContent = state.events.activeEventTitle;
     ui.eventText.textContent = state.events.activeEventText;
-    ui.eventMeta.textContent = `Schweregrad: ${state.events.activeSeverity} | Tags: ${state.events.activeTags.join(', ') || '-'}`;
+    ui.eventMeta.textContent = `Schweregrad: ${state.events.activeSeverity} | Stichwörter: ${state.events.activeTags.join(', ') || '-'}`;
 
     const optionSignature = `${state.events.activeEventId}|${state.events.activeOptions.map((option) => `${option.id}:${option.label}`).join('|')}`;
     if (ui.eventOptionList.dataset.signature !== optionSignature) {
@@ -1753,8 +1753,8 @@ function renderEventSheet() {
     ui.eventMeta.textContent = `Abklingzeit: ${formatCountdown(cooldownLeft)}`;
   } else {
     ui.eventTitle.textContent = 'Kein aktives Ereignis';
-    ui.eventText.textContent = 'Ein Ereignis erscheint, sobald der naechste Wurf erfolgreich ist.';
-    ui.eventMeta.textContent = `Naechster Wurf: ${formatCountdown(state.events.scheduler.nextEventRealTimeMs - state.simulation.nowMs)}`;
+    ui.eventText.textContent = 'Ein Ereignis erscheint, sobald der nächste Wurf erfolgreich ist.';
+    ui.eventMeta.textContent = `Nächster Wurf: ${formatCountdown(state.events.scheduler.nextEventRealTimeMs - state.simulation.nowMs)}`;
   }
 
   if (ui.eventOptionList.childElementCount > 0) {
@@ -1807,27 +1807,26 @@ function renderAnalysisOverview() {
     return;
   }
 
-  const stageNames = {
-    1: 'Germination', 2: 'Seedling', 3: 'Early Vegetative', 4: 'Vegetative', 5: 'Late Vegetative', 6: 'Pre-flower',
-    7: 'Stretch', 8: 'Early Flower', 9: 'Flower', 10: 'Late Flower', 11: 'Ripening', 12: 'Harvest Ready'
-  };
-
   const stageIndex = Number(state.plant && state.plant.stageIndex) || 1;
+  const stageDef = STAGE_DEFS[clampInt(stageIndex, 0, STAGE_DEFS.length - 1)];
+  const stageDisplay = clampInt(stageIndex + 1, 1, STAGE_DEFS.length);
+  const stageLabel = stageDef ? stageDef.label : '-';
   const qualityTier = (state.plant && state.plant.lifecycle && state.plant.lifecycle.qualityTier) || 'normal';
-  const dayNight = (state.simulation && state.simulation.isDaytime) ? 'Day' : 'Night';
+  const dayNight = (state.simulation && state.simulation.isDaytime) ? 'Tag' : 'Nacht';
   const simDay = Number(state.simulation && state.simulation.simDay) || 0;
   const status = state.status || {};
+  const qualityTierText = qualityTierLabel(qualityTier);
 
   ui.analysisPanelOverview.innerHTML = `
-    <div class="gs-analysis-metric"><strong>Stage ${stageIndex}: ${stageNames[stageIndex] || '-'}</strong><br>Quality: ${escapeHtml(String(qualityTier))}</div>
-    <div class="gs-analysis-metric"><strong>${dayNight}</strong><br>Sim Day ${simDay}</div>
+    <div class="gs-analysis-metric"><strong>Stufe ${stageDisplay}: ${stageLabel}</strong><br>Qualität: ${escapeHtml(String(qualityTierText))}</div>
+    <div class="gs-analysis-metric"><strong>${dayNight}</strong><br>Sim-Tag ${simDay}</div>
     <div class="gs-analysis-metric-grid">
-      <div class="gs-analysis-metric">Water<br><strong>${round2(Number(status.water) || 0)}</strong></div>
-      <div class="gs-analysis-metric">Nutrition<br><strong>${round2(Number(status.nutrition) || 0)}</strong></div>
-      <div class="gs-analysis-metric">Health<br><strong>${round2(Number(status.health) || 0)}</strong></div>
+      <div class="gs-analysis-metric">Wasser<br><strong>${round2(Number(status.water) || 0)}</strong></div>
+      <div class="gs-analysis-metric">Nährstoffe<br><strong>${round2(Number(status.nutrition) || 0)}</strong></div>
+      <div class="gs-analysis-metric">Gesundheit<br><strong>${round2(Number(status.health) || 0)}</strong></div>
       <div class="gs-analysis-metric">Stress<br><strong>${round2(Number(status.stress) || 0)}</strong></div>
-      <div class="gs-analysis-metric">Risk<br><strong>${round2(Number(status.risk) || 0)}</strong></div>
-      <div class="gs-analysis-metric">Growth<br><strong>${round2(Number(status.growth) || 0)}</strong></div>
+      <div class="gs-analysis-metric">Risiko<br><strong>${round2(Number(status.risk) || 0)}</strong></div>
+      <div class="gs-analysis-metric">Wachstum<br><strong>${round2(Number(status.growth) || 0)}</strong></div>
     </div>
   `;
 }
@@ -1841,6 +1840,7 @@ function renderAnalysisDiagnosis() {
   const drivers = diagnosisDrivers();
   const top = drivers.slice(0, 3);
   const recommendation = recommendedCareCategory(top[0]);
+  const recommendationLabel = categoryLabel(recommendation);
 
   ui.analysisPanelDiagnosis.replaceChildren();
 
@@ -1853,7 +1853,7 @@ function renderAnalysisDiagnosis() {
 
   const rec = document.createElement('div');
   rec.className = 'gs-analysis-driver';
-  rec.innerHTML = `<strong>Recommended next care:</strong> ${escapeHtml(recommendation)}`;
+  rec.innerHTML = `<strong>Empfohlene nächste Pflege:</strong> ${escapeHtml(recommendationLabel)}`;
   ui.analysisPanelDiagnosis.appendChild(rec);
 }
 
@@ -1862,19 +1862,19 @@ function diagnosisDrivers() {
   const s = state.status || {};
   const stageIndex = Number(state.plant && state.plant.stageIndex) || 1;
 
-  if ((Number(s.water) || 0) < 35) d.push({ score: 100 - s.water, label: 'Water Deficit', reason: 'Too dry increases stress' });
-  if ((Number(s.water) || 0) > 80) d.push({ score: s.water, label: 'Overwatering', reason: 'Overwatering increases risk' });
-  if ((Number(s.nutrition) || 0) < 35) d.push({ score: 95 - s.nutrition, label: 'Nutrition Deficit', reason: 'Underfeeding slows growth' });
-  if ((Number(s.nutrition) || 0) > 80) d.push({ score: s.nutrition, label: 'Nutrition Excess', reason: 'Nutrient burn risk' });
-  if ((Number(s.stress) || 0) > 60) d.push({ score: s.stress + 10, label: 'High Stress', reason: 'High stress blocks best ending' });
-  if ((Number(s.risk) || 0) > 60) d.push({ score: s.risk + 8, label: 'High Risk', reason: 'High risk increases negative events' });
+  if ((Number(s.water) || 0) < 35) d.push({ score: 100 - s.water, label: 'Wassermangel', reason: 'Zu trocken erhöht den Stress' });
+  if ((Number(s.water) || 0) > 80) d.push({ score: s.water, label: 'Überwässerung', reason: 'Zu viel Wasser erhöht das Risiko' });
+  if ((Number(s.nutrition) || 0) < 35) d.push({ score: 95 - s.nutrition, label: 'Nährstoffmangel', reason: 'Unterversorgung bremst das Wachstum' });
+  if ((Number(s.nutrition) || 0) > 80) d.push({ score: s.nutrition, label: 'Nährstoffüberschuss', reason: 'Erhöhtes Risiko für Nährstoffbrand' });
+  if ((Number(s.stress) || 0) > 60) d.push({ score: s.stress + 10, label: 'Hoher Stress', reason: 'Hoher Stress blockiert das beste Ergebnis' });
+  if ((Number(s.risk) || 0) > 60) d.push({ score: s.risk + 8, label: 'Hohes Risiko', reason: 'Hohes Risiko erhöht negative Ereignisse' });
 
   if (stageIndex <= 3 && (Number(s.health) || 0) < 65) {
-    d.push({ score: 70 - (Number(s.health) || 0), label: 'Early Stage Fragility', reason: 'Early stages need stable water and nutrition' });
+    d.push({ score: 70 - (Number(s.health) || 0), label: 'Frühe-Phase-Empfindlichkeit', reason: 'Frühe Phasen brauchen stabile Wasser- und Nährstoffwerte' });
   }
 
   if (!d.length) {
-    d.push({ score: 1, label: 'Stable State', reason: 'No major deficit detected' });
+    d.push({ score: 1, label: 'Stabiler Zustand', reason: 'Kein größeres Defizit erkannt' });
   }
 
   return d.sort((a, b) => b.score - a.score);
@@ -1883,15 +1883,36 @@ function diagnosisDrivers() {
 function recommendedCareCategory(primaryDriver) {
   if (!primaryDriver) return 'environment';
   const map = {
-    'Water Deficit': 'watering',
-    Overwatering: 'environment',
-    'Nutrition Deficit': 'fertilizing',
-    'Nutrition Excess': 'environment',
-    'High Stress': 'environment',
-    'High Risk': 'environment',
-    'Stable State': 'training'
+    Wassermangel: 'watering',
+    Überwässerung: 'environment',
+    Nährstoffmangel: 'fertilizing',
+    Nährstoffüberschuss: 'environment',
+    'Hoher Stress': 'environment',
+    'Hohes Risiko': 'environment',
+    'Stabiler Zustand': 'training'
   };
   return map[primaryDriver.label] || 'environment';
+}
+
+function qualityTierLabel(tier) {
+  if (tier === 'perfect') return 'Perfekt';
+  if (tier === 'degraded') return 'Geschwächt';
+  return 'Normal';
+}
+
+function categoryLabel(category) {
+  const map = {
+    watering: 'Bewässerung',
+    fertilizing: 'Düngung',
+    training: 'Training',
+    environment: 'Umgebung',
+    water: 'Wasser',
+    nutrition: 'Nährstoffe',
+    pest: 'Schädlinge',
+    disease: 'Krankheit',
+    generic: 'Allgemein'
+  };
+  return map[String(category || 'generic')] || String(category || 'Allgemein');
 }
 
 function renderAnalysisTimeline() {
@@ -1930,7 +1951,7 @@ function renderAnalysisTimeline() {
   if (!latest.length) {
     const empty = document.createElement('div');
     empty.className = 'gs-analysis-timeline-item';
-    empty.textContent = 'No activity yet';
+    empty.textContent = 'Noch keine Aktivitäten';
     ui.analysisPanelTimeline.appendChild(empty);
     return;
   }
@@ -1942,11 +1963,11 @@ function renderAnalysisTimeline() {
 
     if (row.kind === 'action') {
       const d = row.data || {};
-      node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · Action</div><strong>${escapeHtml(String(d.label || d.id || 'Action'))}</strong><br>${formatDeltaSummary(d.deltaSummary || {})}`;
+      node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · Aktion</div><strong>${escapeHtml(String(d.label || d.id || 'Aktion'))}</strong><br>${formatDeltaSummary(d.deltaSummary || {})}`;
     } else {
       const d = row.data || {};
-      const note = d.learningNote ? `<details><summary>Learning note</summary>${escapeHtml(String(d.learningNote))}</details>` : '';
-      node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · Event (${escapeHtml(String(d.category || 'generic'))})</div><strong>${escapeHtml(String(d.optionLabel || d.optionId || d.eventId || 'Event'))}</strong><br>${formatDeltaSummary(d.effectsApplied || d.deltaSummary || {})}${note}`;
+      const note = d.learningNote ? `<details><summary>Lernhinweis</summary>${escapeHtml(String(d.learningNote))}</details>` : '';
+      node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · Ereignis (${escapeHtml(categoryLabel(String(d.category || 'generic')))})</div><strong>${escapeHtml(String(d.optionLabel || d.optionId || d.eventId || 'Ereignis'))}</strong><br>${formatDeltaSummary(d.effectsApplied || d.deltaSummary || {})}${note}`;
     }
 
     ui.analysisPanelTimeline.appendChild(node);
@@ -1959,7 +1980,7 @@ function simStampFromMs(simMs) {
   const delta = Math.max(0, raw - base);
   const totalDay = Math.floor(delta / (24 * 60 * 60 * 1000));
   const hh = Math.floor((delta % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-  return `Day ${totalDay} · ${String(hh).padStart(2, '0')}:00`;
+  return `Tag ${totalDay} · ${String(hh).padStart(2, '0')}:00`;
 }
 
 function formatDeltaSummary(delta) {
@@ -1971,7 +1992,7 @@ function formatDeltaSummary(delta) {
     const n = round2(Number(v));
     parts.push(`${k}: ${n > 0 ? '+' : ''}${n}`);
   }
-  return parts.length ? parts.join(' · ') : 'No net delta';
+  return parts.length ? parts.join(' · ') : 'Keine Nettoänderung';
 }
 
 function escapeHtml(value) {
@@ -2019,7 +2040,7 @@ function onStartRun() {
   syncCanonicalStateShape();
   renderLanding();
   schedulePersistState(true);
-  addLog('system', 'Setup gespeichert, Run gestartet', state.setup);
+  addLog('system', 'Einstellungen gespeichert, Durchlauf gestartet', state.setup);
 }
 
 function withDebouncedAction(actionKey, buttonNode, callback) {
@@ -2135,7 +2156,7 @@ function translateEventState(machineState) {
     case 'activeEvent':
       return 'aktives Ereignis';
     case 'resolved':
-      return 'aufgeloest';
+      return 'aufgelöst';
     case 'cooldown':
       return 'Abklingzeit';
     default:
@@ -2893,8 +2914,8 @@ async function loadEventCatalog() {
     catalogs.push(normalizeEvent({
       id: 'fallback_soil_check',
       category: 'water',
-      title: 'Bodenfeuchte pruefen',
-      description: 'Bei der manuellen Kontrolle wurde ungleichmaessige Feuchte festgestellt.',
+      title: 'Bodenfeuchte prüfen',
+      description: 'Bei der manuellen Kontrolle wurde ungleichmäßige Feuchte festgestellt.',
       choices: [
         { id: 'fallback_care', label: 'Ausgewogene Pflege anwenden', effects: { water: 6, stress: -2, health: 2 } },
         { id: 'fallback_wait', label: 'Einen Zyklus warten', effects: { stress: 2, risk: 2 } },
@@ -3156,7 +3177,7 @@ function scheduleNextEventRoll(nowMs, reason) {
   }
   state.events.scheduler.nextEventRealTimeMs = nextAt;
 
-  addLog('event_roll', 'Naechster Ereigniswurf geplant', {
+  addLog('event_roll', 'Nächster Ereigniswurf geplant', {
     reason,
     nextEventAtMs: nextAt,
     simDaytime: state.simulation.isDaytime
@@ -3177,7 +3198,7 @@ async function registerServiceWorker() {
 
 async function onPushSubscribe() {
   if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-    addLog('system', 'Push wird in diesem Browser nicht unterstuetzt', null);
+    addLog('system', 'Push wird in diesem Browser nicht unterstützt', null);
     renderAnalysisPanel(true);
     return;
   }

@@ -107,6 +107,11 @@ function evaluateTriggerCondition(state, c) {
 
 function resolveField(state, field) {
   if (!field) return undefined;
+  if (field.startsWith('status.')) return state.status[field.split('.').pop()];
+  if (field === 'plant.stageIndex') return state.plant.stageIndex;
+  if (field === 'plant.stageKey') return state.plant.stageKey;
+  if (field.startsWith('setup.')) return state.setup[field.split('.').pop()];
+  if (field === 'simulation.isDaytime') return state.simulation.isDaytime;
   if (field.startsWith('state.status.')) return state.status[field.split('.').pop()];
   if (field === 'state.plant.stageIndex') return state.plant.stageIndex;
   if (field === 'state.plant.stageKey') return state.plant.stageKey;

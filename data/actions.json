@@ -82,7 +82,7 @@
       "id": "watering_low_mist",
       "category": "watering",
       "intensity": "low",
-      "label": "Light Mist",
+      "label": "Leichter Sprühnebel",
       "uxCopy": {
         "short": "Kurz befeuchten",
         "success": "Substrat leicht angefeuchtet.",
@@ -105,7 +105,7 @@
       "id": "watering_medium_deep",
       "category": "watering",
       "intensity": "medium",
-      "label": "Deep Water",
+      "label": "Tiefes Gießen",
       "uxCopy": {
         "short": "Tief giessen",
         "success": "Wurzelzone gut versorgt.",
@@ -128,7 +128,7 @@
       "id": "watering_high_flush",
       "category": "watering",
       "intensity": "high",
-      "label": "Flush",
+      "label": "Spülung",
       "uxCopy": {
         "short": "Spuelen",
         "success": "Substrat gespült.",
@@ -152,7 +152,7 @@
       "id": "fertilizing_low_microfeed",
       "category": "fertilizing",
       "intensity": "low",
-      "label": "Micro Feed",
+      "label": "Mikrodüngung",
       "uxCopy": {
         "short": "Leicht duengen",
         "success": "Leichte Naehrstoffgabe erfolgt.",
@@ -175,7 +175,7 @@
       "id": "fertilizing_medium_balanced",
       "category": "fertilizing",
       "intensity": "medium",
-      "label": "Balanced Feed",
+      "label": "Ausgewogene Düngung",
       "uxCopy": {
         "short": "Ausgewogen duengen",
         "success": "Naehrstoffprofil ausgeglichen.",
@@ -198,7 +198,7 @@
       "id": "fertilizing_high_boost",
       "category": "fertilizing",
       "intensity": "high",
-      "label": "Bloom Boost",
+      "label": "Blüte-Boost",
       "uxCopy": {
         "short": "Starkduenger",
         "success": "Wachstumsbooster aktiv.",
@@ -222,7 +222,7 @@
       "id": "training_low_leaf_tuck",
       "category": "training",
       "intensity": "low",
-      "label": "Leaf Tuck",
+      "label": "Blätter anordnen",
       "uxCopy": {
         "short": "Blaetter ordnen",
         "success": "Lichtverteilung verbessert.",
@@ -245,7 +245,7 @@
       "id": "training_medium_lst",
       "category": "training",
       "intensity": "medium",
-      "label": "LST Bend",
+      "label": "LST-Biegen",
       "uxCopy": {
         "short": "LST anwenden",
         "success": "Canopy geoeffnet, Seitentriebe aktiviert.",
@@ -268,7 +268,7 @@
       "id": "training_high_defoliation",
       "category": "training",
       "intensity": "high",
-      "label": "Heavy Defoliation",
+      "label": "Starke Entlaubung",
       "uxCopy": {
         "short": "Stark entlauben",
         "success": "Licht und Luftzirkulation stark verbessert.",
@@ -292,7 +292,7 @@
       "id": "environment_low_airflow",
       "category": "environment",
       "intensity": "low",
-      "label": "Airflow Tune",
+      "label": "Luftstrom-Feinschliff",
       "uxCopy": {
         "short": "Luftstrom optimieren",
         "success": "Mikroklima leicht verbessert.",
@@ -315,7 +315,7 @@
       "id": "environment_medium_climate",
       "category": "environment",
       "intensity": "medium",
-      "label": "Climate Correction",
+      "label": "Klima-Korrektur",
       "uxCopy": {
         "short": "Klima korrigieren",
         "success": "Temperatur und Feuchte stabilisiert.",
@@ -338,7 +338,7 @@
       "id": "environment_high_reset",
       "category": "environment",
       "intensity": "high",
-      "label": "Full Environment Reset",
+      "label": "Vollständiger Klima-Reset",
       "uxCopy": {
         "short": "Umgebung resetten",
         "success": "Systemparameter komplett neu eingeregelt.",
