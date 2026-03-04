@@ -55,30 +55,39 @@ const PUSH_SUB_KEY = 'grow-sim-push-sub-v1';
 const EVENTS_CATALOG_VERSION = '20260301-de';
 const VAPID_PUBLIC_KEY = 'BElxPLACEHOLDERp8v2C4CwY6ofqP5E8v2rFjQvqW8g4bW2-v8JvKc-l7dXXn4N1xqjY7PqFhL3O8m4jzWzI8v7jA';
 
-const STAGE_MAP = Object.freeze({
-  seedling: Object.freeze({
-    phaseLabel: 'seedling',
-    files: Object.freeze(['seedling_01.png', 'seedling_02.png']),
-    ticksPerStage: Object.freeze([32, 40])
-  }),
-  vegetative: Object.freeze({
-    phaseLabel: 'veg',
-    files: Object.freeze(['veg_01.png', 'veg_02.png', 'veg_03.png', 'veg_04.png']),
-    ticksPerStage: Object.freeze([48, 54, 60, 68])
-  }),
-  flowering: Object.freeze({
-    phaseLabel: 'flower',
-    files: Object.freeze(['flower_01.png', 'flower_02.png', 'flower_03.png', 'flower_04.png', 'flower_05.png']),
-    ticksPerStage: Object.freeze([78, 90, 104, 118, 132])
-  }),
-  harvest: Object.freeze({
-    phaseLabel: 'harvest',
-    files: Object.freeze(['harverst.png']),
-    ticksPerStage: Object.freeze([52])
-  })
+const TOTAL_LIFECYCLE_SIM_DAYS = 56;
+const SIM_DAY_MS = 24 * 60 * 60 * 1000;
+
+const STAGE_DEFS = Object.freeze([
+  Object.freeze({ index: 0, id: 'germination', label: 'Germination', simDayStart: 0, phase: 'seedling', minHealth: 30, maxStress: 85 }),
+  Object.freeze({ index: 1, id: 'seedling', label: 'Seedling', simDayStart: 2, phase: 'seedling', minHealth: 35, maxStress: 80 }),
+  Object.freeze({ index: 2, id: 'early_vegetative', label: 'Early Vegetative', simDayStart: 5, phase: 'vegetative', minHealth: 40, maxStress: 75 }),
+  Object.freeze({ index: 3, id: 'vegetative', label: 'Vegetative', simDayStart: 10, phase: 'vegetative', minHealth: 42, maxStress: 72 }),
+  Object.freeze({ index: 4, id: 'late_vegetative', label: 'Late Vegetative', simDayStart: 15, phase: 'vegetative', minHealth: 45, maxStress: 70 }),
+  Object.freeze({ index: 5, id: 'pre_flower', label: 'Pre-flower', simDayStart: 20, phase: 'vegetative', minHealth: 48, maxStress: 65 }),
+  Object.freeze({ index: 6, id: 'stretch', label: 'Stretch', simDayStart: 25, phase: 'flowering', minHealth: 50, maxStress: 60 }),
+  Object.freeze({ index: 7, id: 'early_flower', label: 'Early Flower', simDayStart: 30, phase: 'flowering', minHealth: 52, maxStress: 58 }),
+  Object.freeze({ index: 8, id: 'flower', label: 'Flower', simDayStart: 36, phase: 'flowering', minHealth: 54, maxStress: 55 }),
+  Object.freeze({ index: 9, id: 'late_flower', label: 'Late Flower', simDayStart: 42, phase: 'flowering', minHealth: 55, maxStress: 52 }),
+  Object.freeze({ index: 10, id: 'ripening', label: 'Ripening', simDayStart: 48, phase: 'harvest', minHealth: 56, maxStress: 50 }),
+  Object.freeze({ index: 11, id: 'harvest_ready', label: 'Harvest Ready', simDayStart: 54, phase: 'harvest', minHealth: 0, maxStress: 100 })
+]);
+
+const STAGE_ASSET_FALLBACK = Object.freeze({
+  stage_01: 'seedling_01.png',
+  stage_02: 'seedling_02.png',
+  stage_03: 'veg_01.png',
+  stage_04: 'veg_02.png',
+  stage_05: 'veg_03.png',
+  stage_06: 'veg_04.png',
+  stage_07: 'flower_01.png',
+  stage_08: 'flower_02.png',
+  stage_09: 'flower_03.png',
+  stage_10: 'flower_04.png',
+  stage_11: 'flower_05.png',
+  stage_12: 'harverst.png'
 });
 
-const PHASE_ORDER = Object.freeze(['seedling', 'vegetative', 'flowering', 'harvest']);
 const PHASE_LABEL_DE = Object.freeze({
   seedling: 'Keimling',
   vegetative: 'Vegetativ',
@@ -118,10 +127,14 @@ const state = {
   growth: {
     phase: 'seedling',
     stageIndex: 0,
-    stageName: STAGE_MAP.seedling.files[0],
+    stageName: 'stage_01',
     stageProgress: 0,
-    ticksInStage: 0,
-    lastValidStageName: STAGE_MAP.seedling.files[0]
+    lastValidStageName: 'stage_01',
+    averageHealth: 85,
+    averageStress: 15,
+    observedSimMs: 0,
+    qualityTier: 'normal',
+    qualityLocked: false
   },
   status: {
     health: 85,
@@ -284,7 +297,7 @@ function tick() {
   state.sim.tickCount += 1;
 
   applyStatusDrift(elapsedRealMs);
-  advanceGrowthTick();
+  advanceGrowthTick(elapsedSimMs);
   runEventStateMachine(nowMs);
   resetBoostDaily(nowMs);
   updateVisibleOverlays();
@@ -370,7 +383,7 @@ function applyStatusDrift(elapsedMs) {
   clampStatus();
 }
 
-function advanceGrowthTick() {
+function advanceGrowthTick(elapsedSimMs) {
   if (state.growth.phase === 'dead') {
     state.growth.stageProgress = 1;
     return;
@@ -381,69 +394,63 @@ function advanceGrowthTick() {
     return;
   }
 
-  const stageInfo = STAGE_MAP[state.growth.phase];
-  const currentTicksTarget = stageInfo.ticksPerStage[state.growth.stageIndex];
+  updateLifecycleAverages(elapsedSimMs);
+  updateQualityTier();
 
-  const progressionMultiplier = clamp(1 + (state.sim.growthImpulse * 0.35), 0.25, 1.8);
-  state.growth.ticksInStage += progressionMultiplier;
-  state.growth.stageProgress = clamp(state.growth.ticksInStage / currentTicksTarget, 0, 1);
+  const simDay = simDayFloat();
+  const nextStageIndex = state.growth.stageIndex + 1;
 
-  if (state.growth.stageProgress >= 1) {
-    const isLastPhase = state.growth.phase === PHASE_ORDER[PHASE_ORDER.length - 1];
-    const isLastStageInPhase = state.growth.stageIndex === stageInfo.files.length - 1;
-    if (isLastPhase && isLastStageInPhase) {
-      state.growth.stageProgress = 1;
-      state.growth.ticksInStage = currentTicksTarget;
-    } else {
-      moveToNextStage();
-    }
+  if (nextStageIndex < STAGE_DEFS.length && canAdvanceToStage(nextStageIndex, simDay)) {
+    setGrowthStageIndex(nextStageIndex);
   }
 
+  state.growth.stageProgress = computeStageProgress(simDay, state.growth.stageIndex);
   state.status.growth = round2(computeGrowthPercent());
 }
 
-function moveToNextStage() {
-  const currentPhase = state.growth.phase;
-  const phaseData = STAGE_MAP[currentPhase];
-
-  if (state.growth.stageIndex < phaseData.files.length - 1) {
-    setGrowthStage(currentPhase, state.growth.stageIndex + 1, 0);
-    return;
+function canAdvanceToStage(targetStageIndex, simDay) {
+  const targetDef = STAGE_DEFS[targetStageIndex];
+  if (!targetDef) {
+    return false;
   }
 
-  const phaseIdx = PHASE_ORDER.indexOf(currentPhase);
-  const nextPhase = PHASE_ORDER[phaseIdx + 1];
+  const deterministicDelayDays = deterministicStageDelayDays(targetStageIndex);
+  const dayReady = simDay >= (targetDef.simDayStart + deterministicDelayDays);
+  const healthReady = state.status.health >= targetDef.minHealth;
+  const stressReady = state.status.stress <= targetDef.maxStress;
 
-  if (!nextPhase) {
-    setGrowthStage(currentPhase, phaseData.files.length - 1, 1);
-    return;
+  if (targetStageIndex === STAGE_DEFS.length - 1) {
+    if (state.growth.qualityTier === 'perfect') {
+      state.growth.qualityLocked = true;
+      return dayReady && healthReady && stressReady;
+    }
+    return dayReady;
   }
 
-  setGrowthStage(nextPhase, 0, 0);
+  return dayReady && healthReady && stressReady;
 }
 
-function setGrowthStage(phase, stageIndex, progress) {
-  const phaseData = STAGE_MAP[phase];
-  if (!phaseData) {
-    return;
-  }
+function setGrowthStageIndex(stageIndex) {
+  const safeIndex = clampInt(stageIndex, 0, STAGE_DEFS.length - 1);
+  const stageDef = STAGE_DEFS[safeIndex];
 
-  const safeIndex = clampInt(stageIndex, 0, phaseData.files.length - 1);
-  const safeProgress = clamp(progress, 0, 1);
-  const ticksTarget = phaseData.ticksPerStage[safeIndex];
-
-  state.growth.phase = phase;
   state.growth.stageIndex = safeIndex;
-  state.growth.stageProgress = safeProgress;
-  state.growth.ticksInStage = Math.round(safeProgress * ticksTarget);
-  state.growth.stageName = phaseData.files[safeIndex];
+  state.growth.phase = stageDef.phase;
+  state.growth.stageName = stageAssetKeyForIndex(safeIndex);
   state.growth.lastValidStageName = state.growth.stageName;
+
+  addLog('stage', `Stage erreicht: ${safeIndex + 1} ${stageDef.label}`, {
+    simDay: round2(simDayFloat()),
+    health: round2(state.status.health),
+    stress: round2(state.status.stress),
+    quality: state.growth.qualityTier
+  });
 }
 
 function enterDeadPhase() {
   state.growth.phase = 'dead';
   state.growth.stageProgress = 1;
-  state.growth.stageName = state.growth.lastValidStageName || STAGE_MAP.seedling.files[0];
+  state.growth.stageName = state.growth.lastValidStageName || 'stage_01';
   addLog('system', 'Todesphase erreicht', { stageName: state.growth.stageName });
 }
 
@@ -451,30 +458,68 @@ function computeGrowthPercent() {
   if (state.growth.phase === 'dead') {
     return 0;
   }
-
-  const totalStages = totalStageCount();
-  const absoluteIdx = absoluteStageIndex(state.growth.phase, state.growth.stageIndex);
-  const unit = absoluteIdx + state.growth.stageProgress;
-  return clamp((unit / totalStages) * 100, 0, 100);
+  const stageUnit = state.growth.stageIndex + state.growth.stageProgress;
+  return clamp((stageUnit / STAGE_DEFS.length) * 100, 0, 100);
 }
 
-function totalStageCount() {
-  return PHASE_ORDER.reduce((sum, phase) => sum + STAGE_MAP[phase].files.length, 0);
-}
+function computeStageProgress(simDay, stageIndex) {
+  const current = STAGE_DEFS[clampInt(stageIndex, 0, STAGE_DEFS.length - 1)];
+  const next = STAGE_DEFS[Math.min(STAGE_DEFS.length - 1, stageIndex + 1)];
 
-function absoluteStageIndex(phase, stageIndex) {
-  const normalizedPhase = PHASE_ORDER.includes(phase) ? phase : PHASE_ORDER[PHASE_ORDER.length - 1];
-  let offset = 0;
-
-  for (const phaseName of PHASE_ORDER) {
-    if (phaseName === normalizedPhase) {
-      const maxIndex = STAGE_MAP[phaseName].files.length - 1;
-      return offset + clampInt(stageIndex, 0, maxIndex);
-    }
-    offset += STAGE_MAP[phaseName].files.length;
+  if (!current || !next || current.index === next.index) {
+    return simDay >= TOTAL_LIFECYCLE_SIM_DAYS ? 1 : 0;
   }
 
-  return 0;
+  const startDay = current.simDayStart + deterministicStageDelayDays(current.index);
+  const endDay = next.simDayStart + deterministicStageDelayDays(next.index);
+  const span = Math.max(0.25, endDay - startDay);
+  return clamp((simDay - startDay) / span, 0, 1);
+}
+
+function updateLifecycleAverages(elapsedSimMs) {
+  const observed = Math.max(0, Number(elapsedSimMs) || 0);
+  if (observed <= 0) {
+    return;
+  }
+
+  const totalObserved = state.growth.observedSimMs + observed;
+  state.growth.averageHealth = ((state.growth.averageHealth * state.growth.observedSimMs) + (state.status.health * observed)) / totalObserved;
+  state.growth.averageStress = ((state.growth.averageStress * state.growth.observedSimMs) + (state.status.stress * observed)) / totalObserved;
+  state.growth.observedSimMs = totalObserved;
+}
+
+function updateQualityTier() {
+  const avgHealth = state.growth.averageHealth;
+  const avgStress = state.growth.averageStress;
+
+  if (avgHealth >= 80 && avgStress <= 30 && state.status.stress <= 30) {
+    state.growth.qualityTier = 'perfect';
+    return;
+  }
+
+  if (avgHealth < 50 || avgStress >= 50 || state.status.stress >= 65) {
+    state.growth.qualityTier = 'degraded';
+    return;
+  }
+
+  state.growth.qualityTier = 'normal';
+}
+
+function simDayFloat() {
+  const elapsed = Math.max(0, state.sim.simTimeMs - state.sim.simEpochMs);
+  return clamp(elapsed / SIM_DAY_MS, 0, TOTAL_LIFECYCLE_SIM_DAYS);
+}
+
+function deterministicStageDelayDays(stageIndex) {
+  if (stageIndex <= 0) {
+    return 0;
+  }
+  const u = deterministicUnitFloat(`stage_delay:${stageIndex}`);
+  return round2((u - 0.5) * 0.6);
+}
+
+function stageAssetKeyForIndex(stageIndex) {
+  return `stage_${String(stageIndex + 1).padStart(2, '0')}`;
 }
 
 function runEventStateMachine(nowMs) {
@@ -612,28 +657,10 @@ function setGrowthFromPercent(percent) {
     return;
   }
 
-  const total = totalStageCount();
-  const units = clamp((percent / 100) * total, 0, total);
-  const absoluteIndex = Math.min(total - 1, Math.floor(units));
-  const stageProgress = clamp(units - absoluteIndex, 0, 1);
-  const mapping = phaseStageFromAbsoluteIndex(absoluteIndex);
-  setGrowthStage(mapping.phase, mapping.stageIndex, stageProgress);
-}
-
-function phaseStageFromAbsoluteIndex(index) {
-  const maxIndex = totalStageCount() - 1;
-  let remaining = clampInt(index, 0, maxIndex);
-
-  for (const phase of PHASE_ORDER) {
-    const phaseCount = STAGE_MAP[phase].files.length;
-    if (remaining < phaseCount) {
-      return { phase, stageIndex: remaining };
-    }
-    remaining -= phaseCount;
-  }
-
-  const fallbackPhase = PHASE_ORDER[PHASE_ORDER.length - 1];
-  return { phase: fallbackPhase, stageIndex: STAGE_MAP[fallbackPhase].files.length - 1 };
+  const units = clamp((percent / 100) * STAGE_DEFS.length, 0, STAGE_DEFS.length);
+  const stageIndex = Math.min(STAGE_DEFS.length - 1, Math.floor(units));
+  setGrowthStageIndex(stageIndex);
+  state.growth.stageProgress = clamp(units - stageIndex, 0, 1);
 }
 
 function enterEventCooldown(nowMs) {
@@ -1150,7 +1177,9 @@ function clampInt(value, min, max) {
 }
 
 function plantAssetPath(stageName) {
-  return appPath(`assets/plant/${stageName}`);
+  const canonical = `${stageName}.png`;
+  const fallback = STAGE_ASSET_FALLBACK[stageName];
+  return appPath(`assets/plant/${fallback || canonical}`);
 }
 
 function applyBackgroundAsset() {
@@ -1297,20 +1326,35 @@ function ensureStateIntegrity(nowMs) {
   }
   state.sim.isDaytime = isDaytimeAtSimTime(state.sim.simTimeMs);
 
-  const phase = state.growth.phase;
-  if (!Object.prototype.hasOwnProperty.call(STAGE_MAP, phase) && phase !== 'dead') {
+  const validPhases = new Set(['seedling', 'vegetative', 'flowering', 'harvest']);
+  if (!validPhases.has(state.growth.phase) && state.growth.phase !== 'dead') {
     state.growth.phase = 'seedling';
-    state.growth.stageIndex = 0;
   }
 
   if (state.growth.phase !== 'dead') {
-    const phaseData = STAGE_MAP[state.growth.phase];
-    state.growth.stageIndex = clampInt(state.growth.stageIndex, 0, phaseData.files.length - 1);
+    state.growth.stageIndex = clampInt(state.growth.stageIndex, 0, STAGE_DEFS.length - 1);
     state.growth.stageProgress = clamp(state.growth.stageProgress, 0, 1);
-    state.growth.stageName = phaseData.files[state.growth.stageIndex];
+    state.growth.stageName = stageAssetKeyForIndex(state.growth.stageIndex);
     state.growth.lastValidStageName = state.growth.stageName;
+    state.growth.phase = STAGE_DEFS[state.growth.stageIndex].phase;
   } else {
-    state.growth.stageName = state.growth.lastValidStageName || STAGE_MAP.seedling.files[0];
+    state.growth.stageName = state.growth.lastValidStageName || 'stage_01';
+  }
+
+  if (!Number.isFinite(state.growth.averageHealth)) {
+    state.growth.averageHealth = state.status.health;
+  }
+  if (!Number.isFinite(state.growth.averageStress)) {
+    state.growth.averageStress = state.status.stress;
+  }
+  if (!Number.isFinite(state.growth.observedSimMs)) {
+    state.growth.observedSimMs = 0;
+  }
+  if (typeof state.growth.qualityTier !== 'string') {
+    state.growth.qualityTier = 'normal';
+  }
+  if (typeof state.growth.qualityLocked !== 'boolean') {
+    state.growth.qualityLocked = false;
   }
 
   clampStatus();
