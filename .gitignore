@@ -1,0 +1,16 @@
+# Dev harness outputs/logs
+/dev/*.txt
+/dev/*.log
+/dev/out*
+/dev/outputs/
+/dev/*.tmp
+/dev/*.bak
+
+# General temp/backup
+*.tmp
+*.bak
+
+# Tool/runtime logs
+*.log
+chrome_*.txt
+server*.log
