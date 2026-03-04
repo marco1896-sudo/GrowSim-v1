@@ -288,6 +288,7 @@ async function boot() {
     });
 
     window.__applyAction = (id) => applyAction(id);
+    window.__devSelfTest = () => runDevSelfTest();
 
     startLoopOnce();
     renderAll();
@@ -330,6 +331,43 @@ function showBootError(error) {
   banner.style.fontSize = '12px';
   banner.textContent = `Boot error: ${error.message}`;
   document.body.appendChild(banner);
+}
+
+function runDevSelfTest() {
+  if (!state.debug || !state.debug.enabled) {
+    return { ok: false, reason: 'debug_disabled' };
+  }
+
+  const assertions = [];
+  const beforeSim = getCanonicalSimulation(state).runtime.simTimeMs;
+
+  tick();
+  const afterTickSim = getCanonicalSimulation(state).runtime.simTimeMs;
+  assertions.push({ name: 'tick_advances_sim_time', pass: afterTickSim > beforeSim });
+
+  const actionResult = applyAction('watering_low_mist');
+  assertions.push({ name: 'apply_action_path', pass: Boolean(actionResult && (actionResult.ok || actionResult.reason)) });
+
+  activateEvent(Date.now());
+  const active = getCanonicalEvents(state).runtime;
+  if (active.machineState === 'activeEvent' && Array.isArray(active.activeOptions) && active.activeOptions.length) {
+    onEventOptionClick(active.activeOptions[0].id);
+  }
+
+  const canonical = {
+    simulation: Boolean(state.simulation && state.simulation.runtime),
+    plant: Boolean(state.plant && state.plant.runtime),
+    events: Boolean(state.events && state.events.scheduler && state.events.runtime),
+    history: Boolean(state.history && Array.isArray(state.history.actions) && Array.isArray(state.history.events))
+  };
+
+  assertions.push({ name: 'canonical_shapes_present', pass: Object.values(canonical).every(Boolean) });
+
+  return {
+    ok: assertions.every((item) => item.pass),
+    assertions,
+    canonical
+  };
 }
 
 function cacheUi() {
@@ -2188,6 +2226,115 @@ function localStorageAdapter() {
   };
 }
 
+function getCanonicalSimulation(snapshot) {
+  const s = snapshot || state;
+  if (!s.simulation || typeof s.simulation !== 'object') {
+    s.simulation = {};
+  }
+  if (!s.simulation.runtime || typeof s.simulation.runtime !== 'object') {
+    s.simulation.runtime = {
+      nowMs: Date.now(),
+      simTimeMs: alignToSimStartHour(Date.now(), SIM_START_HOUR),
+      simEpochMs: alignToSimStartHour(Date.now(), SIM_START_HOUR),
+      tickCount: 0,
+      mode: MODE,
+      tickIntervalMs: UI_TICK_INTERVAL_MS,
+      timeCompression: SIM_TIME_COMPRESSION,
+      globalSeed: SIM_GLOBAL_SEED,
+      plantId: SIM_PLANT_ID,
+      isDaytime: true,
+      lastTickAtMs: Date.now(),
+      growthImpulse: 0,
+      lastPushScheduleAtMs: 0
+    };
+  }
+  return s.simulation;
+}
+
+function getCanonicalPlant(snapshot) {
+  const s = snapshot || state;
+  if (!s.plant || typeof s.plant !== 'object') {
+    s.plant = {};
+  }
+  if (!s.plant.runtime || typeof s.plant.runtime !== 'object') {
+    s.plant.runtime = {
+      phase: 'seedling',
+      stageIndex: 0,
+      stageName: 'stage_01',
+      stageProgress: 0,
+      lastValidStageName: 'stage_01',
+      averageHealth: 85,
+      averageStress: 15,
+      observedSimMs: 0,
+      qualityTier: 'normal',
+      qualityLocked: false
+    };
+  }
+  return s.plant;
+}
+
+function getCanonicalEvents(snapshot) {
+  const s = snapshot || state;
+  if (!s.events || typeof s.events !== 'object') {
+    s.events = {};
+  }
+  if (!s.events.scheduler || typeof s.events.scheduler !== 'object') {
+    s.events.scheduler = {
+      nextEventRealTimeMs: Date.now() + EVENT_ROLL_MIN_REAL_MS,
+      lastEventRealTimeMs: 0,
+      lastEventId: null,
+      lastChoiceId: null,
+      lastEventCategory: null,
+      deferredUntilDaytime: false,
+      windowRealMinutes: { min: 30, max: 90 },
+      eventCooldowns: {}
+    };
+  }
+  if (!s.events.runtime || typeof s.events.runtime !== 'object') {
+    s.events.runtime = {
+      machineState: 'idle',
+      activeEventId: null,
+      activeEventTitle: '',
+      activeEventText: '',
+      activeLearningNote: '',
+      activeOptions: [],
+      activeSeverity: 1,
+      activeCooldownRealMinutes: 120,
+      activeCategory: 'generic',
+      activeTags: [],
+      lastEventAtMs: 0,
+      nextEventAtMs: Date.now() + EVENT_ROLL_MIN_REAL_MS,
+      cooldownUntilMs: 0,
+      lastChoiceId: null,
+      catalog: []
+    };
+  }
+  if (!Array.isArray(s.events.history)) {
+    s.events.history = [];
+  }
+  return s.events;
+}
+
+function getCanonicalHistory(snapshot) {
+  const s = snapshot || state;
+  if (!s.history || typeof s.history !== 'object') {
+    s.history = { actions: [], events: [], system: [], systemLog: [] };
+  }
+  if (!Array.isArray(s.history.actions)) {
+    s.history.actions = [];
+  }
+  if (!Array.isArray(s.history.events)) {
+    s.history.events = [];
+  }
+  if (!Array.isArray(s.history.system)) {
+    s.history.system = [];
+  }
+  if (!Array.isArray(s.history.systemLog)) {
+    s.history.systemLog = [];
+  }
+  return s.history;
+}
+
 async function restoreState() {
   if (!storageAdapter) {
     return;
@@ -2198,20 +2345,64 @@ async function restoreState() {
     return;
   }
 
-  if (saved.sim && typeof saved.sim === 'object') {
-    Object.assign(state.sim, saved.sim);
+  const sim = getCanonicalSimulation(state);
+  const plant = getCanonicalPlant(state);
+  const events = getCanonicalEvents(state);
+  const history = getCanonicalHistory(state);
+
+  if (saved.simulation && typeof saved.simulation === 'object') {
+    state.simulation = {
+      ...state.simulation,
+      ...saved.simulation,
+      runtime: {
+        ...sim.runtime,
+        ...((saved.simulation && saved.simulation.runtime) || {})
+      }
+    };
   }
-  if (saved.growth && typeof saved.growth === 'object') {
-    Object.assign(state.growth, saved.growth);
+
+  if (saved.plant && typeof saved.plant === 'object') {
+    state.plant = {
+      ...state.plant,
+      ...saved.plant,
+      runtime: {
+        ...plant.runtime,
+        ...((saved.plant && saved.plant.runtime) || {})
+      }
+    };
   }
+
+  if (saved.events && typeof saved.events === 'object') {
+    state.events = {
+      ...state.events,
+      ...saved.events,
+      scheduler: {
+        ...events.scheduler,
+        ...((saved.events && saved.events.scheduler) || {})
+      },
+      runtime: {
+        ...events.runtime,
+        ...((saved.events && saved.events.runtime) || {})
+      }
+    };
+  }
+
+  if (saved.history && typeof saved.history === 'object') {
+    state.history = {
+      ...state.history,
+      ...saved.history,
+      actions: Array.isArray(saved.history.actions) ? saved.history.actions : history.actions,
+      events: Array.isArray(saved.history.events) ? saved.history.events : history.events,
+      system: Array.isArray(saved.history.system) ? saved.history.system : history.system,
+      systemLog: Array.isArray(saved.history.systemLog) ? saved.history.systemLog : history.systemLog
+    };
+  }
+
   if (saved.status && typeof saved.status === 'object') {
     Object.assign(state.status, saved.status);
   }
   if (saved.boost && typeof saved.boost === 'object') {
     Object.assign(state.boost, saved.boost);
-  }
-  if (saved.event && typeof saved.event === 'object') {
-    Object.assign(state.event, saved.event);
   }
   if (saved.actions && typeof saved.actions === 'object') {
     Object.assign(state.actions, saved.actions);
@@ -2219,27 +2410,54 @@ async function restoreState() {
   if (saved.ui && typeof saved.ui === 'object') {
     Object.assign(state.ui, saved.ui);
   }
-  if (saved.events && typeof saved.events === 'object') {
-    state.events = {
-      ...state.events,
-      ...saved.events,
-      scheduler: {
-        ...(state.events.scheduler || {}),
-        ...((saved.events && saved.events.scheduler) || {})
-      }
-    };
-  }
-  if (saved.history && typeof saved.history === 'object') {
-    state.history = {
-      ...state.history,
-      ...saved.history
-    };
-  }
   if (saved.setup && typeof saved.setup === 'object') {
     state.setup = { ...saved.setup };
   }
-  if (Array.isArray(saved.historyLog)) {
-    state.history.systemLog = saved.historyLog.slice(-MAX_HISTORY_LOG);
+
+  migrateLegacyStateIntoCanonical(saved, state);
+}
+
+function migrateLegacyStateIntoCanonical(saved, targetState) {
+  const sim = getCanonicalSimulation(targetState);
+  const plant = getCanonicalPlant(targetState);
+  const events = getCanonicalEvents(targetState);
+  const history = getCanonicalHistory(targetState);
+
+  if (saved.sim && typeof saved.sim === 'object') {
+    targetState.simulation.runtime = {
+      ...sim.runtime,
+      ...saved.sim
+    };
+  }
+
+  if (saved.growth && typeof saved.growth === 'object') {
+    targetState.plant.runtime = {
+      ...plant.runtime,
+      ...saved.growth
+    };
+  }
+
+  if (saved.event && typeof saved.event === 'object') {
+    targetState.events.runtime = {
+      ...events.runtime,
+      ...saved.event
+    };
+    if (Number.isFinite(Number(saved.event.nextEventAtMs))) {
+      targetState.events.scheduler.nextEventRealTimeMs = Number(saved.event.nextEventAtMs);
+    }
+    if (Number.isFinite(Number(saved.event.lastEventAtMs))) {
+      targetState.events.scheduler.lastEventRealTimeMs = Number(saved.event.lastEventAtMs);
+    }
+    if (typeof saved.event.activeEventId === 'string') {
+      targetState.events.scheduler.lastEventId = saved.event.activeEventId;
+    }
+    if (typeof saved.event.lastChoiceId === 'string') {
+      targetState.events.scheduler.lastChoiceId = saved.event.lastChoiceId;
+    }
+  }
+
+  if (Array.isArray(saved.historyLog) && !history.systemLog.length) {
+    targetState.history.systemLog = saved.historyLog.slice(-MAX_HISTORY_LOG);
   }
 }
 
