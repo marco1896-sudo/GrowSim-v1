@@ -200,6 +200,9 @@ const state = {
     care: {
       selectedCategory: null,
       feedback: { kind: 'info', text: 'Bereit.' }
+    },
+    analysis: {
+      activeTab: 'overview'
     }
   },
   lastEventId: null,
@@ -211,7 +214,7 @@ const ui = {};
 let storageAdapter = null;
 let tickHandle = null;
 let persistTimer = null;
-let logRenderSignature = '';
+
 const actionDebounceUntil = Object.create(null);
 
 document.addEventListener('DOMContentLoaded', boot);
@@ -335,11 +338,12 @@ function cacheUi() {
   ui.eventText = document.getElementById('eventText');
   ui.eventMeta = document.getElementById('eventMeta');
   ui.eventOptionList = document.getElementById('eventOptionList');
-  ui.pushSubscribeBtn = document.getElementById('pushSubscribeBtn');
-  ui.clearLogBtn = document.getElementById('clearLogBtn');
-  ui.lastEventValue = document.getElementById('lastEventValue');
-  ui.lastChoiceValue = document.getElementById('lastChoiceValue');
-  ui.logList = document.getElementById('logList');
+  ui.analysisTabOverview = document.getElementById('analysisTabOverview');
+  ui.analysisTabDiagnosis = document.getElementById('analysisTabDiagnosis');
+  ui.analysisTabTimeline = document.getElementById('analysisTabTimeline');
+  ui.analysisPanelOverview = document.getElementById('analysisPanelOverview');
+  ui.analysisPanelDiagnosis = document.getElementById('analysisPanelDiagnosis');
+  ui.analysisPanelTimeline = document.getElementById('analysisPanelTimeline');
 
   ui.landing = document.getElementById('landing');
   ui.startRunBtn = document.getElementById('startRunBtn');
@@ -355,10 +359,16 @@ function bindUi() {
   ui.analyzeActionBtn.addEventListener('click', () => withDebouncedAction('analyze', ui.analyzeActionBtn, () => openSheet('dashboard')));
   ui.boostActionBtn.addEventListener('click', () => withDebouncedAction('boost', ui.boostActionBtn, onBoostAction));
   ui.openDiagnosisBtn.addEventListener('click', () => openSheet('diagnosis'));
-  ui.pushSubscribeBtn.addEventListener('click', () => withDebouncedAction('push_subscribe', ui.pushSubscribeBtn, onPushSubscribe));
-  ui.clearLogBtn.addEventListener('click', () => withDebouncedAction('clear_log', ui.clearLogBtn, onClearLog));
   ui.startRunBtn.addEventListener('click', onStartRun);
   ui.backdrop.addEventListener('click', closeSheet);
+
+  const analysisTabs = [ui.analysisTabOverview, ui.analysisTabDiagnosis, ui.analysisTabTimeline];
+  for (const tab of analysisTabs) {
+    tab.addEventListener('click', () => {
+      state.ui.analysis.activeTab = tab.dataset.analysisTab || 'overview';
+      renderAnalysisPanel(true);
+    });
+  }
 
   const closeButtons = document.querySelectorAll('[data-close-sheet]');
   for (const button of closeButtons) {
@@ -395,7 +405,7 @@ function tick() {
 
   renderHud();
   renderEventSheet();
-  renderLogList();
+  renderAnalysisPanel();
   schedulePersistState();
 }
 
@@ -408,7 +418,7 @@ function ensureRequiredUi() {
     'careActionBtn', 'analyzeActionBtn', 'boostActionBtn', 'openDiagnosisBtn',
     'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
     'careCategoryList', 'careActionList', 'careFeedback', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
-    'pushSubscribeBtn', 'clearLogBtn', 'lastEventValue', 'lastChoiceValue', 'logList',
+    'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
     'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics'
   ];
 
@@ -1295,8 +1305,9 @@ function onBoostAction() {
 
 function onClearLog() {
   state.historyLog = [];
+  state.history = { actions: [], events: [], system: [] };
   addLog('system', 'Protokoll geleert', null);
-  renderLogList(true);
+  renderAnalysisPanel(true);
   schedulePersistState(true);
 }
 
@@ -1402,8 +1413,7 @@ function renderAll() {
   renderSheets();
   renderCareSheet();
   renderEventSheet();
-  renderDashboardSummary();
-  renderLogList();
+  renderAnalysisPanel(true);
   renderLanding();
 }
 
@@ -1677,62 +1687,177 @@ function renderEventSheet() {
   }
 }
 
-function renderLogList(force = false) {
+function renderAnalysisPanel(force = false) {
   if (!force && state.ui.openSheet !== 'dashboard') {
     return;
   }
 
-  const signature = historyLogSignature();
-  if (!force && signature === logRenderSignature) {
-    return;
-  }
-  logRenderSignature = signature;
+  const activeTab = state.ui.analysis && state.ui.analysis.activeTab ? state.ui.analysis.activeTab : 'overview';
+  const tabMap = {
+    overview: ui.analysisPanelOverview,
+    diagnosis: ui.analysisPanelDiagnosis,
+    timeline: ui.analysisPanelTimeline
+  };
 
-  ui.logList.replaceChildren();
+  ui.analysisTabOverview.classList.toggle('is-active', activeTab === 'overview');
+  ui.analysisTabDiagnosis.classList.toggle('is-active', activeTab === 'diagnosis');
+  ui.analysisTabTimeline.classList.toggle('is-active', activeTab === 'timeline');
 
-  const entries = state.historyLog.slice().reverse();
-  if (!entries.length) {
-    const empty = document.createElement('li');
-    empty.className = 'log-item';
-    empty.textContent = 'Noch keine Protokolleintraege.';
-    ui.logList.appendChild(empty);
-    return;
+  for (const [tabId, panel] of Object.entries(tabMap)) {
+    panel.classList.toggle('hidden', tabId !== activeTab);
   }
 
-  for (const entry of entries) {
-    const li = document.createElement('li');
-    li.className = 'log-item';
+  renderAnalysisOverview();
+  renderAnalysisDiagnosis();
+  renderAnalysisTimeline();
+}
 
-    const time = document.createElement('span');
-    time.className = 'log-time';
-    time.textContent = `${new Date(entry.atMs).toLocaleTimeString('de-DE')} | ${entry.type}`;
+function renderAnalysisOverview() {
+  const stageNames = {
+    1: 'Germination', 2: 'Seedling', 3: 'Early Vegetative', 4: 'Vegetative', 5: 'Late Vegetative', 6: 'Pre-flower',
+    7: 'Stretch', 8: 'Early Flower', 9: 'Flower', 10: 'Late Flower', 11: 'Ripening', 12: 'Harvest Ready'
+  };
 
-    const text = document.createElement('span');
-    text.className = 'log-text';
-    text.textContent = entry.message;
+  const stageIndex = state.plant.stageIndex || 1;
+  const dayNight = state.simulation.isDaytime ? 'Day' : 'Night';
 
-    li.appendChild(time);
-    li.appendChild(text);
-    ui.logList.appendChild(li);
+  ui.analysisPanelOverview.innerHTML = `
+    <div class="analysis-metric"><strong>Stage ${stageIndex}: ${stageNames[stageIndex] || '-'}</strong><br>Quality: ${(state.plant.lifecycle && state.plant.lifecycle.qualityTier) || 'normal'}</div>
+    <div class="analysis-metric"><strong>${dayNight}</strong><br>Sim Day ${state.simulation.simDay}</div>
+    <div class="analysis-metric-grid">
+      <div class="analysis-metric">Water<br><strong>${round2(state.status.water)}</strong></div>
+      <div class="analysis-metric">Nutrition<br><strong>${round2(state.status.nutrition)}</strong></div>
+      <div class="analysis-metric">Health<br><strong>${round2(state.status.health)}</strong></div>
+      <div class="analysis-metric">Stress<br><strong>${round2(state.status.stress)}</strong></div>
+      <div class="analysis-metric">Risk<br><strong>${round2(state.status.risk)}</strong></div>
+      <div class="analysis-metric">Growth<br><strong>${round2(state.status.growth)}</strong></div>
+    </div>
+  `;
+}
+
+function renderAnalysisDiagnosis() {
+  const drivers = diagnosisDrivers();
+  const top = drivers.slice(0, 3);
+  const recommendation = recommendedCareCategory(top[0]);
+
+  ui.analysisPanelDiagnosis.replaceChildren();
+
+  for (const item of top) {
+    const node = document.createElement('div');
+    node.className = 'driver-item';
+    node.innerHTML = `<strong>${item.label}</strong><br>${item.reason}`;
+    ui.analysisPanelDiagnosis.appendChild(node);
+  }
+
+  const rec = document.createElement('div');
+  rec.className = 'driver-item';
+  rec.innerHTML = `<strong>Recommended next care:</strong> ${recommendation}`;
+  ui.analysisPanelDiagnosis.appendChild(rec);
+}
+
+function diagnosisDrivers() {
+  const d = [];
+  const s = state.status;
+
+  if (s.water < 35) d.push({ score: 100 - s.water, label: 'Water Deficit', reason: 'Too dry increases stress' });
+  if (s.water > 80) d.push({ score: s.water, label: 'Overwatering', reason: 'Overwatering increases risk' });
+  if (s.nutrition < 35) d.push({ score: 95 - s.nutrition, label: 'Nutrition Deficit', reason: 'Underfeeding slows growth' });
+  if (s.nutrition > 80) d.push({ score: s.nutrition, label: 'Nutrition Excess', reason: 'Nutrient burn risk' });
+  if (s.stress > 60) d.push({ score: s.stress + 10, label: 'High Stress', reason: 'High stress blocks best ending' });
+  if (s.risk > 60) d.push({ score: s.risk + 8, label: 'High Risk', reason: 'High risk increases negative events' });
+
+  if (!d.length) {
+    d.push({ score: 1, label: 'Stable State', reason: 'No major deficit detected' });
+  }
+
+  return d.sort((a, b) => b.score - a.score);
+}
+
+function recommendedCareCategory(primaryDriver) {
+  if (!primaryDriver) return 'environment';
+  const map = {
+    'Water Deficit': 'watering',
+    Overwatering: 'environment',
+    'Nutrition Deficit': 'fertilizing',
+    'Nutrition Excess': 'environment',
+    'High Stress': 'environment',
+    'High Risk': 'environment',
+    'Stable State': 'training'
+  };
+  return map[primaryDriver.label] || 'environment';
+}
+
+function renderAnalysisTimeline() {
+  const actions = Array.isArray(state.history.actions) ? state.history.actions : [];
+  const events = Array.isArray(state.history.events) ? state.history.events : [];
+
+  const merged = [];
+  for (const item of actions) {
+    merged.push({ kind: 'action', atRealTimeMs: item.atRealTimeMs || 0, atSimTimeMs: item.atSimTimeMs || state.simulation.simTimeMs, data: item });
+  }
+  for (const item of events) {
+    merged.push({ kind: 'event', atRealTimeMs: item.atRealTimeMs || 0, atSimTimeMs: item.atSimTimeMs || state.simulation.simTimeMs, data: item });
+  }
+
+  merged.sort((a, b) => b.atRealTimeMs - a.atRealTimeMs);
+  const latest = merged.slice(0, 10);
+
+  ui.analysisPanelTimeline.replaceChildren();
+
+  if (!latest.length) {
+    const empty = document.createElement('div');
+    empty.className = 'timeline-item';
+    empty.textContent = 'No action/event history yet.';
+    ui.analysisPanelTimeline.appendChild(empty);
+    return;
+  }
+
+  for (const row of latest) {
+    const simStamp = simStampFromMs(row.atSimTimeMs);
+    const node = document.createElement('div');
+    node.className = 'timeline-item';
+
+    if (row.kind === 'action') {
+      const d = row.data;
+      node.innerHTML = `<div class="timeline-meta">${simStamp} · Action</div><strong>${d.label || d.id || 'Action'}</strong><br>${formatDeltaSummary(d.deltaSummary || {})}`;
+    } else {
+      const d = row.data;
+      const note = d.learningNote ? `<details><summary>Learning note</summary>${escapeHtml(String(d.learningNote))}</details>` : '';
+      node.innerHTML = `<div class="timeline-meta">${simStamp} · Event (${escapeHtml(String(d.category || 'generic'))})</div><strong>${escapeHtml(String(d.optionLabel || d.optionId || d.eventId || 'Event'))}</strong><br>${formatDeltaSummary(d.effectsApplied || d.deltaSummary || {})}${note}`;
+    }
+
+    ui.analysisPanelTimeline.appendChild(node);
   }
 }
 
-function renderDashboardSummary() {
-  if (!ui.lastEventValue || !ui.lastChoiceValue) {
-    return;
-  }
-
-  ui.lastEventValue.textContent = state.lastEventId || '-';
-  ui.lastChoiceValue.textContent = state.lastChoiceId || '-';
+function simStampFromMs(simMs) {
+  const base = Number(state.simulation.startRealTimeMs || simMs || 0);
+  const raw = Number(simMs || base);
+  const delta = Math.max(0, raw - base);
+  const totalDay = Math.floor(delta / (24 * 60 * 60 * 1000));
+  const hh = Math.floor((delta % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+  return `Day ${totalDay} · ${String(hh).padStart(2, '0')}:00`;
 }
 
-function historyLogSignature() {
-  if (!state.historyLog.length) {
-    return '0';
+function formatDeltaSummary(delta) {
+  const parts = [];
+  for (const [k, v] of Object.entries(delta || {})) {
+    if (!Number.isFinite(Number(v)) || Number(v) === 0) {
+      continue;
+    }
+    const n = round2(Number(v));
+    parts.push(`${k}: ${n > 0 ? '+' : ''}${n}`);
   }
+  return parts.length ? parts.join(' · ') : 'No net delta';
+}
 
-  const newest = state.historyLog[state.historyLog.length - 1];
-  return `${state.historyLog.length}:${newest.id}`;
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function openSheet(name) {
@@ -1740,7 +1865,7 @@ function openSheet(name) {
   renderSheets();
 
   if (name === 'dashboard') {
-    renderLogList(true);
+    renderAnalysisPanel(true);
   } else if (name === 'event') {
     renderEventSheet();
   } else if (name === 'care') {
@@ -2281,6 +2406,12 @@ function ensureStateIntegrity(nowMs) {
   if (!state.ui.care.feedback || typeof state.ui.care.feedback !== 'object') {
     state.ui.care.feedback = { kind: 'info', text: 'Bereit.' };
   }
+  if (!state.ui.analysis || typeof state.ui.analysis !== 'object') {
+    state.ui.analysis = { activeTab: 'overview' };
+  }
+  if (!['overview', 'diagnosis', 'timeline'].includes(state.ui.analysis.activeTab)) {
+    state.ui.analysis.activeTab = 'overview';
+  }
 
   if (typeof state.lastEventId !== 'string') {
     state.lastEventId = null;
@@ -2675,7 +2806,7 @@ async function registerServiceWorker() {
 async function onPushSubscribe() {
   if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
     addLog('system', 'Push wird in diesem Browser nicht unterstuetzt', null);
-    renderLogList();
+    renderAnalysisPanel(true);
     return;
   }
 
@@ -2684,7 +2815,7 @@ async function onPushSubscribe() {
     addLog('system', `Benachrichtigungsberechtigung: ${permission}`, null);
 
     if (permission !== 'granted') {
-      renderLogList();
+      renderAnalysisPanel(true);
       return;
     }
 
@@ -2708,11 +2839,11 @@ async function onPushSubscribe() {
 
     addLog('system', 'Push-Abonnement gespeichert und an Stub-Endpunkt gesendet', null);
     await schedulePushIfAllowed(true);
-    renderLogList();
+    renderAnalysisPanel(true);
     schedulePersistState(true);
   } catch (error) {
     addLog('system', `Push-Abonnement fehlgeschlagen: ${error.message}`, null);
-    renderLogList();
+    renderAnalysisPanel(true);
   }
 }
 

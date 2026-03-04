@@ -634,6 +634,77 @@ body::before {
   color: var(--text-muted);
 }
 
+.analysis-content {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.analysis-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.analysis-tab {
+  border-radius: 10px;
+  border: 1px solid rgba(191, 211, 244, 0.24);
+  background: rgba(20, 31, 49, 0.9);
+  color: var(--text-main);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.52rem 0.4rem;
+}
+
+.analysis-tab.is-active {
+  border-color: rgba(163, 226, 142, 0.58);
+  background: linear-gradient(125deg, rgba(78, 125, 72, 0.95), rgba(39, 85, 54, 0.95));
+  color: #f4ffe8;
+}
+
+.analysis-panel {
+  border-radius: 12px;
+  border: 1px solid rgba(180, 198, 231, 0.2);
+  background: rgba(11, 18, 31, 0.76);
+  padding: 0.62rem;
+  display: grid;
+  gap: 0.44rem;
+  max-height: 45vh;
+  overflow: auto;
+}
+
+.analysis-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.38rem;
+}
+
+.analysis-metric {
+  border: 1px solid rgba(187, 206, 236, 0.2);
+  border-radius: 10px;
+  padding: 0.38rem 0.46rem;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+}
+
+.analysis-metric strong {
+  color: var(--text-main);
+  font-size: 0.8rem;
+}
+
+.driver-item,
+.timeline-item {
+  border: 1px solid rgba(188, 206, 234, 0.18);
+  border-radius: 10px;
+  padding: 0.48rem;
+  background: rgba(15, 24, 38, 0.75);
+  font-size: 0.74rem;
+}
+
+.timeline-meta {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;
