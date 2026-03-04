@@ -173,7 +173,11 @@ const state = {
   ui: {
     openSheet: null,
     selectedBackground: 'bg_dark_01.jpg',
-    visibleOverlayIds: []
+    visibleOverlayIds: [],
+    care: {
+      selectedCategory: null,
+      feedback: { kind: 'info', text: 'Bereit.' }
+    }
   },
   lastEventId: null,
   lastChoiceId: null,
@@ -264,7 +268,9 @@ function cacheUi() {
   ui.dashboardSheet = document.getElementById('dashboardSheet');
   ui.diagnosisSheet = document.getElementById('diagnosisSheet');
 
-  ui.confirmCareBtn = document.getElementById('confirmCareBtn');
+  ui.careCategoryList = document.getElementById('careCategoryList');
+  ui.careActionList = document.getElementById('careActionList');
+  ui.careFeedback = document.getElementById('careFeedback');
   ui.eventStateBadge = document.getElementById('eventStateBadge');
   ui.eventTitle = document.getElementById('eventTitle');
   ui.eventText = document.getElementById('eventText');
@@ -282,7 +288,6 @@ function bindUi() {
   ui.analyzeActionBtn.addEventListener('click', () => withDebouncedAction('analyze', ui.analyzeActionBtn, () => openSheet('dashboard')));
   ui.boostActionBtn.addEventListener('click', () => withDebouncedAction('boost', ui.boostActionBtn, onBoostAction));
   ui.openDiagnosisBtn.addEventListener('click', () => openSheet('diagnosis'));
-  ui.confirmCareBtn.addEventListener('click', () => withDebouncedAction('confirm_care', ui.confirmCareBtn, onCareApply));
   ui.pushSubscribeBtn.addEventListener('click', () => withDebouncedAction('push_subscribe', ui.pushSubscribeBtn, onPushSubscribe));
   ui.clearLogBtn.addEventListener('click', () => withDebouncedAction('clear_log', ui.clearLogBtn, onClearLog));
   ui.backdrop.addEventListener('click', closeSheet);
@@ -341,7 +346,7 @@ function ensureRequiredUi() {
     'overlayBurn', 'overlayDefMg', 'overlayDefN', 'overlayMoldWarning', 'overlayPestMites', 'overlayPestThrips',
     'careActionBtn', 'analyzeActionBtn', 'boostActionBtn', 'openDiagnosisBtn',
     'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
-    'confirmCareBtn', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
+    'careCategoryList', 'careActionList', 'careFeedback', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
     'pushSubscribeBtn', 'clearLogBtn', 'lastEventValue', 'lastChoiceValue', 'logList'
   ];
 
@@ -1110,6 +1115,7 @@ function updateVisibleOverlays() {
 function renderAll() {
   renderHud();
   renderSheets();
+  renderCareSheet();
   renderEventSheet();
   renderDashboardSummary();
   renderLogList();
@@ -1193,6 +1199,151 @@ function renderSheets() {
 function toggleSheet(sheetNode, visible) {
   sheetNode.classList.toggle('hidden', !visible);
   sheetNode.setAttribute('aria-hidden', String(!visible));
+}
+
+function renderCareSheet(force = false) {
+  if (!force && state.ui.openSheet !== 'care') {
+    return;
+  }
+
+  const catalog = Array.isArray(state.actions.catalog) ? state.actions.catalog : [];
+  const categoryOrder = ['watering', 'fertilizing', 'training', 'environment'];
+  const categoryLabels = {
+    watering: 'Watering',
+    fertilizing: 'Fertilizing',
+    training: 'Training',
+    environment: 'Environment'
+  };
+
+  const availableCategories = categoryOrder.filter((category) => catalog.some((action) => action.category === category));
+  if (!availableCategories.length) {
+    ui.careCategoryList.replaceChildren();
+    ui.careActionList.replaceChildren();
+    setCareFeedback('error', 'Keine Aktionen geladen.');
+    return;
+  }
+
+  if (!state.ui.care || !availableCategories.includes(state.ui.care.selectedCategory)) {
+    state.ui.care = state.ui.care || {};
+    state.ui.care.selectedCategory = availableCategories[0];
+  }
+
+  renderCareCategoryButtons(availableCategories, categoryLabels);
+  renderCareActionButtons(state.ui.care.selectedCategory);
+  renderCareFeedback();
+}
+
+function renderCareCategoryButtons(categories, labels) {
+  const signature = categories.join('|') + `|selected:${state.ui.care.selectedCategory}`;
+  if (ui.careCategoryList.dataset.signature === signature) {
+    return;
+  }
+
+  ui.careCategoryList.dataset.signature = signature;
+  ui.careCategoryList.replaceChildren();
+
+  for (const category of categories) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'care-category-btn';
+    if (state.ui.care.selectedCategory === category) {
+      btn.classList.add('is-active');
+    }
+    btn.textContent = labels[category] || category;
+    btn.addEventListener('click', () => {
+      state.ui.care.selectedCategory = category;
+      setCareFeedback('info', `${labels[category] || category} ausgewaehlt.`);
+      renderCareSheet(true);
+    });
+    ui.careCategoryList.appendChild(btn);
+  }
+}
+
+function renderCareActionButtons(category) {
+  const actions = state.actions.catalog
+    .filter((action) => action.category === category)
+    .sort((a, b) => intensityRank(a.intensity) - intensityRank(b.intensity));
+
+  const signature = actions.map((action) => {
+    const cooldownUntil = Number(state.actions.cooldowns[action.id] || 0);
+    return `${action.id}:${cooldownUntil}`;
+  }).join('|');
+
+  if (ui.careActionList.dataset.signature === signature) {
+    return;
+  }
+
+  ui.careActionList.dataset.signature = signature;
+  ui.careActionList.replaceChildren();
+
+  for (const action of actions) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'care-action-btn';
+
+    const cooldownLeft = Math.max(0, Number(state.actions.cooldowns[action.id] || 0) - Date.now());
+    const cooldownText = cooldownLeft > 0
+      ? `Cooldown ${Math.ceil(cooldownLeft / 60000)}m`
+      : `Cooldown ${Math.round(action.cooldownRealMinutes || 0)}m`;
+
+    button.innerHTML = `<div><strong>${action.label}</strong><div class="care-action-meta">${labelForIntensity(action.intensity)}</div></div><span class="care-action-meta">${cooldownText}</span>`;
+
+    button.addEventListener('click', () => {
+      const result = applyAction(action.id);
+      if (result.ok) {
+        setCareFeedback('success', `${action.label} ausgefuehrt.`);
+      } else {
+        setCareFeedback('error', explainActionFailure(result.reason));
+      }
+      renderCareSheet(true);
+      renderHud();
+    });
+
+    ui.careActionList.appendChild(button);
+  }
+}
+
+function renderCareFeedback() {
+  const feedback = (state.ui.care && state.ui.care.feedback) || { kind: 'info', text: 'Bereit.' };
+  ui.careFeedback.textContent = feedback.text;
+  ui.careFeedback.classList.toggle('is-success', feedback.kind === 'success');
+  ui.careFeedback.classList.toggle('is-error', feedback.kind === 'error');
+}
+
+function setCareFeedback(kind, text) {
+  state.ui.care = state.ui.care || {};
+  state.ui.care.feedback = { kind, text };
+  renderCareFeedback();
+}
+
+function labelForIntensity(intensity) {
+  if (intensity === 'low') return 'Low';
+  if (intensity === 'high') return 'High';
+  return 'Medium';
+}
+
+function intensityRank(intensity) {
+  if (intensity === 'low') return 0;
+  if (intensity === 'medium') return 1;
+  if (intensity === 'high') return 2;
+  return 3;
+}
+
+function explainActionFailure(reason) {
+  const value = String(reason || 'action_failed');
+  if (value.startsWith('cooldown_active:')) {
+    return `Aktion blockiert: ${value.replace('cooldown_active:', 'Cooldown noch ')}`;
+  }
+  if (value.startsWith('prereq_min_failed:') || value.startsWith('prereq_max_failed:')) {
+    return `Voraussetzung nicht erfuellt (${value.split(':')[1] || 'unknown'}).`;
+  }
+  if (value.startsWith('outside_time_window:')) {
+    return 'Aktion nur tagsueber verfuegbar.';
+  }
+  if (value.startsWith('stage_too_low:')) {
+    return 'Aktion fuer diese Phase noch nicht freigeschaltet.';
+  }
+  return `Aktion blockiert (${value}).`;
 }
 
 function renderEventSheet() {
@@ -1306,6 +1457,8 @@ function openSheet(name) {
     renderLogList(true);
   } else if (name === 'event') {
     renderEventSheet();
+  } else if (name === 'care') {
+    renderCareSheet(true);
   }
 }
 
@@ -1675,6 +1828,15 @@ function ensureStateIntegrity(nowMs) {
   }
   if (!Array.isArray(state.ui.visibleOverlayIds)) {
     state.ui.visibleOverlayIds = [];
+  }
+  if (!state.ui.care || typeof state.ui.care !== 'object') {
+    state.ui.care = { selectedCategory: null, feedback: { kind: 'info', text: 'Bereit.' } };
+  }
+  if (typeof state.ui.care.selectedCategory !== 'string') {
+    state.ui.care.selectedCategory = null;
+  }
+  if (!state.ui.care.feedback || typeof state.ui.care.feedback !== 'object') {
+    state.ui.care.feedback = { kind: 'info', text: 'Bereit.' };
   }
 
   if (typeof state.lastEventId !== 'string') {
