@@ -53,6 +53,7 @@ const DB_KEY = 'state-v2';
 const LS_STATE_KEY = 'grow-sim-state-v2';
 const PUSH_SUB_KEY = 'grow-sim-push-sub-v1';
 const EVENTS_CATALOG_VERSION = '20260301-de';
+const ACTIONS_CATALOG_VERSION = '20260304-v1';
 const VAPID_PUBLIC_KEY = 'BElxPLACEHOLDERp8v2C4CwY6ofqP5E8v2rFjQvqW8g4bW2-v8JvKc-l7dXXn4N1xqjY7PqFhL3O8m4jzWzI8v7jA';
 
 const TOTAL_LIFECYCLE_SIM_DAYS = 56;
@@ -163,6 +164,12 @@ const state = {
     lastChoiceId: null,
     catalog: []
   },
+  actions: {
+    catalog: [],
+    byId: {},
+    cooldowns: {},
+    activeEffects: []
+  },
   ui: {
     openSheet: null,
     selectedBackground: 'bg_dark_01.jpg',
@@ -194,6 +201,7 @@ async function init() {
   storageAdapter = await createStorageAdapter();
   await restoreState();
   await loadEventCatalog();
+  await loadActionsCatalog();
 
   ensureStateIntegrity(Date.now());
   syncRuntimeClocks(Date.now());
@@ -201,8 +209,11 @@ async function init() {
   updateVisibleOverlays();
   addLog('system', 'Runtime initialisiert', {
     mode: state.sim.mode,
-    events: state.event.catalog.length
+    events: state.event.catalog.length,
+    actions: state.actions.catalog.length
   });
+
+  window.__applyAction = (id) => applyAction(id);
 
   renderAll();
   await schedulePushIfAllowed(true);
@@ -297,6 +308,7 @@ function tick() {
   state.sim.tickCount += 1;
 
   applyStatusDrift(elapsedRealMs);
+  applyActiveActionEffects(elapsedSimMs);
   advanceGrowthTick(elapsedSimMs);
   runEventStateMachine(nowMs);
   resetBoostDaily(nowMs);
@@ -708,24 +720,258 @@ function cooldownMs() {
 }
 
 function onCareApply() {
-  state.status.water += 10;
-  state.status.nutrition += 7;
-  state.status.stress -= 6;
-  state.status.health += 4;
-  state.status.risk -= 4;
-  applyGrowthPercentDelta(1.5);
-  clampStatus();
-
-  addLog('action', 'Pflegeaktion angewendet', {
-    health: state.status.health,
-    stress: state.status.stress,
-    water: state.status.water,
-    nutrition: state.status.nutrition
-  });
+  const result = applyAction('watering_medium_deep');
+  if (!result.ok) {
+    addLog('action', `Aktion blockiert: ${result.reason}`, { actionId: 'watering_medium_deep' });
+  }
 
   closeSheet();
   renderAll();
   schedulePersistState(true);
+}
+
+function applyAction(actionId) {
+  const action = state.actions.byId[actionId];
+  if (!action) {
+    return { ok: false, reason: `unknown_action:${actionId}` };
+  }
+
+  const nowMs = Date.now();
+  const cooldownUntil = Number(state.actions.cooldowns[action.id] || 0);
+  if (cooldownUntil > nowMs) {
+    return { ok: false, reason: `cooldown_active:${Math.ceil((cooldownUntil - nowMs) / 1000)}s` };
+  }
+
+  const triggerCheck = validateActionTrigger(action);
+  if (!triggerCheck.ok) {
+    return triggerCheck;
+  }
+
+  const preCheck = validateActionPrerequisites(action);
+  if (!preCheck.ok) {
+    return preCheck;
+  }
+
+  const before = snapshotStatus();
+
+  applyEffectsObject(action.effects.immediate || {});
+  scheduleActionOverTimeEffect(action, nowMs);
+
+  const triggeredSideEffects = [];
+  for (const side of action.sideEffects) {
+    if (!side || typeof side !== 'object') {
+      continue;
+    }
+    const conditionMet = evaluateCondition(side.when || 'true');
+    if (!conditionMet) {
+      continue;
+    }
+    const chance = clamp(Number(side.chance), 0, 1);
+    const roll = deterministicUnitFloat(`action_side:${action.id}:${side.id || 'side'}:${state.sim.tickCount}:${Math.floor(state.sim.simTimeMs / 60000)}`);
+    if (roll <= chance) {
+      applyEffectsObject(side.deltas || {});
+      triggeredSideEffects.push(side.id || 'side_effect');
+    }
+  }
+
+  const cooldownMs = Math.round((Number(action.cooldownRealMinutes) || 0) * 60 * 1000);
+  state.actions.cooldowns[action.id] = nowMs + cooldownMs;
+
+  const after = snapshotStatus();
+  const deltaSummary = summarizeDelta(before, after);
+
+  addLog('action', `Action: ${action.label}`, {
+    type: 'action',
+    id: action.id,
+    category: action.category,
+    intensity: action.intensity,
+    label: action.label,
+    simTime: state.sim.simTimeMs,
+    realTime: nowMs,
+    sideEffects: triggeredSideEffects,
+    deltaSummary
+  });
+
+  clampStatus();
+  updateVisibleOverlays();
+  schedulePersistState(true);
+
+  return { ok: true, id: action.id, deltaSummary, sideEffects: triggeredSideEffects };
+}
+
+function validateActionTrigger(action) {
+  const trigger = action.trigger || {};
+  if (trigger.timeWindow === 'daytime_only' && !state.sim.isDaytime) {
+    return { ok: false, reason: 'outside_time_window:daytime_only' };
+  }
+
+  if (Number.isFinite(trigger.minStageIndex) && state.growth.stageIndex < Number(trigger.minStageIndex)) {
+    return { ok: false, reason: `stage_too_low:${state.growth.stageIndex}<${trigger.minStageIndex}` };
+  }
+
+  return { ok: true };
+}
+
+function validateActionPrerequisites(action) {
+  const pre = action.prerequisites || {};
+  const min = pre.min && typeof pre.min === 'object' ? pre.min : {};
+  const max = pre.max && typeof pre.max === 'object' ? pre.max : {};
+
+  for (const [key, value] of Object.entries(min)) {
+    if (!Number.isFinite(Number(value))) {
+      continue;
+    }
+    const current = key in state.status ? state.status[key] : null;
+    if (current !== null && current < Number(value)) {
+      return { ok: false, reason: `prereq_min_failed:${key}` };
+    }
+  }
+
+  for (const [key, value] of Object.entries(max)) {
+    if (!Number.isFinite(Number(value))) {
+      continue;
+    }
+    const current = key in state.status ? state.status[key] : null;
+    if (current !== null && current > Number(value)) {
+      return { ok: false, reason: `prereq_max_failed:${key}` };
+    }
+  }
+
+  return { ok: true };
+}
+
+function scheduleActionOverTimeEffect(action, nowMs) {
+  const durationMs = Math.round((Number(action.effects.durationSimMinutes) || 0) * 60 * 1000);
+  const overTime = action.effects.overTime || {};
+  if (durationMs <= 0 || !Object.keys(overTime).length) {
+    return;
+  }
+
+  state.actions.activeEffects.push({
+    id: `${action.id}:${nowMs}:${state.sim.tickCount}`,
+    actionId: action.id,
+    remainingSimMs: durationMs,
+    rates: overTime
+  });
+}
+
+function applyActiveActionEffects(elapsedSimMs) {
+  if (!Array.isArray(state.actions.activeEffects) || !state.actions.activeEffects.length) {
+    return;
+  }
+
+  const stillActive = [];
+  for (const effect of state.actions.activeEffects) {
+    const stepMs = clamp(elapsedSimMs, 0, effect.remainingSimMs);
+    if (stepMs > 0) {
+      applyOverTimeRates(effect.rates || {}, stepMs);
+      effect.remainingSimMs -= stepMs;
+    }
+    if (effect.remainingSimMs > 0) {
+      stillActive.push(effect);
+    }
+  }
+
+  state.actions.activeEffects = stillActive;
+  clampStatus();
+}
+
+function applyOverTimeRates(rates, elapsedSimMs) {
+  const simHours = elapsedSimMs / (60 * 60 * 1000);
+  for (const [key, perHour] of Object.entries(rates || {})) {
+    const delta = Number(perHour) * simHours;
+    if (!Number.isFinite(delta)) {
+      continue;
+    }
+
+    if (key === 'growthPerHour') {
+      applyGrowthPercentDelta(delta);
+      continue;
+    }
+
+    const metric = key.replace(/PerHour$/, '');
+    if (Object.prototype.hasOwnProperty.call(state.status, metric)) {
+      state.status[metric] += delta;
+    }
+  }
+}
+
+function applyEffectsObject(effects) {
+  for (const [metric, deltaRaw] of Object.entries(effects || {})) {
+    const delta = Number(deltaRaw);
+    if (!Number.isFinite(delta)) {
+      continue;
+    }
+
+    if (metric === 'growth') {
+      applyGrowthPercentDelta(delta);
+      continue;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(state.status, metric)) {
+      state.status[metric] += delta;
+    }
+  }
+
+  clampStatus();
+}
+
+function evaluateCondition(conditionExpr) {
+  const expr = String(conditionExpr || 'true').trim();
+  if (!expr || expr.toLowerCase() === 'true') {
+    return true;
+  }
+
+  const orParts = expr.split(/\s+OR\s+/i);
+  for (const part of orParts) {
+    const andParts = part.split(/\s+AND\s+/i);
+    const andResult = andParts.every((token) => evaluateAtomicCondition(token.trim()));
+    if (andResult) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function evaluateAtomicCondition(token) {
+  const m = token.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*(>=|<=|==|>|<)\s*(-?\d+(?:\.\d+)?)$/);
+  if (!m) {
+    return false;
+  }
+
+  const key = m[1];
+  const op = m[2];
+  const rhs = Number(m[3]);
+  const lhs = key in state.status ? Number(state.status[key]) : NaN;
+  if (!Number.isFinite(lhs) || !Number.isFinite(rhs)) {
+    return false;
+  }
+
+  if (op === '>=') return lhs >= rhs;
+  if (op === '<=') return lhs <= rhs;
+  if (op === '==') return lhs === rhs;
+  if (op === '>') return lhs > rhs;
+  if (op === '<') return lhs < rhs;
+  return false;
+}
+
+function snapshotStatus() {
+  return {
+    water: state.status.water,
+    nutrition: state.status.nutrition,
+    health: state.status.health,
+    stress: state.status.stress,
+    risk: state.status.risk,
+    growth: state.status.growth
+  };
+}
+
+function summarizeDelta(before, after) {
+  const out = {};
+  for (const key of Object.keys(before)) {
+    out[key] = round2((after[key] || 0) - (before[key] || 0));
+  }
+  return out;
 }
 
 function onBoostAction() {
@@ -1254,6 +1500,9 @@ async function restoreState() {
   if (saved.event && typeof saved.event === 'object') {
     Object.assign(state.event, saved.event);
   }
+  if (saved.actions && typeof saved.actions === 'object') {
+    Object.assign(state.actions, saved.actions);
+  }
   if (saved.ui && typeof saved.ui === 'object') {
     Object.assign(state.ui, saved.ui);
   }
@@ -1389,6 +1638,37 @@ function ensureStateIntegrity(nowMs) {
     state.event.catalog = [];
   }
 
+  if (!Array.isArray(state.actions.catalog)) {
+    state.actions.catalog = [];
+  }
+  if (!state.actions.byId || typeof state.actions.byId !== 'object') {
+    state.actions.byId = {};
+  }
+  if (!state.actions.cooldowns || typeof state.actions.cooldowns !== 'object') {
+    state.actions.cooldowns = {};
+  }
+  if (!Array.isArray(state.actions.activeEffects)) {
+    state.actions.activeEffects = [];
+  }
+
+  state.actions.catalog = state.actions.catalog.map(normalizeAction).filter(Boolean);
+  state.actions.byId = Object.fromEntries(state.actions.catalog.map((action) => [action.id, action]));
+
+  for (const [actionId, untilMs] of Object.entries(state.actions.cooldowns)) {
+    if (!Number.isFinite(Number(untilMs)) || Number(untilMs) <= nowMs) {
+      delete state.actions.cooldowns[actionId];
+    }
+  }
+
+  state.actions.activeEffects = state.actions.activeEffects
+    .filter((effect) => effect && Number.isFinite(Number(effect.remainingSimMs)) && Number(effect.remainingSimMs) > 0)
+    .map((effect) => ({
+      id: String(effect.id || `${effect.actionId || 'action'}:${nowMs}`),
+      actionId: String(effect.actionId || ''),
+      remainingSimMs: Math.max(0, Number(effect.remainingSimMs)),
+      rates: effect.rates && typeof effect.rates === 'object' ? effect.rates : {}
+    }));
+
   const validSheets = new Set([null, 'care', 'event', 'dashboard', 'diagnosis']);
   if (!validSheets.has(state.ui.openSheet)) {
     state.ui.openSheet = null;
@@ -1466,6 +1746,61 @@ async function loadEventCatalog() {
       error: error.message
     });
   }
+}
+
+async function loadActionsCatalog() {
+  try {
+    let response = null;
+    try {
+      response = await fetch(appPath(`data/actions.json?v=${ACTIONS_CATALOG_VERSION}`), { cache: 'no-store' });
+    } catch (_error) {
+      response = await fetch(appPath('data/actions.json'), { cache: 'default' });
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const actions = Array.isArray(payload) ? payload : payload.actions;
+    if (!Array.isArray(actions)) {
+      throw new Error('Invalid actions payload');
+    }
+
+    const normalized = actions.map(normalizeAction).filter(Boolean);
+    state.actions.catalog = normalized;
+    state.actions.byId = Object.fromEntries(normalized.map((action) => [action.id, action]));
+  } catch (error) {
+    state.actions.catalog = [];
+    state.actions.byId = {};
+    addLog('system', 'actions.json konnte nicht geladen werden, Aktionssystem ohne Katalog', {
+      error: error.message
+    });
+  }
+}
+
+function normalizeAction(rawAction) {
+  if (!rawAction || typeof rawAction !== 'object' || !rawAction.id) {
+    return null;
+  }
+
+  const base = {
+    id: String(rawAction.id),
+    category: String(rawAction.category || 'generic'),
+    intensity: String(rawAction.intensity || 'medium'),
+    label: String(rawAction.label || rawAction.id),
+    trigger: rawAction.trigger && typeof rawAction.trigger === 'object' ? rawAction.trigger : {},
+    prerequisites: rawAction.prerequisites && typeof rawAction.prerequisites === 'object' ? rawAction.prerequisites : {},
+    effects: rawAction.effects && typeof rawAction.effects === 'object' ? rawAction.effects : {},
+    cooldownRealMinutes: clamp(rawAction.cooldownRealMinutes, 0, 24 * 60),
+    sideEffects: Array.isArray(rawAction.sideEffects) ? rawAction.sideEffects : []
+  };
+
+  base.effects.immediate = base.effects.immediate && typeof base.effects.immediate === 'object' ? base.effects.immediate : {};
+  base.effects.overTime = base.effects.overTime && typeof base.effects.overTime === 'object' ? base.effects.overTime : {};
+  base.effects.durationSimMinutes = clamp(base.effects.durationSimMinutes, 0, 24 * 60);
+
+  return base;
 }
 
 function normalizeEvent(rawEvent) {
