@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 2,
+  "events": [
+    {
+      "id": "v2_water_dry_pot",
+      "category": "water",
+      "title": "Topf trocken",
+      "description": "Die obere Substratschicht ist staubig und die Pflanze zeigt leicht haengende Blaetter.",
+      "triggers": {
+        "all": [
+          { "field": "status.water", "op": "<=", "value": 35 },
+          { "field": "simulation.isDaytime", "op": "==", "value": true }
+        ],
+        "stage": { "min": 2, "max": 10 }
+      },
+      "weight": 1.4,
+      "cooldownRealMinutes": 160,
+      "options": [
+        { "id": "water_slow", "label": "Langsam in zwei Intervallen giessen", "effects": { "water": 14, "stress": -3, "risk": -1 } },
+        { "id": "water_fast", "label": "Schnell nachgiessen", "effects": { "water": 20, "stress": -1, "risk": 3 } },
+        { "id": "wait_cycle", "label": "Noch einen Zyklus warten", "effects": { "health": -2, "stress": 3, "risk": 2 } }
+      ],
+      "learningNote": "Trockene Toepfe frueh erkennen und langsam nachwaessern verhindert Stressspitzen."
+    },
+    {
+      "id": "v2_water_overwater_warning",
+      "category": "water",
+      "title": "Staunaesse-Verdacht",
+      "description": "Das Substrat wirkt schwer und schlecht belueftet, die Wurzelzone bleibt zu lange nass.",
+      "triggers": {
+        "all": [
+          { "field": "status.water", "op": ">=", "value": 82 },
+          { "field": "status.risk", "op": ">=", "value": 35 }
+        ],
+        "stage": { "min": 3, "max": 11 }
+      },
+      "weight": 1.1,
+      "cooldownRealMinutes": 200,
+      "options": [
+        { "id": "aerate_top", "label": "Obere Schicht lockern und Luftstrom erhoehen", "effects": { "water": -8, "risk": -4, "stress": -2 } },
+        { "id": "ignore_moist", "label": "Ignorieren und normal weitermachen", "effects": { "health": -3, "risk": 5, "stress": 2 } }
+      ],
+      "learningNote": "Zu viel Wasser ohne Sauerstoff hemmt Wurzeln und erhoeht Krankheitsrisiken."
+    },
+    {
+      "id": "v2_nutrition_n_deficit",
+      "category": "nutrition",
+      "title": "Stickstoffmangel-Anzeichen",
+      "description": "Untere Blaetter verblassen. Das Wachstum wirkt traeger als erwartet.",
+      "triggers": {
+        "all": [
+          { "field": "status.nutrition", "op": "<=", "value": 38 },
+          { "field": "status.health", "op": "<=", "value": 72 }
+        ],
+        "stage": { "min": 3, "max": 8 }
+      },
+      "weight": 1.3,
+      "cooldownRealMinutes": 180,
+      "options": [
+        { "id": "micro_feed", "label": "Leichte Naehrstoffgabe", "effects": { "nutrition": 10, "growth": 1.1, "risk": 1 } },
+        { "id": "strong_feed", "label": "Starke Korrekturduengung", "effects": { "nutrition": 16, "growth": 1.6, "stress": 3, "risk": 3 } },
+        { "id": "observe_only", "label": "Nur beobachten", "effects": { "health": -2, "growth": -0.8, "stress": 2 } }
+      ],
+      "learningNote": "Mangel frueh mit kleinen, kontrollierten Gaben beheben statt ueberreagieren."
+    },
+    {
+      "id": "v2_nutrition_lockout",
+      "category": "nutrition",
+      "title": "Naehrstoff-Lockout Hinweis",
+      "description": "Trotz Duengung reagiert die Pflanze kaum. Aufnahme scheint blockiert.",
+      "triggers": {
+        "all": [
+          { "field": "status.nutrition", "op": ">=", "value": 78 },
+          { "field": "status.stress", "op": ">=", "value": 52 }
+        ],
+        "stage": { "min": 5, "max": 11 }
+      },
+      "weight": 0.9,
+      "cooldownRealMinutes": 220,
+      "options": [
+        { "id": "light_flush", "label": "Leicht spuelen und neu aufbauen", "effects": { "water": 10, "nutrition": -8, "stress": -1, "risk": -2 } },
+        { "id": "push_feed", "label": "Noch mehr duengen", "effects": { "nutrition": 6, "health": -3, "stress": 4, "risk": 5 } }
+      ],
+      "learningNote": "Hohe Naehrstoffwerte bedeuten nicht automatisch hohe Aufnahme. Balance ist entscheidend."
+    },
+    {
+      "id": "v2_pest_mites_spotted",
+      "category": "pest",
+      "title": "Feine Punkte auf Blattunterseite",
+      "description": "Erste Hinweise auf Spinnmilben wurden entdeckt.",
+      "triggers": {
+        "all": [
+          { "field": "status.risk", "op": ">=", "value": 45 },
+          { "field": "status.stress", "op": ">=", "value": 35 }
+        ],
+        "stage": { "min": 4, "max": 11 },
+        "setup": { "modeIn": ["indoor", "greenhouse"] }
+      },
+      "weight": 1.0,
+      "cooldownRealMinutes": 210,
+      "options": [
+        { "id": "spot_treat", "label": "Gezielt behandeln und isolieren", "effects": { "risk": -8, "stress": 1, "health": 1 } },
+        { "id": "raise_fans", "label": "Nur Luftbewegung erhoehen", "effects": { "risk": -3, "water": -2 } },
+        { "id": "do_nothing", "label": "Abwarten", "effects": { "risk": 7, "health": -3, "stress": 3 } }
+      ],
+      "learningNote": "Fruehes Eingreifen bei Schaedlingen ist viel effizienter als spaete Notfallmassnahmen."
+    },
+    {
+      "id": "v2_pest_thrips_wave",
+      "category": "pest",
+      "title": "Silbrige Fraßspuren",
+      "description": "Mehrere Blaetter zeigen lineare Silberschaeden durch Thripse.",
+      "triggers": {
+        "all": [
+          { "field": "status.risk", "op": ">=", "value": 55 }
+        ],
+        "any": [
+          { "field": "status.health", "op": "<=", "value": 68 },
+          { "field": "status.stress", "op": ">=", "value": 48 }
+        ],
+        "stage": { "min": 5, "max": 12 }
+      },
+      "weight": 0.95,
+      "cooldownRealMinutes": 240,
+      "options": [
+        { "id": "integrated_control", "label": "Nützlinge + Blattkontrolle kombinieren", "effects": { "risk": -9, "stress": -1, "health": 1 } },
+        { "id": "hard_spray", "label": "Starker Sprayeinsatz", "effects": { "risk": -6, "stress": 4, "health": -2 } }
+      ],
+      "learningNote": "Integrierte Kontrolle reduziert Rueckschlaege besser als harte Einmalmassnahmen."
+    },
+    {
+      "id": "v2_environment_heat_spike",
+      "category": "environment",
+      "title": "Hitze-Spitze im Zelt",
+      "description": "Die Temperatur ist kurzfristig deutlich ueber Soll gestiegen.",
+      "triggers": {
+        "all": [
+          { "field": "status.stress", "op": ">=", "value": 40 },
+          { "field": "simulation.isDaytime", "op": "==", "value": true }
+        ],
+        "setup": { "lightIn": ["high"] }
+      },
+      "weight": 1.05,
+      "cooldownRealMinutes": 170,
+      "options": [
+        { "id": "climate_adjust", "label": "Lichtdimmung + Klima nachregeln", "effects": { "stress": -4, "risk": -3, "growth": -0.3 } },
+        { "id": "power_through", "label": "Unveraendert weiterlaufen lassen", "effects": { "growth": 0.4, "health": -3, "stress": 3 } }
+      ],
+      "learningNote": "Kurze Ertragseinbussen durch Klimaanpassung sind oft besser als Hitzestress-Folgen."
+    },
+    {
+      "id": "v2_environment_cold_night",
+      "category": "environment",
+      "title": "Kuehle Nachtphase",
+      "description": "Der Temperaturabfall in der Dunkelphase war staerker als geplant.",
+      "triggers": {
+        "all": [
+          { "field": "status.health", "op": "<=", "value": 75 },
+          { "field": "status.stress", "op": ">=", "value": 30 }
+        ],
+        "setup": { "modeIn": ["outdoor", "greenhouse"] },
+        "stage": { "min": 2, "max": 9 }
+      },
+      "weight": 0.85,
+      "cooldownRealMinutes": 210,
+      "options": [
+        { "id": "insulate", "label": "Temperatur stabilisieren", "effects": { "stress": -3, "risk": -2, "water": -1 } },
+        { "id": "accept_variation", "label": "Schwankung akzeptieren", "effects": { "stress": 2, "growth": -0.6 } }
+      ],
+      "learningNote": "Konstante Nachtbedingungen helfen besonders jungen und gestressten Pflanzen."
+    },
+    {
+      "id": "v2_disease_mold_pocket",
+      "category": "disease",
+      "title": "Feuchte Zone im Blattdach",
+      "description": "Ein dichter Bereich zeigt erhoehte Feuchte und erste Schimmelgefahr.",
+      "triggers": {
+        "all": [
+          { "field": "status.risk", "op": ">=", "value": 52 },
+          { "field": "status.water", "op": ">=", "value": 68 }
+        ],
+        "stage": { "min": 7, "max": 12 }
+      },
+      "weight": 1.2,
+      "cooldownRealMinutes": 260,
+      "options": [
+        { "id": "defol_light", "label": "Leicht auslichten + Luftstrom", "effects": { "risk": -7, "stress": 2, "health": 1 } },
+        { "id": "ignore_pocket", "label": "Keine sofortige Aktion", "effects": { "risk": 8, "health": -4, "stress": 3 } }
+      ],
+      "learningNote": "Dichte, feuchte Zonen in der Bluetephase frueh entschärfen, bevor Schimmel sichtbar wird."
+    },
+    {
+      "id": "v2_disease_root_warning",
+      "category": "disease",
+      "title": "Wurzelzone riecht muffig",
+      "description": "Der Geruch deutet auf Sauerstoffmangel und beginnende Wurzelprobleme hin.",
+      "triggers": {
+        "all": [
+          { "field": "status.water", "op": ">=", "value": 78 },
+          { "field": "status.health", "op": "<=", "value": 70 }
+        ],
+        "any": [
+          { "field": "status.risk", "op": ">=", "value": 40 },
+          { "field": "status.stress", "op": ">=", "value": 45 }
+        ],
+        "stage": { "min": 3, "max": 10 }
+      },
+      "weight": 1.0,
+      "cooldownRealMinutes": 240,
+      "options": [
+        { "id": "dryback_protocol", "label": "Trocknungsfenster + Sauerstoff verbessern", "effects": { "water": -10, "risk": -5, "health": 1 } },
+        { "id": "continue_schedule", "label": "Beim alten Giessschema bleiben", "effects": { "health": -4, "risk": 6, "stress": 3 } },
+        { "id": "rescue_flush", "label": "Notfall-Spuelung", "effects": { "water": 6, "nutrition": -6, "risk": -1, "stress": 2 } }
+      ],
+      "learningNote": "Wurzelgesundheit haengt stark von Bewaesserungsrhythmus und Sauerstoffverfuegbarkeit ab."
+    }
+  ]
+}

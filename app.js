@@ -115,7 +115,19 @@ const state = {
   setup: null,
   simulation: {},
   plant: {},
-  events: {},
+  events: {
+    scheduler: {
+      nextEventRealTimeMs: now + EVENT_ROLL_MIN_REAL_MS,
+      lastEventRealTimeMs: 0,
+      lastEventId: null,
+      lastEventCategory: null,
+      deferredUntilDaytime: false,
+      windowRealMinutes: { min: 30, max: 90 },
+      eventCooldowns: {}
+    },
+    active: null,
+    history: []
+  },
   history: { actions: [], events: [], system: [] },
   debug: { enabled: false, showInternalTicks: false, forceDaytime: false },
   sim: {
@@ -165,6 +177,8 @@ const state = {
     activeEventText: '',
     activeOptions: [],
     activeSeverity: 1,
+    activeCooldownRealMinutes: 120,
+    activeCategory: 'generic',
     activeTags: [],
     lastEventAtMs: 0,
     nextEventAtMs: now + EVENT_ROLL_MIN_REAL_MS,
@@ -373,14 +387,6 @@ function tick() {
   updateVisibleOverlays();
   syncCanonicalStateShape();
 
-  if (state.sim.tickCount % CONFIG.logTickEveryNTicks === 0) {
-    addLog('tick', `Tick #${state.sim.tickCount}`, {
-      elapsedRealMs,
-      phase: state.growth.phase,
-      stage: state.growth.stageName,
-      eventState: state.event.machineState
-    });
-  }
 
   if (state.ui.openSheet !== prevOpenSheet) {
     renderSheets();
@@ -654,8 +660,21 @@ function activateEvent(nowMs) {
     return;
   }
 
-  const eventDef = selectEventDeterministically(catalog);
-  const options = eventDef.choices.slice(0, 3);
+  const eligible = eligibleEventsForNow(nowMs);
+  if (!eligible.length) {
+    addLog('event_roll', 'Keine passenden Ereignisse fuer aktuellen Zustand', {
+      simDay: Math.floor(simDayFloat()),
+      at: nowMs
+    });
+    return;
+  }
+
+  const eventDef = selectEventDeterministically(eligible, nowMs);
+  if (!eventDef) {
+    return;
+  }
+
+  const options = eventDef.options.slice(0, 3);
 
   state.event.machineState = 'activeEvent';
   state.event.activeEventId = eventDef.id;
@@ -664,13 +683,149 @@ function activateEvent(nowMs) {
   state.event.activeEventText = eventDef.description;
   state.event.activeOptions = options;
   state.event.activeSeverity = eventDef.severity || 3;
+  state.event.activeCooldownRealMinutes = clamp(Number(eventDef.cooldownRealMinutes) || 120, 10, 24 * 60);
+  state.event.activeCategory = eventDef.category || 'generic';
   state.event.activeTags = Array.isArray(eventDef.tags) ? eventDef.tags.slice(0, 5) : [];
   state.event.lastEventAtMs = nowMs;
 
+  state.events.scheduler.lastEventId = eventDef.id;
+  state.events.scheduler.lastEventRealTimeMs = nowMs;
+  state.events.scheduler.lastEventCategory = eventDef.category || 'generic';
+  state.events.active = {
+    id: eventDef.id,
+    title: eventDef.title,
+    description: eventDef.description,
+    category: eventDef.category || 'generic',
+    learningNote: eventDef.learningNote || ''
+  };
+
   addLog('event_shown', `Ereignis ausgewaehlt: ${eventDef.id}`, {
     title: eventDef.title,
-    severity: state.event.activeSeverity
+    severity: state.event.activeSeverity,
+    category: eventDef.category || 'generic'
   });
+}
+
+function eligibleEventsForNow(nowMs) {
+  const cooldowns = state.events.scheduler.eventCooldowns || {};
+  return state.event.catalog
+    .filter((eventDef) => isEventEligible(eventDef, cooldowns, nowMs))
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+}
+
+function isEventEligible(eventDef, cooldowns, nowMs) {
+  if (!eventDef || !eventDef.id) {
+    return false;
+  }
+
+  const blockedUntil = Number(cooldowns[eventDef.id] || 0);
+  if (blockedUntil > nowMs) {
+    return false;
+  }
+
+  return evaluateEventTriggers(eventDef.triggers || {});
+}
+
+function evaluateEventTriggers(triggers) {
+  const t = triggers && typeof triggers === 'object' ? triggers : {};
+
+  if (t.stage && typeof t.stage === 'object') {
+    const stageIndex = state.growth.stageIndex + 1;
+    if (Number.isFinite(Number(t.stage.min)) && stageIndex < Number(t.stage.min)) {
+      return false;
+    }
+    if (Number.isFinite(Number(t.stage.max)) && stageIndex > Number(t.stage.max)) {
+      return false;
+    }
+  }
+
+  if (t.setup && typeof t.setup === 'object') {
+    if (!evaluateSetupConstraints(t.setup)) {
+      return false;
+    }
+  }
+
+  const all = Array.isArray(t.all) ? t.all : [];
+  const any = Array.isArray(t.any) ? t.any : [];
+
+  if (all.length && !all.every(evaluateTriggerCondition)) {
+    return false;
+  }
+  if (any.length && !any.some(evaluateTriggerCondition)) {
+    return false;
+  }
+
+  return true;
+}
+
+function evaluateSetupConstraints(setupRule) {
+  const setup = state.setup || {};
+  for (const [key, values] of Object.entries(setupRule)) {
+    if (!Array.isArray(values)) {
+      continue;
+    }
+    const prop = key.replace(/In$/, '');
+    const current = setup[prop];
+    if (!values.map(String).includes(String(current))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function evaluateTriggerCondition(condition) {
+  if (!condition || typeof condition !== 'object') {
+    return false;
+  }
+
+  const field = String(condition.field || '').trim();
+  const op = String(condition.op || '==').trim();
+  const rhs = condition.value;
+  const lhs = resolveTriggerField(field);
+
+  if (op === 'in') {
+    return Array.isArray(rhs) && rhs.map(String).includes(String(lhs));
+  }
+  if (op === 'not_in') {
+    return Array.isArray(rhs) && !rhs.map(String).includes(String(lhs));
+  }
+
+  const leftNum = Number(lhs);
+  const rightNum = Number(rhs);
+  const numeric = Number.isFinite(leftNum) && Number.isFinite(rightNum);
+
+  if (op === '==') return lhs === rhs || String(lhs) === String(rhs);
+  if (op === '!=') return !(lhs === rhs || String(lhs) === String(rhs));
+  if (!numeric) return false;
+  if (op === '>') return leftNum > rightNum;
+  if (op === '>=') return leftNum >= rightNum;
+  if (op === '<') return leftNum < rightNum;
+  if (op === '<=') return leftNum <= rightNum;
+  return false;
+}
+
+function resolveTriggerField(fieldPath) {
+  if (!fieldPath) {
+    return undefined;
+  }
+
+  if (fieldPath.startsWith('status.')) {
+    return state.status[fieldPath.split('.')[1]];
+  }
+  if (fieldPath === 'plant.stageIndex') {
+    return state.growth.stageIndex + 1;
+  }
+  if (fieldPath === 'plant.stageKey') {
+    return state.growth.stageName;
+  }
+  if (fieldPath.startsWith('setup.')) {
+    return (state.setup || {})[fieldPath.split('.')[1]];
+  }
+  if (fieldPath === 'simulation.isDaytime') {
+    return state.sim.isDaytime;
+  }
+
+  return undefined;
 }
 
 function onEventOptionClick(optionId) {
@@ -683,17 +838,49 @@ function onEventOptionClick(optionId) {
     return;
   }
 
+  const before = snapshotStatus();
   applyChoiceEffects(choice.effects || {});
+
+  const triggeredSideEffects = [];
+  for (const side of Array.isArray(choice.sideEffects) ? choice.sideEffects : []) {
+    if (!evaluateCondition(side.when || 'true')) {
+      continue;
+    }
+    const chance = clamp(Number(side.chance), 0, 1);
+    const roll = deterministicUnitFloat(`event_side:${state.event.activeEventId}:${choice.id}:${side.id || 'side'}:${state.sim.tickCount}`);
+    if (roll <= chance) {
+      applyChoiceEffects(side.effects || {});
+      triggeredSideEffects.push(side.id || 'side');
+    }
+  }
+
+  const after = snapshotStatus();
+  const deltaSummary = summarizeDelta(before, after);
+
   state.event.lastChoiceId = choice.id;
   state.lastChoiceId = choice.id;
   state.event.machineState = 'resolved';
 
+  const historyEntry = {
+    type: 'event',
+    id: state.event.activeEventId,
+    atSimTimeMs: state.sim.simTimeMs,
+    atRealTimeMs: Date.now(),
+    choiceId: choice.id,
+    deltaSummary,
+    sideEffects: triggeredSideEffects
+  };
+  state.history.events.push(historyEntry);
+  state.events.history.push(historyEntry);
+
   addLog('choice', `Option gewaehlt: ${state.event.activeEventId}/${choice.id}`, {
     effects: choice.effects || {},
-    followUp: choice.followUp || null
+    sideEffects: triggeredSideEffects,
+    followUps: choice.followUps || []
   });
 
   runEventStateMachine(state.sim.nowMs);
+  syncCanonicalStateShape();
   renderAll();
   schedulePersistState(true);
 }
@@ -736,6 +923,9 @@ function setGrowthFromPercent(percent) {
 }
 
 function enterEventCooldown(nowMs) {
+  const activeEventId = state.event.activeEventId;
+  const perEventCooldownMs = Math.round((Number(state.event.activeCooldownRealMinutes) || 120) * 60 * 1000);
+
   state.event.machineState = 'cooldown';
   state.event.cooldownUntilMs = nowMs + cooldownMs();
   state.event.activeEventId = null;
@@ -743,10 +933,19 @@ function enterEventCooldown(nowMs) {
   state.event.activeEventText = '';
   state.event.activeOptions = [];
   state.event.activeSeverity = 1;
+  state.event.activeCooldownRealMinutes = 120;
+  state.event.activeCategory = 'generic';
   state.event.activeTags = [];
 
+  if (activeEventId) {
+    state.events.scheduler.eventCooldowns[activeEventId] = nowMs + perEventCooldownMs;
+  }
+  state.events.active = null;
+
   addLog('system', 'Ereignis abgeschlossen, Abklingzeit gestartet', {
-    cooldownUntilMs: state.event.cooldownUntilMs
+    cooldownUntilMs: state.event.cooldownUntilMs,
+    eventId: activeEventId,
+    perEventCooldownMs
   });
 }
 
@@ -1624,6 +1823,37 @@ function addLog(type, message, details) {
   if (state.historyLog.length > MAX_HISTORY_LOG) {
     state.historyLog = state.historyLog.slice(-MAX_HISTORY_LOG);
   }
+
+  if (!state.history || typeof state.history !== 'object') {
+    state.history = { actions: [], events: [], system: [] };
+  }
+
+  if (type === 'action') {
+    state.history.actions = Array.isArray(state.history.actions) ? state.history.actions : [];
+    state.history.actions.push({
+      type: 'action',
+      id: (payload && payload.id) || message,
+      category: payload && payload.category,
+      intensity: payload && payload.intensity,
+      label: payload && payload.label,
+      atSimTimeMs: state.sim.simTimeMs,
+      atRealTimeMs: timestamp,
+      result: 'ok',
+      reason: payload && payload.reason,
+      deltaSummary: payload && payload.deltaSummary ? payload.deltaSummary : {},
+      sideEffects: payload && payload.sideEffects ? payload.sideEffects : []
+    });
+  } else if (type === 'event' || type === 'event_shown' || type === 'choice') {
+    state.history.events = Array.isArray(state.history.events) ? state.history.events : [];
+  } else {
+    state.history.system = Array.isArray(state.history.system) ? state.history.system : [];
+    state.history.system.push({
+      type: 'system',
+      id: type,
+      atSimTimeMs: state.sim.simTimeMs,
+      details: payload || { message }
+    });
+  }
 }
 
 function translateEventState(machineState) {
@@ -1747,6 +1977,25 @@ async function restoreState() {
   }
   if (saved.ui && typeof saved.ui === 'object') {
     Object.assign(state.ui, saved.ui);
+  }
+  if (saved.events && typeof saved.events === 'object') {
+    state.events = {
+      ...state.events,
+      ...saved.events,
+      scheduler: {
+        ...(state.events.scheduler || {}),
+        ...((saved.events && saved.events.scheduler) || {})
+      }
+    };
+  }
+  if (saved.history && typeof saved.history === 'object') {
+    state.history = {
+      ...state.history,
+      ...saved.history
+    };
+  }
+  if (saved.setup && typeof saved.setup === 'object') {
+    state.setup = { ...saved.setup };
   }
   if (Array.isArray(saved.historyLog)) {
     state.historyLog = saved.historyLog.slice(-MAX_HISTORY_LOG);
@@ -1967,6 +2216,31 @@ function ensureStateIntegrity(nowMs) {
     state.setup = null;
   }
 
+  if (!state.events || typeof state.events !== 'object') {
+    state.events = { scheduler: {}, active: null, history: [] };
+  }
+  if (!state.events.scheduler || typeof state.events.scheduler !== 'object') {
+    state.events.scheduler = {};
+  }
+  if (!state.events.scheduler.eventCooldowns || typeof state.events.scheduler.eventCooldowns !== 'object') {
+    state.events.scheduler.eventCooldowns = {};
+  }
+  for (const [eventId, untilMs] of Object.entries(state.events.scheduler.eventCooldowns)) {
+    if (!Number.isFinite(Number(untilMs)) || Number(untilMs) <= nowMs) {
+      delete state.events.scheduler.eventCooldowns[eventId];
+    }
+  }
+  if (!Array.isArray(state.events.history)) {
+    state.events.history = [];
+  }
+
+  if (!state.history || typeof state.history !== 'object') {
+    state.history = { actions: [], events: [], system: [] };
+  }
+  if (!Array.isArray(state.history.events)) {
+    state.history.events = [];
+  }
+
   const validSheets = new Set([null, 'care', 'event', 'dashboard', 'diagnosis']);
   if (!validSheets.has(state.ui.openSheet)) {
     state.ui.openSheet = null;
@@ -2022,17 +2296,32 @@ function syncCanonicalStateShape() {
     }
   };
 
+  const existingScheduler = (state.events && state.events.scheduler) ? state.events.scheduler : {};
   state.events = {
     scheduler: {
       nextEventRealTimeMs: state.event.nextEventAtMs,
       lastEventRealTimeMs: state.event.lastEventAtMs,
       lastEventId: state.lastEventId,
+      lastEventCategory: existingScheduler.lastEventCategory || state.event.activeCategory || null,
       deferredUntilDaytime: !state.sim.isDaytime,
-      windowRealMinutes: { min: 30, max: 90 }
-    }
+      windowRealMinutes: { min: 30, max: 90 },
+      eventCooldowns: existingScheduler.eventCooldowns || {}
+    },
+    active: state.event.machineState === 'activeEvent'
+      ? {
+        id: state.event.activeEventId,
+        title: state.event.activeEventTitle,
+        description: state.event.activeEventText,
+        category: state.event.activeCategory || 'generic'
+      }
+      : null,
+    history: Array.isArray(state.events && state.events.history) ? state.events.history : []
   };
 
   state.history = state.history || { actions: [], events: [], system: [] };
+  if (!Array.isArray(state.history.events)) {
+    state.history.events = [];
+  }
 }
 
 function syncRuntimeClocks(nowMs) {
@@ -2045,57 +2334,51 @@ function syncRuntimeClocks(nowMs) {
 }
 
 async function loadEventCatalog() {
+  const catalogs = [];
+
   try {
-    let response = null;
-    try {
-      response = await fetch(`./data/events.json?v=${EVENTS_CATALOG_VERSION}`, { cache: 'no-store' });
-    } catch (_error) {
-      response = await fetch('./data/events.json', { cache: 'default' });
-    }
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const payload = await response.json();
-    const events = Array.isArray(payload) ? payload : payload.events;
-    if (!Array.isArray(events)) {
-      throw new Error('Invalid events payload');
-    }
-
-    state.event.catalog = events.map(normalizeEvent).filter(Boolean);
-  } catch (error) {
-    state.event.catalog = [
-      {
-        id: 'fallback_soil_check',
-        title: 'Bodenfeuchte pruefen',
-        description: 'Bei der manuellen Kontrolle wurde ungleichmaessige Feuchte festgestellt.',
-        severity: 2,
-        tags: ['soil', 'fallback'],
-        choices: [
-          {
-            id: 'fallback_care',
-            label: 'Ausgewogene Pflege anwenden',
-            effects: { water: 6, stress: -2, health: 2 }
-          },
-          {
-            id: 'fallback_wait',
-            label: 'Einen Zyklus warten',
-            effects: { stress: 2, risk: 2 }
-          },
-          {
-            id: 'fallback_mix',
-            label: 'Obere Schicht vorsichtig auflockern',
-            effects: { health: 1, risk: -1 }
-          }
-        ]
+    const v1 = await fetch(`./data/events.json?v=${EVENTS_CATALOG_VERSION}`, { cache: 'no-store' });
+    if (v1.ok) {
+      const payload = await v1.json();
+      const events = Array.isArray(payload) ? payload : payload.events;
+      if (Array.isArray(events)) {
+        catalogs.push(...events.map((eventDef) => normalizeEvent(eventDef, 'v1')).filter(Boolean));
       }
-    ];
-
-    addLog('system', 'events.json konnte nicht geladen werden, Fallback-Katalog aktiv', {
-      error: error.message
-    });
+    }
+  } catch (_error) {
+    // handled by fallback below
   }
+
+  try {
+    const v2 = await fetch('./data/events.v2.json', { cache: 'default' });
+    if (v2.ok) {
+      const payload = await v2.json();
+      const events = Array.isArray(payload) ? payload : payload.events;
+      if (Array.isArray(events)) {
+        catalogs.push(...events.map((eventDef) => normalizeEvent(eventDef, 'v2')).filter(Boolean));
+      }
+    }
+  } catch (_error) {
+    // optional catalog, keep working with v1/fallback
+  }
+
+  if (!catalogs.length) {
+    catalogs.push(normalizeEvent({
+      id: 'fallback_soil_check',
+      category: 'water',
+      title: 'Bodenfeuchte pruefen',
+      description: 'Bei der manuellen Kontrolle wurde ungleichmaessige Feuchte festgestellt.',
+      choices: [
+        { id: 'fallback_care', label: 'Ausgewogene Pflege anwenden', effects: { water: 6, stress: -2, health: 2 } },
+        { id: 'fallback_wait', label: 'Einen Zyklus warten', effects: { stress: 2, risk: 2 } },
+        { id: 'fallback_mix', label: 'Obere Schicht vorsichtig auflockern', effects: { health: 1, risk: -1 } }
+      ]
+    }, 'v1'));
+
+    addLog('system', 'events.json/events.v2.json konnten nicht geladen werden, Fallback-Katalog aktiv', null);
+  }
+
+  state.event.catalog = catalogs.filter(Boolean);
 }
 
 async function loadActionsCatalog() {
@@ -2153,36 +2436,63 @@ function normalizeAction(rawAction) {
   return base;
 }
 
-function normalizeEvent(rawEvent) {
+function normalizeEvent(rawEvent, sourceVersion = 'v1') {
   if (!rawEvent || typeof rawEvent !== 'object') {
     return null;
   }
-  if (!rawEvent.id || !rawEvent.title || !rawEvent.description || !Array.isArray(rawEvent.choices)) {
+  if (!rawEvent.id || !rawEvent.title || !rawEvent.description) {
     return null;
   }
 
-  const choices = rawEvent.choices
+  const rawOptions = Array.isArray(rawEvent.options)
+    ? rawEvent.options
+    : (Array.isArray(rawEvent.choices) ? rawEvent.choices : []);
+
+  const options = rawOptions
     .slice(0, 3)
-    .map((choice) => ({
-      id: String(choice.id || ''),
-      label: String(choice.label || 'Option'),
-      effects: choice.effects && typeof choice.effects === 'object' ? choice.effects : {},
-      followUp: choice.followUp || null
+    .map((option) => ({
+      id: String(option.id || ''),
+      label: String(option.label || 'Option'),
+      effects: option.effects && typeof option.effects === 'object' ? option.effects : {},
+      sideEffects: Array.isArray(option.sideEffects) ? option.sideEffects : [],
+      followUps: Array.isArray(option.followUps)
+        ? option.followUps.map(String)
+        : (option.followUp ? [String(option.followUp)] : []),
+      uiCopy: option.uiCopy && typeof option.uiCopy === 'object' ? option.uiCopy : {}
     }))
-    .filter((choice) => Boolean(choice.id));
+    .filter((option) => Boolean(option.id));
 
-  if (!choices.length) {
+  if (!options.length) {
     return null;
   }
+
+  const category = String(rawEvent.category || inferCategoryFromTags(rawEvent.tags || []));
 
   return {
     id: String(rawEvent.id),
+    category,
     title: String(rawEvent.title),
     description: String(rawEvent.description),
+    triggers: rawEvent.triggers && typeof rawEvent.triggers === 'object' ? rawEvent.triggers : {},
+    weight: Math.max(0.01, Number(rawEvent.weight) || normalizeSeverity(rawEvent.severity) || 1),
+    cooldownRealMinutes: clamp(Number(rawEvent.cooldownRealMinutes) || 120, 10, 24 * 60),
+    learningNote: String(rawEvent.learningNote || ''),
     severity: normalizeSeverity(rawEvent.severity),
     tags: Array.isArray(rawEvent.tags) ? rawEvent.tags.map(String) : [],
-    choices
+    options,
+    sourceVersion
   };
+}
+
+function inferCategoryFromTags(tags) {
+  const t = Array.isArray(tags) ? tags.map((x) => String(x).toLowerCase()) : [];
+  if (t.some((x) => x.includes('water') || x.includes('soil'))) return 'water';
+  if (t.some((x) => x.includes('nutri') || x.includes('n'))) return 'nutrition';
+  if (t.some((x) => x.includes('pest'))) return 'pest';
+  if (t.some((x) => x.includes('mold') || x.includes('disease'))) return 'disease';
+  if (t.some((x) => x.includes('train'))) return 'training';
+  if (t.some((x) => x.includes('env') || x.includes('heat') || x.includes('cold'))) return 'environment';
+  return 'generic';
 }
 
 function syncActiveEventFromCatalog() {
@@ -2198,33 +2508,37 @@ function syncActiveEventFromCatalog() {
   state.event.activeEventTitle = eventDef.title;
   state.event.activeEventText = eventDef.description;
   state.event.activeSeverity = eventDef.severity;
+  state.event.activeCooldownRealMinutes = eventDef.cooldownRealMinutes || 120;
+  state.event.activeCategory = eventDef.category || 'generic';
   state.event.activeTags = Array.isArray(eventDef.tags) ? eventDef.tags.slice(0, 5) : [];
 
-  const byChoiceId = new Map(eventDef.choices.map((choice) => [choice.id, choice]));
+  const byOptionId = new Map(eventDef.options.map((option) => [option.id, option]));
   const currentIds = Array.isArray(state.event.activeOptions)
-    ? state.event.activeOptions.map((choice) => choice.id)
+    ? state.event.activeOptions.map((option) => option.id)
     : [];
 
   const localizedOptions = [];
-  for (const choiceId of currentIds) {
-    const localizedChoice = byChoiceId.get(choiceId);
-    if (localizedChoice) {
+  for (const optionId of currentIds) {
+    const localizedOption = byOptionId.get(optionId);
+    if (localizedOption) {
       localizedOptions.push({
-        id: localizedChoice.id,
-        label: localizedChoice.label,
-        effects: { ...(localizedChoice.effects || {}) },
-        followUp: localizedChoice.followUp || null
+        id: localizedOption.id,
+        label: localizedOption.label,
+        effects: { ...(localizedOption.effects || {}) },
+        sideEffects: Array.isArray(localizedOption.sideEffects) ? localizedOption.sideEffects : [],
+        followUps: Array.isArray(localizedOption.followUps) ? localizedOption.followUps : []
       });
     }
   }
 
   if (!localizedOptions.length) {
-    for (const choice of eventDef.choices.slice(0, 3)) {
+    for (const option of eventDef.options.slice(0, 3)) {
       localizedOptions.push({
-        id: choice.id,
-        label: choice.label,
-        effects: { ...(choice.effects || {}) },
-        followUp: choice.followUp || null
+        id: option.id,
+        label: option.label,
+        effects: { ...(option.effects || {}) },
+        sideEffects: Array.isArray(option.sideEffects) ? option.sideEffects : [],
+        followUps: Array.isArray(option.followUps) ? option.followUps : []
       });
     }
   }
@@ -2257,23 +2571,54 @@ function normalizeSeverity(rawSeverity) {
   return 3;
 }
 
-function selectEventDeterministically(catalog) {
-  const weighted = [];
-  for (const eventDef of catalog) {
-    const severity = clampInt(eventDef.severity, 1, 5);
-    for (let i = 0; i < severity; i += 1) {
-      weighted.push(eventDef);
+function selectEventDeterministically(catalog, nowMs) {
+  if (!Array.isArray(catalog) || !catalog.length) {
+    return null;
+  }
+
+  let candidates = catalog.slice().sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  const lastCategory = state.events.scheduler.lastEventCategory || null;
+
+  if (lastCategory) {
+    const alt = candidates.filter((item) => item.category !== lastCategory);
+    if (alt.length) {
+      candidates = alt;
     }
   }
 
-  if (!weighted.length) {
-    return catalog[0];
+  const weighted = candidates.map((item) => ({
+    item,
+    weight: Math.max(0.01, Number(item.weight) || 1)
+  }));
+
+  const totalWeight = weighted.reduce((sum, row) => sum + row.weight, 0);
+  if (totalWeight <= 0) {
+    return candidates[0];
   }
 
-  const simBucket = Math.floor(state.sim.simTimeMs / (60 * 60 * 1000));
-  const u = deterministicUnitFloat(`event_pick:${simBucket}:${state.sim.tickCount}`);
-  const idx = Math.floor(u * weighted.length) % weighted.length;
-  return weighted[idx];
+  const simDay = Math.floor(simDayFloat());
+  const signature = candidates.map((item) => item.id).join('|');
+  const purpose = `event_pick:${simDay}:${Math.floor(nowMs / EVENT_ROLL_MIN_REAL_MS)}:${signature}`;
+  const u = deterministicUnitFloat(purpose);
+  let cursor = u * totalWeight;
+
+  for (const row of weighted) {
+    cursor -= row.weight;
+    if (cursor <= 0) {
+      addLog('event_pick', 'Deterministische Eventauswahl', {
+        seed: state.seed,
+        plantId: state.plantId,
+        simDay,
+        purpose,
+        pickedId: row.item.id,
+        pickedCategory: row.item.category,
+        eligibleCount: candidates.length
+      });
+      return row.item;
+    }
+  }
+
+  return weighted[weighted.length - 1].item;
 }
 
 function scheduleNextEventRoll(nowMs, reason) {
