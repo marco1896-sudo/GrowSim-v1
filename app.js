@@ -687,6 +687,21 @@ function stageAssetKeyForIndex(stageIndex) {
   return `stage_${String(stageIndex + 1).padStart(2, '0')}`;
 }
 
+function normalizeStageKey(rawStageKey) {
+  const raw = String(rawStageKey || '').trim();
+  if (raw && Object.prototype.hasOwnProperty.call(STAGE_ASSET_FALLBACK, raw)) {
+    return raw;
+  }
+
+  const match = raw.match(/^stage_(\d{1,2})$/);
+  if (match) {
+    const index = clampInt(Number(match[1]), 1, STAGE_DEFS.length);
+    return `stage_${String(index).padStart(2, '0')}`;
+  }
+
+  return 'stage_01';
+}
+
 function runEventStateMachine(nowMs) {
   if (state.events.machineState === 'resolved') {
     enterEventCooldown(nowMs);
@@ -2188,8 +2203,9 @@ function clampInt(value, min, max) {
 }
 
 function plantAssetPath(stageName) {
-  const canonical = `${stageName}.png`;
-  const fallback = STAGE_ASSET_FALLBACK[stageName];
+  const safeStageKey = normalizeStageKey(stageName);
+  const canonical = `${safeStageKey}.png`;
+  const fallback = STAGE_ASSET_FALLBACK[safeStageKey];
   return appPath(`assets/plant/${fallback || canonical}`);
 }
 
@@ -2606,14 +2622,16 @@ function ensureStateIntegrity(nowMs) {
     state.plant.phase = 'seedling';
   }
 
+  state.plant.lastValidStageKey = normalizeStageKey(state.plant.lastValidStageKey);
+
   if (state.plant.phase !== 'dead') {
     state.plant.stageIndex = clampInt(state.plant.stageIndex, 0, STAGE_DEFS.length - 1);
     state.plant.stageProgress = clamp(state.plant.stageProgress, 0, 1);
-    state.plant.stageKey = stageAssetKeyForIndex(state.plant.stageIndex);
+    state.plant.stageKey = normalizeStageKey(stageAssetKeyForIndex(state.plant.stageIndex));
     state.plant.lastValidStageKey = state.plant.stageKey;
     state.plant.phase = STAGE_DEFS[state.plant.stageIndex].phase;
   } else {
-    state.plant.stageKey = state.plant.lastValidStageKey || 'stage_01';
+    state.plant.stageKey = normalizeStageKey(state.plant.lastValidStageKey || 'stage_01');
   }
 
   if (!Number.isFinite(state.plant.averageHealth)) {
