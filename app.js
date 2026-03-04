@@ -175,6 +175,7 @@ const state = {
     activeEventId: null,
     activeEventTitle: '',
     activeEventText: '',
+    activeLearningNote: '',
     activeOptions: [],
     activeSeverity: 1,
     activeCooldownRealMinutes: 120,
@@ -681,6 +682,7 @@ function activateEvent(nowMs) {
   state.lastEventId = eventDef.id;
   state.event.activeEventTitle = eventDef.title;
   state.event.activeEventText = eventDef.description;
+  state.event.activeLearningNote = eventDef.learningNote || '';
   state.event.activeOptions = options;
   state.event.activeSeverity = eventDef.severity || 3;
   state.event.activeCooldownRealMinutes = clamp(Number(eventDef.cooldownRealMinutes) || 120, 10, 24 * 60);
@@ -861,21 +863,43 @@ function onEventOptionClick(optionId) {
   state.lastChoiceId = choice.id;
   state.event.machineState = 'resolved';
 
+  const triggerSnapshot = {
+    simDay: Math.floor(simDayFloat()),
+    stageIndex: state.growth.stageIndex + 1,
+    water: round2(state.status.water),
+    nutrition: round2(state.status.nutrition),
+    health: round2(state.status.health),
+    stress: round2(state.status.stress),
+    risk: round2(state.status.risk),
+    growth: round2(state.status.growth),
+    setup: {
+      mode: state.setup && state.setup.mode ? state.setup.mode : null,
+      medium: state.setup && state.setup.medium ? state.setup.medium : null,
+      light: state.setup && state.setup.light ? state.setup.light : null
+    }
+  };
+
   const historyEntry = {
     type: 'event',
-    id: state.event.activeEventId,
+    eventId: state.event.activeEventId,
+    category: state.event.activeCategory || 'generic',
+    optionId: choice.id,
+    optionLabel: choice.label,
+    learningNote: state.event.activeLearningNote || '',
+    triggerSnapshot,
+    effectsApplied: deltaSummary,
+    sideEffectsTriggered: triggeredSideEffects,
     atSimTimeMs: state.sim.simTimeMs,
-    atRealTimeMs: Date.now(),
-    choiceId: choice.id,
-    deltaSummary,
-    sideEffects: triggeredSideEffects
+    atRealTimeMs: Date.now()
   };
+
   state.history.events.push(historyEntry);
   state.events.history.push(historyEntry);
 
   addLog('choice', `Option gewaehlt: ${state.event.activeEventId}/${choice.id}`, {
     effects: choice.effects || {},
     sideEffects: triggeredSideEffects,
+    effectsApplied: deltaSummary,
     followUps: choice.followUps || []
   });
 
@@ -2507,6 +2531,7 @@ function syncActiveEventFromCatalog() {
 
   state.event.activeEventTitle = eventDef.title;
   state.event.activeEventText = eventDef.description;
+  state.event.activeLearningNote = eventDef.learningNote || '';
   state.event.activeSeverity = eventDef.severity;
   state.event.activeCooldownRealMinutes = eventDef.cooldownRealMinutes || 120;
   state.event.activeCategory = eventDef.category || 'generic';
