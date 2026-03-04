@@ -671,6 +671,42 @@ body::before {
   }
 }
 
+.landing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(3, 7, 13, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.landing-card {
+  width: min(420px, 100%);
+  border-radius: 18px;
+  border: 1px solid rgba(198, 214, 255, 0.22);
+  background: rgba(10, 17, 30, 0.96);
+  padding: 0.95rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.landing-card label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: grid;
+  gap: 0.22rem;
+}
+
+.landing-card select {
+  border-radius: 10px;
+  border: 1px solid var(--border-soft);
+  background: rgba(20, 31, 50, 0.95);
+  color: var(--text-main);
+  padding: 0.55rem;
+}
+
 @media (min-width: 700px) {
   .app-hud {
     min-height: min(900px, 100dvh);

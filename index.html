@@ -172,6 +172,19 @@
     </div>
   </section>
 
+  <section id="landing" class="landing-overlay hidden" aria-hidden="true">
+    <div class="landing-card">
+      <h2>Setup</h2>
+      <p class="sheet-note">Einmalige Grundeinstellungen fuer den Run.</p>
+      <label>Mode<select id="setupMode"><option value="indoor">Indoor</option><option value="outdoor">Outdoor</option><option value="greenhouse">Greenhouse</option></select></label>
+      <label>Light<select id="setupLight"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label>
+      <label>Medium<select id="setupMedium"><option value="soil" selected>Soil</option><option value="coco">Coco</option><option value="hydro">Hydro</option></select></label>
+      <label>Pot Size<select id="setupPotSize"><option value="small">Small</option><option value="medium" selected>Medium</option><option value="large">Large</option></select></label>
+      <label>Genetics<select id="setupGenetics"><option value="auto" selected>Auto</option><option value="photo">Photo</option></select></label>
+      <button id="startRunBtn" class="action-btn action-primary" type="button">Start Run</button>
+    </div>
+  </section>
+
   <script src="app.js" defer></script>
 </body>
 </html>

@@ -109,7 +109,15 @@ const OVERLAY_ASSETS = Object.freeze({
 const now = Date.now();
 const initialSimTimeMs = alignToSimStartHour(now, SIM_START_HOUR);
 const state = {
-  schemaVersion: 3,
+  schemaVersion: '1.0.0',
+  seed: SIM_GLOBAL_SEED,
+  plantId: SIM_PLANT_ID,
+  setup: null,
+  simulation: {},
+  plant: {},
+  events: {},
+  history: { actions: [], events: [], system: [] },
+  debug: { enabled: false, showInternalTicks: false, forceDaytime: false },
   sim: {
     nowMs: now,
     simTimeMs: initialSimTimeMs,
@@ -191,41 +199,77 @@ let persistTimer = null;
 let logRenderSignature = '';
 const actionDebounceUntil = Object.create(null);
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', boot);
 
-async function init() {
-  cacheUi();
-  if (!ensureRequiredUi()) {
-    return;
+async function boot() {
+  try {
+    cacheUi();
+    if (!ensureRequiredUi()) {
+      throw new Error('Required UI elements missing');
+    }
+
+    storageAdapter = await createStorageAdapter();
+    await initOrMigrateState();
+    await loadCatalogs();
+
+    bindUi();
+    applyBackgroundAsset();
+    await registerServiceWorker();
+
+    syncRuntimeClocks(Date.now());
+    syncActiveEventFromCatalog();
+    updateVisibleOverlays();
+    syncCanonicalStateShape();
+
+    addLog('system', 'Runtime initialisiert', {
+      mode: state.sim.mode,
+      events: state.event.catalog.length,
+      actions: state.actions.catalog.length
+    });
+
+    window.__applyAction = (id) => applyAction(id);
+
+    startLoopOnce();
+    renderAll();
+    renderLanding();
+
+    await schedulePushIfAllowed(true);
+    await persistState();
+  } catch (error) {
+    console.error('Boot failed', error);
+    showBootError(error);
   }
-  bindUi();
-  applyBackgroundAsset();
-  await registerServiceWorker();
+}
 
-  storageAdapter = await createStorageAdapter();
+async function initOrMigrateState() {
   await restoreState();
+  migrateState();
+  ensureStateIntegrity(Date.now());
+}
+
+async function loadCatalogs() {
   await loadEventCatalog();
   await loadActionsCatalog();
+}
 
-  ensureStateIntegrity(Date.now());
-  syncRuntimeClocks(Date.now());
-  syncActiveEventFromCatalog();
-  updateVisibleOverlays();
-  addLog('system', 'Runtime initialisiert', {
-    mode: state.sim.mode,
-    events: state.event.catalog.length,
-    actions: state.actions.catalog.length
-  });
-
-  window.__applyAction = (id) => applyAction(id);
-
-  renderAll();
-  await schedulePushIfAllowed(true);
-  await persistState();
-
-  if (tickHandle === null) {
-    tickHandle = setInterval(tick, state.sim.tickIntervalMs);
+function startLoopOnce() {
+  if (tickHandle !== null) {
+    return;
   }
+  tickHandle = setInterval(tick, state.sim.tickIntervalMs);
+}
+
+function showBootError(error) {
+  const banner = document.createElement('div');
+  banner.style.position = 'fixed';
+  banner.style.inset = '0 auto auto 0';
+  banner.style.zIndex = '9999';
+  banner.style.background = '#701a1a';
+  banner.style.color = '#fff';
+  banner.style.padding = '8px 10px';
+  banner.style.fontSize = '12px';
+  banner.textContent = `Boot error: ${error.message}`;
+  document.body.appendChild(banner);
 }
 
 function cacheUi() {
@@ -281,6 +325,14 @@ function cacheUi() {
   ui.lastEventValue = document.getElementById('lastEventValue');
   ui.lastChoiceValue = document.getElementById('lastChoiceValue');
   ui.logList = document.getElementById('logList');
+
+  ui.landing = document.getElementById('landing');
+  ui.startRunBtn = document.getElementById('startRunBtn');
+  ui.setupMode = document.getElementById('setupMode');
+  ui.setupLight = document.getElementById('setupLight');
+  ui.setupMedium = document.getElementById('setupMedium');
+  ui.setupPotSize = document.getElementById('setupPotSize');
+  ui.setupGenetics = document.getElementById('setupGenetics');
 }
 
 function bindUi() {
@@ -290,6 +342,7 @@ function bindUi() {
   ui.openDiagnosisBtn.addEventListener('click', () => openSheet('diagnosis'));
   ui.pushSubscribeBtn.addEventListener('click', () => withDebouncedAction('push_subscribe', ui.pushSubscribeBtn, onPushSubscribe));
   ui.clearLogBtn.addEventListener('click', () => withDebouncedAction('clear_log', ui.clearLogBtn, onClearLog));
+  ui.startRunBtn.addEventListener('click', onStartRun);
   ui.backdrop.addEventListener('click', closeSheet);
 
   const closeButtons = document.querySelectorAll('[data-close-sheet]');
@@ -318,6 +371,7 @@ function tick() {
   runEventStateMachine(nowMs);
   resetBoostDaily(nowMs);
   updateVisibleOverlays();
+  syncCanonicalStateShape();
 
   if (state.sim.tickCount % CONFIG.logTickEveryNTicks === 0) {
     addLog('tick', `Tick #${state.sim.tickCount}`, {
@@ -347,7 +401,8 @@ function ensureRequiredUi() {
     'careActionBtn', 'analyzeActionBtn', 'boostActionBtn', 'openDiagnosisBtn',
     'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
     'careCategoryList', 'careActionList', 'careFeedback', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
-    'pushSubscribeBtn', 'clearLogBtn', 'lastEventValue', 'lastChoiceValue', 'logList'
+    'pushSubscribeBtn', 'clearLogBtn', 'lastEventValue', 'lastChoiceValue', 'logList',
+    'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics'
   ];
 
   const missing = requiredKeys.filter((key) => !ui[key]);
@@ -738,22 +793,27 @@ function onCareApply() {
 function applyAction(actionId) {
   const action = state.actions.byId[actionId];
   if (!action) {
+    state.actions.lastResult = { ok: false, reason: `unknown_action:${actionId}`, actionId, atRealTimeMs: Date.now() };
     return { ok: false, reason: `unknown_action:${actionId}` };
   }
 
   const nowMs = Date.now();
   const cooldownUntil = Number(state.actions.cooldowns[action.id] || 0);
   if (cooldownUntil > nowMs) {
-    return { ok: false, reason: `cooldown_active:${Math.ceil((cooldownUntil - nowMs) / 1000)}s` };
+    const result = { ok: false, reason: `cooldown_active:${Math.ceil((cooldownUntil - nowMs) / 1000)}s` };
+    state.actions.lastResult = { ok: false, reason: result.reason, actionId: action.id, atRealTimeMs: nowMs };
+    return result;
   }
 
   const triggerCheck = validateActionTrigger(action);
   if (!triggerCheck.ok) {
+    state.actions.lastResult = { ok: false, reason: triggerCheck.reason, actionId: action.id, atRealTimeMs: nowMs };
     return triggerCheck;
   }
 
   const preCheck = validateActionPrerequisites(action);
   if (!preCheck.ok) {
+    state.actions.lastResult = { ok: false, reason: preCheck.reason, actionId: action.id, atRealTimeMs: nowMs };
     return preCheck;
   }
 
@@ -799,6 +859,8 @@ function applyAction(actionId) {
 
   clampStatus();
   updateVisibleOverlays();
+  syncCanonicalStateShape();
+  state.actions.lastResult = { ok: true, reason: 'ok', actionId: action.id, atRealTimeMs: nowMs };
   schedulePersistState(true);
 
   return { ok: true, id: action.id, deltaSummary, sideEffects: triggeredSideEffects };
@@ -1119,6 +1181,7 @@ function renderAll() {
   renderEventSheet();
   renderDashboardSummary();
   renderLogList();
+  renderLanding();
 }
 
 function renderHud() {
@@ -1141,7 +1204,7 @@ function renderHud() {
   setRing(ui.growthRing, ui.growthValue, state.status.growth);
   setRing(ui.riskRing, ui.riskValue, state.status.risk);
 
-  if (ui.plantImage.dataset.stageName !== state.growth.stageName) {
+  if (ui.plantImage && ui.plantImage.dataset.stageName !== state.growth.stageName) {
     ui.plantImage.src = plantAssetPath(state.growth.stageName);
     ui.plantImage.dataset.stageName = state.growth.stageName;
   }
@@ -1462,6 +1525,32 @@ function openSheet(name) {
   }
 }
 
+function hasSetup() {
+  return Boolean(state.setup && Number.isFinite(Number(state.setup.createdAtReal)));
+}
+
+function renderLanding() {
+  const visible = !hasSetup();
+  ui.landing.classList.toggle('hidden', !visible);
+  ui.landing.setAttribute('aria-hidden', String(!visible));
+}
+
+function onStartRun() {
+  state.setup = {
+    mode: ui.setupMode.value || 'indoor',
+    light: ui.setupLight.value || 'medium',
+    medium: ui.setupMedium.value || 'soil',
+    potSize: ui.setupPotSize.value || 'medium',
+    genetics: ui.setupGenetics.value || 'auto',
+    createdAtReal: Date.now()
+  };
+
+  syncCanonicalStateShape();
+  renderLanding();
+  schedulePersistState(true);
+  addLog('system', 'Setup gespeichert, Run gestartet', state.setup);
+}
+
 function withDebouncedAction(actionKey, buttonNode, callback) {
   const nowMs = Date.now();
   if ((actionDebounceUntil[actionKey] || 0) > nowMs) {
@@ -1521,7 +1610,7 @@ function addLog(type, message, details) {
   const timestamp = Date.now();
   const payload = details || null;
   const entry = {
-    id: `${timestamp}-${Math.random().toString(16).slice(2, 8)}`,
+    id: `${timestamp}-${state.sim.tickCount}-${state.historyLog.length}`,
     atMs: timestamp,
     t: timestamp,
     type,
@@ -1696,11 +1785,59 @@ function schedulePersistState(immediate = false) {
   }, PERSIST_THROTTLE_MS);
 }
 
-function ensureStateIntegrity(nowMs) {
-  if (!Number.isFinite(state.schemaVersion)) {
-    state.schemaVersion = 3;
+function migrateState() {
+  try {
+    if (!state || typeof state !== 'object') {
+      throw new Error('state object missing');
+    }
+
+    if (!state.setup || typeof state.setup !== 'object') {
+      state.setup = null;
+    }
+
+    if (!state.history || typeof state.history !== 'object') {
+      state.history = { actions: [], events: [], system: [] };
+    }
+
+    if (!state.events || typeof state.events !== 'object') {
+      state.events = {};
+    }
+
+    if (!state.plant || typeof state.plant !== 'object') {
+      state.plant = {};
+    }
+
+    if (!state.simulation || typeof state.simulation !== 'object') {
+      state.simulation = {};
+    }
+
+    if (!state.debug || typeof state.debug !== 'object') {
+      state.debug = { enabled: false, showInternalTicks: false, forceDaytime: false };
+    }
+  } catch (error) {
+    console.warn('State migration fallback to defaults', error);
+    resetStateToDefaults();
   }
-  state.schemaVersion = Math.max(3, state.schemaVersion);
+}
+
+function resetStateToDefaults() {
+  const fallbackNow = Date.now();
+  state.schemaVersion = '1.0.0';
+  state.seed = SIM_GLOBAL_SEED;
+  state.plantId = SIM_PLANT_ID;
+  state.setup = null;
+  state.history = { actions: [], events: [], system: [] };
+  state.debug = { enabled: false, showInternalTicks: false, forceDaytime: false };
+  state.sim.nowMs = fallbackNow;
+  state.sim.simTimeMs = alignToSimStartHour(fallbackNow, SIM_START_HOUR);
+  state.sim.simEpochMs = state.sim.simTimeMs;
+  state.sim.lastTickAtMs = fallbackNow;
+}
+
+function ensureStateIntegrity(nowMs) {
+  if (typeof state.schemaVersion !== 'string') {
+    state.schemaVersion = '1.0.0';
+  }
 
   state.sim.mode = MODE;
   state.sim.tickIntervalMs = UI_TICK_INTERVAL_MS;
@@ -1822,6 +1959,14 @@ function ensureStateIntegrity(nowMs) {
       rates: effect.rates && typeof effect.rates === 'object' ? effect.rates : {}
     }));
 
+  if (!state.actions.lastResult || typeof state.actions.lastResult !== 'object') {
+    state.actions.lastResult = { ok: true, reason: 'ok', actionId: null, atRealTimeMs: nowMs };
+  }
+
+  if (!state.setup || typeof state.setup !== 'object') {
+    state.setup = null;
+  }
+
   const validSheets = new Set([null, 'care', 'event', 'dashboard', 'diagnosis']);
   if (!validSheets.has(state.ui.openSheet)) {
     state.ui.openSheet = null;
@@ -1847,6 +1992,49 @@ function ensureStateIntegrity(nowMs) {
   }
 }
 
+function syncCanonicalStateShape() {
+  state.seed = state.sim.globalSeed;
+  state.plantId = state.sim.plantId;
+  state.simulation = {
+    startRealTimeMs: state.sim.simEpochMs,
+    lastTickRealTimeMs: state.sim.lastTickAtMs,
+    simTimeMs: state.sim.simTimeMs,
+    simDay: Math.floor(simDayFloat()),
+    simHour: simHour(state.sim.simTimeMs),
+    simMinute: new Date(state.sim.simTimeMs).getMinutes(),
+    timeCompression: state.sim.timeCompression,
+    dayWindow: { startHour: SIM_DAY_START_HOUR, endHour: SIM_NIGHT_START_HOUR },
+    isDaytime: state.sim.isDaytime
+  };
+
+  state.plant = {
+    stageIndex: state.growth.stageIndex + 1,
+    stageKey: state.growth.stageName,
+    stageStartSimDay: STAGE_DEFS[state.growth.stageIndex]?.simDayStart || 0,
+    lifecycle: {
+      totalSimDays: TOTAL_LIFECYCLE_SIM_DAYS,
+      qualityTier: state.growth.qualityTier,
+      qualityScore: round2(state.growth.averageHealth - (state.growth.averageStress * 0.5))
+    },
+    assets: {
+      basePath: 'assets/plant/',
+      resolvedStagePath: plantAssetPath(state.growth.stageName)
+    }
+  };
+
+  state.events = {
+    scheduler: {
+      nextEventRealTimeMs: state.event.nextEventAtMs,
+      lastEventRealTimeMs: state.event.lastEventAtMs,
+      lastEventId: state.lastEventId,
+      deferredUntilDaytime: !state.sim.isDaytime,
+      windowRealMinutes: { min: 30, max: 90 }
+    }
+  };
+
+  state.history = state.history || { actions: [], events: [], system: [] };
+}
+
 function syncRuntimeClocks(nowMs) {
   state.sim.nowMs = nowMs;
   if (!Number.isFinite(state.sim.simTimeMs)) {
@@ -1860,9 +2048,9 @@ async function loadEventCatalog() {
   try {
     let response = null;
     try {
-      response = await fetch(appPath(`data/events.json?v=${EVENTS_CATALOG_VERSION}`), { cache: 'no-store' });
+      response = await fetch(`./data/events.json?v=${EVENTS_CATALOG_VERSION}`, { cache: 'no-store' });
     } catch (_error) {
-      response = await fetch(appPath('data/events.json'), { cache: 'default' });
+      response = await fetch('./data/events.json', { cache: 'default' });
     }
 
     if (!response.ok) {
@@ -1914,9 +2102,9 @@ async function loadActionsCatalog() {
   try {
     let response = null;
     try {
-      response = await fetch(appPath(`data/actions.json?v=${ACTIONS_CATALOG_VERSION}`), { cache: 'no-store' });
+      response = await fetch(`./data/actions.json?v=${ACTIONS_CATALOG_VERSION}`, { cache: 'no-store' });
     } catch (_error) {
-      response = await fetch(appPath('data/actions.json'), { cache: 'default' });
+      response = await fetch('./data/actions.json', { cache: 'default' });
     }
 
     if (!response.ok) {
@@ -2108,7 +2296,7 @@ async function registerServiceWorker() {
   }
 
   try {
-    await navigator.serviceWorker.register(appPath('sw.js'));
+    await navigator.serviceWorker.register('./sw.js');
   } catch (_error) {
     // SW registration failures should not block app usage.
   }
@@ -2261,5 +2449,5 @@ function resolveAppBasePath() {
 
 function appPath(relativePath) {
   const normalized = String(relativePath || '').replace(/^\//, '');
-  return `${APP_BASE_PATH}/${normalized}`.replace(/\/\/+/g, '/');
+  return `./${normalized}`;
 }
