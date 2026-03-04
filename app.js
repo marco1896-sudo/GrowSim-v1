@@ -167,7 +167,7 @@ const state = {
     activeSeverity: 1,
     activeTags: [],
     lastEventAtMs: 0,
-    nextEventAtMs: now + deterministicEventDelayMs(now),
+    nextEventAtMs: now + EVENT_ROLL_MIN_REAL_MS,
     cooldownUntilMs: 0,
     lastChoiceId: null,
     catalog: []
