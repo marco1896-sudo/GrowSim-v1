@@ -473,6 +473,12 @@ body::before {
   font-size: 1rem;
 }
 
+.sheet-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .sheet-close,
 .ghost-btn {
   border-radius: 10px;
@@ -776,6 +782,31 @@ body::before {
   background: rgba(20, 31, 50, 0.95);
   color: var(--text-main);
   padding: 0.55rem;
+}
+
+.death-card {
+  gap: 0.7rem;
+}
+
+.death-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+}
+
+.death-list li {
+  color: var(--text-muted);
+}
+
+.death-list li strong {
+  color: var(--text-main);
+}
+
+.death-actions {
+  display: grid;
+  gap: 0.5rem;
 }
 
 @media (min-width: 700px) {

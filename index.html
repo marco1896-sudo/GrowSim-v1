@@ -143,7 +143,10 @@
   <section id="dashboardSheet" class="bottom-sheet hidden" aria-hidden="true">
     <header class="sheet-header">
       <h2>Analyse</h2>
-      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
+      <div class="sheet-header-actions">
+        <button id="analysisResetBtn" class="ghost-btn" type="button">Run zur�cksetzen</button>
+        <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
+      </div>
     </header>
     <div class="sheet-content analysis-content">
       <div class="gs-analysis-tabs" role="tablist" aria-label="Analyse-Tabs">
@@ -183,6 +186,20 @@
       <label>Topfgröße<select id="setupPotSize"><option value="small">Klein</option><option value="medium" selected>Mittel</option><option value="large">Groß</option></select></label>
       <label>Genetik<select id="setupGenetics"><option value="auto" selected>Autoflower</option><option value="photo">Photoperiodisch</option></select></label>
       <button id="startRunBtn" class="action-btn action-primary" type="button">Durchlauf starten</button>
+    </div>
+  </section>
+
+  <section id="deathOverlay" class="landing-overlay hidden" aria-hidden="true">
+    <div class="landing-card death-card">
+      <h2>Pflanze ist eingegangen</h2>
+      <p class="sheet-note">Kurzursache</p>
+      <ol id="deathDriverList" class="death-list"></ol>
+      <p class="sheet-note">Letzte Aktionen / Events</p>
+      <ol id="deathHistoryList" class="death-list"></ol>
+      <div class="death-actions">
+        <button id="deathResetBtn" class="action-btn action-primary" type="button">Neuer Run starten</button>
+        <button id="deathAnalyzeBtn" class="action-btn action-secondary" type="button">Analyse ansehen</button>
+      </div>
     </div>
   </section>
 

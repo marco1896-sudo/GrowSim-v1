@@ -46,6 +46,7 @@ const MAX_HISTORY_LOG = CONFIG.maxHistoryLog;
 const PERSIST_THROTTLE_MS = CONFIG.persistThrottleMs;
 const MAX_ELAPSED_PER_TICK_MS = 5 * 60 * 1000;
 const APP_BASE_PATH = resolveAppBasePath();
+const FREEZE_SIM_ON_DEATH = true;
 
 const DB_NAME = 'grow-sim-db';
 const DB_STORE = 'kv';
@@ -135,6 +136,7 @@ const state = {
   },
   plant: {
     phase: 'seedling',
+    isDead: false,
     stageIndex: 1,
     stageKey: 'stage_01',
     stageProgress: 0,
@@ -223,6 +225,8 @@ const state = {
     openSheet: null,
     selectedBackground: 'bg_dark_01.jpg',
     visibleOverlayIds: [],
+    deathOverlayOpen: false,
+    deathOverlayAcknowledged: false,
     care: {
       selectedCategory: null,
       feedback: { kind: 'info', text: 'Bereit.' }
@@ -409,6 +413,7 @@ function cacheUi() {
   ui.analysisPanelOverview = document.getElementById('analysisPanelOverview');
   ui.analysisPanelDiagnosis = document.getElementById('analysisPanelDiagnosis');
   ui.analysisPanelTimeline = document.getElementById('analysisPanelTimeline');
+  ui.analysisResetBtn = document.getElementById('analysisResetBtn');
 
   ui.landing = document.getElementById('landing');
   ui.startRunBtn = document.getElementById('startRunBtn');
@@ -417,6 +422,12 @@ function cacheUi() {
   ui.setupMedium = document.getElementById('setupMedium');
   ui.setupPotSize = document.getElementById('setupPotSize');
   ui.setupGenetics = document.getElementById('setupGenetics');
+
+  ui.deathOverlay = document.getElementById('deathOverlay');
+  ui.deathDriverList = document.getElementById('deathDriverList');
+  ui.deathHistoryList = document.getElementById('deathHistoryList');
+  ui.deathResetBtn = document.getElementById('deathResetBtn');
+  ui.deathAnalyzeBtn = document.getElementById('deathAnalyzeBtn');
 }
 
 function bindUi() {
@@ -425,6 +436,9 @@ function bindUi() {
   ui.boostActionBtn.addEventListener('click', () => withDebouncedAction('boost', ui.boostActionBtn, onBoostAction));
   ui.openDiagnosisBtn.addEventListener('click', () => openSheet('diagnosis'));
   ui.startRunBtn.addEventListener('click', onStartRun);
+  ui.analysisResetBtn.addEventListener('click', onAnalysisResetClick);
+  ui.deathResetBtn.addEventListener('click', onDeathResetClick);
+  ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
   ui.backdrop.addEventListener('click', closeSheet);
 
   const analysisTabs = [ui.analysisTabOverview, ui.analysisTabDiagnosis, ui.analysisTabTimeline].filter(Boolean);
@@ -448,15 +462,35 @@ function bindUi() {
 
 function tick() {
   const nowMs = Date.now();
-  const elapsedRealMs = clamp(nowMs - state.simulation.lastTickRealTimeMs, 0, MAX_ELAPSED_PER_TICK_MS);
-  const elapsedSimMs = elapsedRealMs * state.simulation.timeCompression;
   const prevOpenSheet = state.ui.openSheet;
+  const prevTickRealTimeMs = Number(state.simulation.lastTickRealTimeMs) || nowMs;
 
   state.simulation.nowMs = nowMs;
+  state.simulation.tickCount += 1;
+
+  if (syncDeathState() && FREEZE_SIM_ON_DEATH) {
+    state.simulation.lastTickRealTimeMs = nowMs;
+    state.simulation.growthImpulse = 0;
+    syncCanonicalStateShape();
+
+    if (state.ui.openSheet !== prevOpenSheet) {
+      renderSheets();
+    }
+
+    renderHud();
+    renderEventSheet();
+    renderAnalysisPanel();
+    renderDeathOverlay();
+    schedulePersistState();
+    return;
+  }
+
+  const elapsedRealMs = clamp(nowMs - prevTickRealTimeMs, 0, MAX_ELAPSED_PER_TICK_MS);
+  const elapsedSimMs = elapsedRealMs * state.simulation.timeCompression;
+
   state.simulation.simTimeMs += elapsedSimMs;
   state.simulation.isDaytime = isDaytimeAtSimTime(state.simulation.simTimeMs);
   state.simulation.lastTickRealTimeMs = nowMs;
-  state.simulation.tickCount += 1;
 
   applyStatusDrift(elapsedRealMs);
   applyActiveActionEffects(elapsedSimMs);
@@ -474,6 +508,7 @@ function tick() {
   renderHud();
   renderEventSheet();
   renderAnalysisPanel();
+  renderDeathOverlay();
   schedulePersistState();
 }
 
@@ -487,7 +522,9 @@ function ensureRequiredUi() {
     'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
     'careCategoryList', 'careActionList', 'careFeedback', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
-    'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics'
+    'analysisResetBtn',
+    'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics',
+    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn'
   ];
 
   const missing = requiredKeys.filter((key) => !ui[key]);
@@ -549,12 +586,13 @@ function applyStatusDrift(elapsedMs) {
 }
 
 function advanceGrowthTick(elapsedSimMs) {
-  if (state.plant.phase === 'dead') {
+  if (isPlantDead()) {
+    state.plant.isDead = true;
     state.plant.stageProgress = 1;
     return;
   }
 
-  if (state.status.health <= 0 || state.status.risk >= 100) {
+  if (state.status.health <= 0 || state.status.risk >= 100 || state.plant.isDead === true) {
     enterDeadPhase();
     return;
   }
@@ -613,10 +651,36 @@ function setGrowthStageIndex(stageIndex) {
 }
 
 function enterDeadPhase() {
+  const wasDead = state.plant.phase === 'dead' || state.plant.isDead === true;
   state.plant.phase = 'dead';
+  state.plant.isDead = true;
   state.plant.stageProgress = 1;
   state.plant.stageKey = state.plant.lastValidStageKey || 'stage_01';
-  addLog('system', 'Todesphase erreicht', { stageName: state.plant.stageKey });
+  state.ui.deathOverlayOpen = true;
+  state.ui.deathOverlayAcknowledged = false;
+  if (!wasDead) {
+    addLog('system', 'Todesphase erreicht', { stageName: state.plant.stageKey });
+  }
+}
+
+function isPlantDead() {
+  return state.plant.phase === 'dead' || state.plant.isDead === true || Number(state.status.health) <= 0;
+}
+
+function syncDeathState() {
+  if (!isPlantDead()) {
+    state.plant.isDead = false;
+    return false;
+  }
+
+  if (state.plant.phase !== 'dead' || state.plant.isDead !== true) {
+    enterDeadPhase();
+  }
+
+  if (state.ui.deathOverlayAcknowledged !== true) {
+    state.ui.deathOverlayOpen = true;
+  }
+  return true;
 }
 
 function computeGrowthPercent() {
@@ -932,6 +996,9 @@ function resolveTriggerField(fieldPath) {
 }
 
 function onEventOptionClick(optionId) {
+  if (isPlantDead()) {
+    return;
+  }
   if (state.events.machineState !== 'activeEvent') {
     return;
   }
@@ -1115,6 +1182,12 @@ function onCareApply() {
 }
 
 function applyAction(actionId) {
+  if (isPlantDead()) {
+    const nowMs = Date.now();
+    state.actions.lastResult = { ok: false, reason: 'dead_run_ended', actionId, atRealTimeMs: nowMs };
+    return { ok: false, reason: 'dead_run_ended' };
+  }
+
   const action = state.actions.byId[actionId];
   if (!action) {
     state.actions.lastResult = { ok: false, reason: `unknown_action:${actionId}`, actionId, atRealTimeMs: Date.now() };
@@ -1366,6 +1439,12 @@ function summarizeDelta(before, after) {
 }
 
 function onBoostAction() {
+  if (isPlantDead()) {
+    addLog('action', 'Boost blockiert: Pflanze ist eingegangen', null);
+    renderAll();
+    return;
+  }
+
   const nowMs = Date.now();
   resetBoostDaily(nowMs);
 
@@ -1500,15 +1579,18 @@ function updateVisibleOverlays() {
 }
 
 function renderAll() {
+  syncDeathState();
   renderHud();
   renderSheets();
   renderCareSheet();
   renderEventSheet();
   renderAnalysisPanel(true);
   renderLanding();
+  renderDeathOverlay();
 }
 
 function renderHud() {
+  const dead = isPlantDead();
   const phaseLabel = PHASE_LABEL_DE[state.plant.phase] || PHASE_LABEL_DE.seedling;
   const dayNight = state.simulation.isDaytime ? 'Tag' : 'Nacht';
   const statusText = `Phase: ${phaseLabel} · ${dayNight}`;
@@ -1537,6 +1619,10 @@ function renderHud() {
   ui.nextEventValue.textContent = formatCountdown(eventInMs);
   ui.growthImpulseValue.textContent = state.simulation.growthImpulse.toFixed(2);
   ui.simTimeValue.textContent = formatSimClock(state.simulation.simTimeMs);
+
+  ui.careActionBtn.disabled = dead;
+  ui.boostActionBtn.disabled = dead;
+  ui.openDiagnosisBtn.disabled = dead;
 
   renderOverlayVisibility();
 }
@@ -1729,6 +1815,9 @@ function explainActionFailure(reason) {
   }
   if (value.startsWith('stage_too_low:')) {
     return 'Aktion für diese Phase noch nicht freigeschaltet.';
+  }
+  if (value === 'dead_run_ended') {
+    return 'Aktion nicht möglich: Die Pflanze ist eingegangen.';
   }
   return `Aktion blockiert (${value}).`;
 }
@@ -2020,6 +2109,9 @@ function escapeHtml(value) {
 }
 
 function openSheet(name) {
+  if (isPlantDead() && name !== 'dashboard') {
+    return;
+  }
   state.ui.openSheet = name;
   renderSheets();
 
@@ -2042,6 +2134,82 @@ function renderLanding() {
   ui.landing.setAttribute('aria-hidden', String(!visible));
 }
 
+function renderDeathOverlay() {
+  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList) {
+    return;
+  }
+
+  const visible = Boolean(state.ui.deathOverlayOpen && isPlantDead());
+  ui.deathOverlay.classList.toggle('hidden', !visible);
+  ui.deathOverlay.setAttribute('aria-hidden', String(!visible));
+
+  if (!visible) {
+    return;
+  }
+
+  const topDrivers = diagnosisDrivers().slice(0, 3);
+  ui.deathDriverList.replaceChildren();
+  for (const item of topDrivers) {
+    const row = document.createElement('li');
+    row.innerHTML = `<strong>${escapeHtml(String(item.label || 'Unklare Ursache'))}</strong><br>${escapeHtml(String(item.reason || 'Kein Detail verfügbar'))}`;
+    ui.deathDriverList.appendChild(row);
+  }
+
+  const recent = collectRecentHistoryEntries(3);
+  ui.deathHistoryList.replaceChildren();
+  if (!recent.length) {
+    const empty = document.createElement('li');
+    empty.textContent = 'Keine Aktionen oder Ereignisse protokolliert.';
+    ui.deathHistoryList.appendChild(empty);
+    return;
+  }
+  for (const row of recent) {
+    const item = document.createElement('li');
+    item.innerHTML = formatRecentHistoryHtml(row);
+    ui.deathHistoryList.appendChild(item);
+  }
+}
+
+function collectRecentHistoryEntries(limit = 3) {
+  const actions = Array.isArray(state.history && state.history.actions) ? state.history.actions : [];
+  const events = Array.isArray(state.history && state.history.events) ? state.history.events : [];
+  const merged = [];
+
+  for (const action of actions) {
+    merged.push({
+      kind: 'action',
+      atRealTimeMs: Number(action.atRealTimeMs || action.realTime || 0),
+      atSimTimeMs: Number(action.atSimTimeMs || action.simTime || state.simulation.simTimeMs),
+      data: action
+    });
+  }
+
+  for (const eventItem of events) {
+    merged.push({
+      kind: 'event',
+      atRealTimeMs: Number(eventItem.atRealTimeMs || eventItem.realTime || 0),
+      atSimTimeMs: Number(eventItem.atSimTimeMs || eventItem.simTime || state.simulation.simTimeMs),
+      data: eventItem
+    });
+  }
+
+  merged.sort((a, b) => (b.atRealTimeMs || b.atSimTimeMs) - (a.atRealTimeMs || a.atSimTimeMs));
+  return merged.slice(0, limit);
+}
+
+function formatRecentHistoryHtml(row) {
+  const simStamp = simStampFromMs(row.atSimTimeMs);
+  const data = row.data || {};
+  if (row.kind === 'action') {
+    const label = escapeHtml(String(data.label || data.id || 'Aktion'));
+    return `<span class="timeline-meta">${simStamp} · Aktion</span><br><strong>${label}</strong>`;
+  }
+
+  const category = escapeHtml(categoryLabel(data.category || 'generic'));
+  const label = escapeHtml(String(data.optionLabel || data.optionId || data.eventId || 'Ereignis'));
+  return `<span class="timeline-meta">${simStamp} · Ereignis (${category})</span><br><strong>${label}</strong>`;
+}
+
 function onStartRun() {
   state.setup = {
     mode: ui.setupMode.value || 'indoor',
@@ -2056,6 +2224,69 @@ function onStartRun() {
   renderLanding();
   schedulePersistState(true);
   addLog('system', 'Einstellungen gespeichert, Durchlauf gestartet', state.setup);
+}
+
+async function onDeathResetClick() {
+  await resetRun();
+}
+
+function onDeathAnalyzeClick() {
+  state.ui.deathOverlayOpen = false;
+  state.ui.deathOverlayAcknowledged = true;
+  openSheet('dashboard');
+  renderDeathOverlay();
+}
+
+async function onAnalysisResetClick() {
+  const confirmed = window.confirm('Aktuellen Run wirklich zurücksetzen? Dieser Schritt löscht den gespeicherten Fortschritt.');
+  if (!confirmed) {
+    return;
+  }
+  await resetRun();
+}
+
+async function resetRun() {
+  await clearPersistentStorage();
+
+  resetStateToDefaults();
+  ensureStateIntegrity(Date.now());
+  syncRuntimeClocks(Date.now());
+  syncCanonicalStateShape();
+
+  state.ui.openSheet = null;
+  state.ui.deathOverlayOpen = false;
+  state.ui.deathOverlayAcknowledged = false;
+  for (const key of Object.keys(actionDebounceUntil)) {
+    delete actionDebounceUntil[key];
+  }
+
+  renderAll();
+  schedulePersistState(true);
+}
+
+async function clearPersistentStorage() {
+  try {
+    localStorage.removeItem(LS_STATE_KEY);
+  } catch (_error) {
+    // non-fatal
+  }
+  try {
+    localStorage.removeItem(PUSH_SUB_KEY);
+  } catch (_error) {
+    // non-fatal
+  }
+
+  if (typeof indexedDB === 'undefined') {
+    return;
+  }
+
+  try {
+    const db = await openDb();
+    await dbDelete(db, DB_KEY);
+    db.close();
+  } catch (_error) {
+    // non-fatal
+  }
 }
 
 function withDebouncedAction(actionKey, buttonNode, callback) {
@@ -2292,6 +2523,7 @@ function getCanonicalPlant(snapshot) {
   }
 
   if (typeof s.plant.phase !== 'string') s.plant.phase = 'seedling';
+  if (typeof s.plant.isDead !== 'boolean') s.plant.isDead = false;
   if (!Number.isFinite(s.plant.stageIndex)) s.plant.stageIndex = 1;
   if (typeof s.plant.stageKey !== 'string') s.plant.stageKey = 'stage_01';
   if (!Number.isFinite(s.plant.stageProgress)) s.plant.stageProgress = 0;
@@ -2454,6 +2686,7 @@ function migrateLegacyStateIntoCanonical(saved, targetState) {
     targetState.plant = {
       ...plant,
       phase: String(saved.growth.phase || plant.phase),
+      isDead: Boolean(saved.growth.isDead),
       stageIndex: clampInt(Number(saved.growth.stageIndex || 0) + 1, 1, STAGE_DEFS.length),
       stageKey: String(saved.growth.stageName || plant.stageKey),
       stageProgress: clamp(Number(saved.growth.stageProgress || 0), 0, 1),
@@ -2574,16 +2807,149 @@ function migrateState() {
 
 function resetStateToDefaults() {
   const fallbackNow = Date.now();
+  const fallbackSimStart = alignToSimStartHour(fallbackNow, SIM_START_HOUR);
+  const preservedEventCatalog = Array.isArray(state.events && state.events.catalog) ? state.events.catalog.slice() : [];
+  const preservedActionCatalog = Array.isArray(state.actions && state.actions.catalog) ? state.actions.catalog.slice() : [];
+  const normalizedActions = preservedActionCatalog.map(normalizeAction).filter(Boolean);
+
   state.schemaVersion = '1.0.0';
   state.seed = SIM_GLOBAL_SEED;
   state.plantId = SIM_PLANT_ID;
   state.setup = null;
-  state.history = { actions: [], events: [], system: [] };
+  state.history = { actions: [], events: [], system: [], systemLog: [] };
   state.debug = { enabled: false, showInternalTicks: false, forceDaytime: false };
-  state.simulation.nowMs = fallbackNow;
-  state.simulation.simTimeMs = alignToSimStartHour(fallbackNow, SIM_START_HOUR);
-  state.simulation.simEpochMs = state.simulation.simTimeMs;
-  state.simulation.lastTickRealTimeMs = fallbackNow;
+
+  state.simulation = {
+    nowMs: fallbackNow,
+    startRealTimeMs: fallbackSimStart,
+    lastTickRealTimeMs: fallbackNow,
+    simTimeMs: fallbackSimStart,
+    simEpochMs: fallbackSimStart,
+    simDay: 0,
+    simHour: SIM_START_HOUR,
+    simMinute: 0,
+    tickCount: 0,
+    mode: MODE,
+    tickIntervalMs: UI_TICK_INTERVAL_MS,
+    timeCompression: SIM_TIME_COMPRESSION,
+    globalSeed: SIM_GLOBAL_SEED,
+    plantId: SIM_PLANT_ID,
+    dayWindow: { startHour: SIM_DAY_START_HOUR, endHour: SIM_NIGHT_START_HOUR },
+    isDaytime: isDaytimeAtSimTime(fallbackSimStart),
+    growthImpulse: 0,
+    lastPushScheduleAtMs: 0
+  };
+
+  state.plant = {
+    phase: 'seedling',
+    isDead: false,
+    stageIndex: 1,
+    stageKey: 'stage_01',
+    stageProgress: 0,
+    stageStartSimDay: 0,
+    lastValidStageKey: 'stage_01',
+    averageHealth: 85,
+    averageStress: 15,
+    observedSimMs: 0,
+    lifecycle: {
+      totalSimDays: TOTAL_LIFECYCLE_SIM_DAYS,
+      qualityTier: 'normal',
+      qualityScore: 77.5,
+      qualityLocked: false
+    },
+    assets: {
+      basePath: 'assets/plant/',
+      resolvedStagePath: ''
+    }
+  };
+
+  state.events = {
+    machineState: 'idle',
+    scheduler: {
+      nextEventRealTimeMs: fallbackNow + EVENT_ROLL_MIN_REAL_MS,
+      lastEventRealTimeMs: 0,
+      lastEventId: null,
+      lastChoiceId: null,
+      lastEventCategory: null,
+      deferredUntilDaytime: false,
+      windowRealMinutes: { min: 30, max: 90 },
+      eventCooldowns: {}
+    },
+    active: null,
+    history: [],
+    activeEventId: null,
+    activeEventTitle: '',
+    activeEventText: '',
+    activeLearningNote: '',
+    activeOptions: [],
+    activeSeverity: 1,
+    activeCooldownRealMinutes: 120,
+    activeCategory: 'generic',
+    activeTags: [],
+    lastEventAtMs: 0,
+    cooldownUntilMs: 0,
+    catalog: preservedEventCatalog
+  };
+
+  state.status = {
+    health: 85,
+    stress: 15,
+    water: 70,
+    nutrition: 65,
+    growth: 10,
+    risk: 20
+  };
+
+  state.boost = {
+    boostUsedToday: 0,
+    boostMaxPerDay: 6,
+    dayStamp: dayStamp(fallbackNow)
+  };
+
+  state.event = {
+    machineState: 'idle',
+    activeEventId: null,
+    activeEventTitle: '',
+    activeEventText: '',
+    activeLearningNote: '',
+    activeOptions: [],
+    activeSeverity: 1,
+    activeCooldownRealMinutes: 120,
+    activeCategory: 'generic',
+    activeTags: [],
+    lastEventAtMs: 0,
+    nextEventAtMs: fallbackNow + EVENT_ROLL_MIN_REAL_MS,
+    cooldownUntilMs: 0,
+    lastChoiceId: null,
+    catalog: preservedEventCatalog
+  };
+
+  state.actions = {
+    catalog: normalizedActions,
+    byId: Object.fromEntries(normalizedActions.map((action) => [action.id, action])),
+    cooldowns: {},
+    activeEffects: [],
+    lastResult: { ok: true, reason: 'ok', actionId: null, atRealTimeMs: fallbackNow }
+  };
+
+  state.ui = {
+    openSheet: null,
+    selectedBackground: 'bg_dark_01.jpg',
+    visibleOverlayIds: [],
+    deathOverlayOpen: false,
+    deathOverlayAcknowledged: false,
+    care: {
+      selectedCategory: null,
+      feedback: { kind: 'info', text: 'Bereit.' }
+    },
+    analysis: {
+      activeTab: 'overview'
+    }
+  };
+
+  state.lastEventId = null;
+  state.lastChoiceId = null;
+  state.historyLog = [];
 }
 
 function ensureStateIntegrity(nowMs) {
@@ -2623,15 +2989,20 @@ function ensureStateIntegrity(nowMs) {
   }
 
   state.plant.lastValidStageKey = normalizeStageKey(state.plant.lastValidStageKey);
+  const deadByHealth = Number(state.status.health) <= 0;
+  const deadRequested = state.plant.phase === 'dead' || state.plant.isDead === true || deadByHealth;
+  state.plant.isDead = deadRequested;
 
-  if (state.plant.phase !== 'dead') {
+  if (!deadRequested) {
     state.plant.stageIndex = clampInt(state.plant.stageIndex, 0, STAGE_DEFS.length - 1);
     state.plant.stageProgress = clamp(state.plant.stageProgress, 0, 1);
     state.plant.stageKey = normalizeStageKey(stageAssetKeyForIndex(state.plant.stageIndex));
     state.plant.lastValidStageKey = state.plant.stageKey;
     state.plant.phase = STAGE_DEFS[state.plant.stageIndex].phase;
   } else {
+    state.plant.phase = 'dead';
     state.plant.stageKey = normalizeStageKey(state.plant.lastValidStageKey || 'stage_01');
+    state.plant.stageProgress = 1;
   }
 
   if (!Number.isFinite(state.plant.averageHealth)) {
@@ -2768,6 +3139,12 @@ function ensureStateIntegrity(nowMs) {
   if (!['overview', 'diagnosis', 'timeline'].includes(state.ui.analysis.activeTab)) {
     state.ui.analysis.activeTab = 'overview';
   }
+  if (typeof state.ui.deathOverlayOpen !== 'boolean') {
+    state.ui.deathOverlayOpen = false;
+  }
+  if (typeof state.ui.deathOverlayAcknowledged !== 'boolean') {
+    state.ui.deathOverlayAcknowledged = false;
+  }
 
   if (typeof state.events.scheduler.lastEventId !== 'string') {
     state.events.scheduler.lastEventId = null;
@@ -2856,6 +3233,7 @@ function syncLegacyMirrorsFromCanonical(snapshot) {
 
   s.growth = {
     phase: plant.phase,
+    isDead: plant.isDead,
     stageIndex: Math.max(0, plant.stageIndex - 1),
     stageName: plant.stageKey,
     stageProgress: plant.stageProgress,
@@ -3345,6 +3723,16 @@ function dbSet(db, key, value) {
     const tx = db.transaction(DB_STORE, 'readwrite');
     const store = tx.objectStore(DB_STORE);
     const request = store.put(value, key);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve();
+  });
+}
+
+function dbDelete(db, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, 'readwrite');
+    const store = tx.objectStore(DB_STORE);
+    const request = store.delete(key);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve();
   });
