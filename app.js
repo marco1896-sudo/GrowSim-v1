@@ -457,7 +457,6 @@ function bindUi() {
   ui.pushToggleBtn.addEventListener('click', onPushToggleClick);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
-  ui.deathRescueBtn.addEventListener('click', onDeathRescueClick);
   ui.backdrop.addEventListener('click', closeSheet);
 
   const analysisTabs = [ui.analysisTabOverview, ui.analysisTabDiagnosis, ui.analysisTabTimeline].filter(Boolean);
@@ -548,8 +547,7 @@ function ensureRequiredUi() {
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
     'analysisResetBtn', 'pushToggleBtn', 'pushToggleStatus',
     'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics',
-    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn',
-    'deathRescueBtn', 'deathRescueSubtext', 'deathRescueFeedback'
+    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn'
   ];
 
   const missing = requiredKeys.filter((key) => !ui[key]);
@@ -2197,7 +2195,7 @@ function renderLanding() {
 }
 
 function renderDeathOverlay() {
-  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList || !ui.deathRescueBtn || !ui.deathRescueSubtext || !ui.deathRescueFeedback) {
+  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList) {
     return;
   }
 
