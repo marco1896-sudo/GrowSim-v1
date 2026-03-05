@@ -252,7 +252,6 @@ const warnedUiKeys = new Set();
 let storageAdapter = null;
 let tickHandle = null;
 let persistTimer = null;
-let rescueAdPending = false;
 
 const actionDebounceUntil = Object.create(null);
 
@@ -450,7 +449,6 @@ function bindUi() {
   ui.analysisResetBtn.addEventListener('click', onAnalysisResetClick);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
-  ui.deathRescueBtn.addEventListener('click', onDeathRescueClick);
   ui.backdrop.addEventListener('click', closeSheet);
 
   const analysisTabs = [ui.analysisTabOverview, ui.analysisTabDiagnosis, ui.analysisTabTimeline].filter(Boolean);
@@ -536,8 +534,7 @@ function ensureRequiredUi() {
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
     'analysisResetBtn',
     'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics',
-    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn',
-    'deathRescueBtn', 'deathRescueSubtext', 'deathRescueFeedback'
+    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn'
   ];
 
   const missing = requiredKeys.filter((key) => !ui[key]);
@@ -2168,7 +2165,7 @@ function renderLanding() {
 }
 
 function renderDeathOverlay() {
-  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList || !ui.deathRescueBtn || !ui.deathRescueSubtext || !ui.deathRescueFeedback) {
+  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList) {
     return;
   }
 
@@ -2376,7 +2373,6 @@ async function resetRun() {
   ensureStateIntegrity(Date.now());
   syncRuntimeClocks(Date.now());
   syncCanonicalStateShape();
-  rescueAdPending = false;
   if (state.meta && state.meta.rescue) {
     state.meta.rescue.used = false;
     state.meta.rescue.usedAtRealMs = null;
