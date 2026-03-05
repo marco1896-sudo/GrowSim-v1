@@ -189,6 +189,7 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('message', (event) => {
   const data = event && event.data ? event.data : null;
   if (!data || data.type !== 'GS_SHOW_NOTIFICATION') {
+  if (!data || data.type !== 'SHOW_NOTIFICATION') {
     return;
   }
 
