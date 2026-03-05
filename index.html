@@ -130,6 +130,28 @@
     <header class="sheet-header">
       <h2>Ereignis</h2>
       <button class="sheet-close" data-close-sheet type="button" aria-label="SchlieÃŸen">X</button>
+      <section class="analysis-settings" aria-label="Benachrichtigungen">
+        <div class="analysis-settings-row">
+          <span class="analysis-settings-label">Push-Benachrichtigungen</span>
+          <button id="pushToggleBtn" class="ghost-btn" type="button" aria-pressed="false">AUS</button>
+        </div>
+        <p id="pushToggleStatus" class="sheet-note">Deaktiviert</p>
+        <div class="analysis-settings-types">
+          <label class="analysis-settings-type"><input id="notifTypeEvents" type="checkbox"> Ereignis verfgbar</label>
+          <label class="analysis-settings-type"><input id="notifTypeCritical" type="checkbox"> Kritischer Zustand</label>
+          <label class="analysis-settings-type"><input id="notifTypeReminder" type="checkbox"> Pflege-Erinnerung</label>
+        </div>
+        <p id="pushToggleFeedback" class="sheet-note" aria-live="polite"></p>
+      </section>
+      <div class="analysis-settings" aria-label="Analyse-Einstellungen">
+        <span class="analysis-settings-label">Push-Benachrichtigungen</span>
+        <button id="pushToggleBtn" class="ghost-btn" type="button" aria-pressed="false">AUS</button>
+      </div>
+      <p id="pushToggleStatus" class="sheet-note">Push-Benachrichtigungen deaktiviert</p>
+      <button id="deathRescueBtn" class="action-btn action-primary" type="button">Notfallrettung (1x) - Werbeunterstuetzt</button>
+      <p id="deathRescueSubtext" class="sheet-note">Einmal pro Run verfuegbar</p>
+      <p id="deathRescueFeedback" class="sheet-note" aria-live="polite"></p>
+        <button id="deathResetBtn" class="action-btn action-secondary" type="button">Neuer Run starten</button>
     </header>
     <div class="sheet-content">
       <p id="eventStateBadge" class="sheet-badge">Status: inaktiv</p>
@@ -175,6 +197,7 @@
       <p id="deathRescueSubtext" class="sheet-note">Einmal pro Run verfuegbar</p>
       <p id="deathRescueFeedback" class="sheet-note" aria-live="polite"></p>
         <button id="deathResetBtn" class="action-btn action-secondary" type="button">Neuer Run starten</button>
+        <li>Vorhersage fÃ¼r Wurzelstress (Pro)</li>
       </ul>
     </div>
   </section>

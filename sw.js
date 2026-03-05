@@ -185,3 +185,15 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+self.addEventListener('message', (event) => {
+  const data = event && event.data ? event.data : null;
+  if (!data || data.type !== 'GS_SHOW_NOTIFICATION') {
+  if (!data || data.type !== 'SHOW_NOTIFICATION') {
+    return;
+  }
+
+  const title = data.title || 'GrowSim';
+  const options = data.options && typeof data.options === 'object' ? data.options : {};
+  event.waitUntil(self.registration.showNotification(title, options));
+});
