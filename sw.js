@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'growsim-v1-20260303';
+const CACHE_VERSION = 'growsim-v1-20260305';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const BASE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
@@ -188,8 +188,16 @@ self.addEventListener('notificationclick', (event) => {
 
 self.addEventListener('message', (event) => {
   const data = event && event.data ? event.data : null;
-  if (!data || data.type !== 'GS_SHOW_NOTIFICATION') {
-  if (!data || data.type !== 'SHOW_NOTIFICATION') {
+  if (!data) {
+    return;
+  }
+
+  if (data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
+
+  if (data.type !== 'GS_SHOW_NOTIFICATION' && data.type !== 'SHOW_NOTIFICATION') {
     return;
   }
 
