@@ -129,6 +129,7 @@
   <section id="eventSheet" class="bottom-sheet hidden" aria-hidden="true">
     <header class="sheet-header">
       <h2>Ereignis</h2>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="SchlieÃŸen">X</button>
       <section class="analysis-settings" aria-label="Benachrichtigungen">
         <div class="analysis-settings-row">
           <span class="analysis-settings-label">Push-Benachrichtigungen</span>
@@ -192,6 +193,10 @@
       <ul class="diagnosis-list">
         <li>Wahrscheinlichkeits-Heatmap fÃ¼r Pathogene (Pro)</li>
         <li>Zerlegung der NÃ¤hrstofftrends (Pro)</li>
+      <button id="deathRescueBtn" class="action-btn action-primary" type="button">Notfallrettung (1x) - Werbeunterstuetzt</button>
+      <p id="deathRescueSubtext" class="sheet-note">Einmal pro Run verfuegbar</p>
+      <p id="deathRescueFeedback" class="sheet-note" aria-live="polite"></p>
+        <button id="deathResetBtn" class="action-btn action-secondary" type="button">Neuer Run starten</button>
         <li>Vorhersage fÃ¼r Wurzelstress (Pro)</li>
       </ul>
     </div>
