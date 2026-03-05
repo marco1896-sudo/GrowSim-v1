@@ -114,6 +114,13 @@ const state = {
   seed: SIM_GLOBAL_SEED,
   plantId: SIM_PLANT_ID,
   setup: null,
+  meta: {
+    rescue: {
+      used: false,
+      usedAtRealMs: null,
+      lastResult: null
+    }
+  },
   simulation: {
     nowMs: now,
     startRealTimeMs: initialSimTimeMs,
@@ -245,6 +252,7 @@ const warnedUiKeys = new Set();
 let storageAdapter = null;
 let tickHandle = null;
 let persistTimer = null;
+let rescueAdPending = false;
 
 const actionDebounceUntil = Object.create(null);
 
@@ -428,6 +436,43 @@ function cacheUi() {
   ui.deathHistoryList = document.getElementById('deathHistoryList');
   ui.deathResetBtn = document.getElementById('deathResetBtn');
   ui.deathAnalyzeBtn = document.getElementById('deathAnalyzeBtn');
+  ui.deathRescueBtn = document.getElementById('deathRescueBtn');
+  ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
+  ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
+
+  if (ui.deathOverlay && (!ui.deathRescueBtn || !ui.deathRescueSubtext || !ui.deathRescueFeedback)) {
+    const card = ui.deathOverlay.querySelector('.death-card') || ui.deathOverlay.querySelector('.landing-card');
+    const actions = card ? card.querySelector('.death-actions') : null;
+    if (card) {
+      if (!ui.deathRescueBtn) {
+        const rescueBtn = document.createElement('button');
+        rescueBtn.id = 'deathRescueBtn';
+        rescueBtn.className = 'action-btn action-primary';
+        rescueBtn.type = 'button';
+        rescueBtn.textContent = 'Notfallrettung (1×) – Werbeunterstützt';
+        card.insertBefore(rescueBtn, actions || null);
+      }
+      if (!ui.deathRescueSubtext) {
+        const rescueSubtext = document.createElement('p');
+        rescueSubtext.id = 'deathRescueSubtext';
+        rescueSubtext.className = 'sheet-note';
+        rescueSubtext.textContent = 'Einmal pro Run verfügbar';
+        const rescueBtnNode = document.getElementById('deathRescueBtn');
+        card.insertBefore(rescueSubtext, (rescueBtnNode && rescueBtnNode.nextSibling) || (actions || null));
+      }
+      if (!ui.deathRescueFeedback) {
+        const rescueFeedback = document.createElement('p');
+        rescueFeedback.id = 'deathRescueFeedback';
+        rescueFeedback.className = 'sheet-note';
+        rescueFeedback.setAttribute('aria-live', 'polite');
+        const rescueSubtextNode = document.getElementById('deathRescueSubtext');
+        card.insertBefore(rescueFeedback, (rescueSubtextNode && rescueSubtextNode.nextSibling) || (actions || null));
+      }
+    }
+    ui.deathRescueBtn = document.getElementById('deathRescueBtn');
+    ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
+    ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
+  }
 }
 
 function bindUi() {
@@ -439,6 +484,7 @@ function bindUi() {
   ui.analysisResetBtn.addEventListener('click', onAnalysisResetClick);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
+  ui.deathRescueBtn.addEventListener('click', onDeathRescueClick);
   ui.backdrop.addEventListener('click', closeSheet);
 
   const analysisTabs = [ui.analysisTabOverview, ui.analysisTabDiagnosis, ui.analysisTabTimeline].filter(Boolean);
@@ -524,7 +570,8 @@ function ensureRequiredUi() {
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
     'analysisResetBtn',
     'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics',
-    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn'
+    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn',
+    'deathRescueBtn', 'deathRescueSubtext', 'deathRescueFeedback'
   ];
 
   const missing = requiredKeys.filter((key) => !ui[key]);
@@ -2027,6 +2074,7 @@ function renderAnalysisTimeline() {
 
   const actions = Array.isArray(state.history && state.history.actions) ? state.history.actions : [];
   const events = Array.isArray(state.history && state.history.events) ? state.history.events : [];
+  const system = Array.isArray(state.history && state.history.system) ? state.history.system : [];
   const simNow = Number(state.simulation && state.simulation.simTimeMs) || 0;
 
   const merged = [];
@@ -2043,6 +2091,15 @@ function renderAnalysisTimeline() {
       kind: 'event',
       atRealTimeMs: Number(item.atRealTimeMs || item.realTime || 0),
       atSimTimeMs: Number(item.atSimTimeMs || item.simTime || simNow),
+      data: item
+    });
+  }
+  for (const item of system) {
+    const stamp = item && item.timestamp && typeof item.timestamp === 'object' ? item.timestamp : null;
+    merged.push({
+      kind: 'system',
+      atRealTimeMs: Number(item.atRealTimeMs || (stamp && stamp.realMs) || item.realTime || 0),
+      atSimTimeMs: Number(item.atSimTimeMs || (stamp && stamp.simMs) || item.simTime || simNow),
       data: item
     });
   }
@@ -2068,10 +2125,18 @@ function renderAnalysisTimeline() {
     if (row.kind === 'action') {
       const d = row.data || {};
       node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · Aktion</div><strong>${escapeHtml(String(d.label || d.id || 'Aktion'))}</strong><br>${formatDeltaSummary(d.deltaSummary || {})}`;
-    } else {
+    } else if (row.kind === 'event') {
       const d = row.data || {};
       const note = d.learningNote ? `<details><summary>Lernhinweis</summary>${escapeHtml(String(d.learningNote))}</details>` : '';
       node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · Ereignis (${escapeHtml(categoryLabel(String(d.category || 'generic')))})</div><strong>${escapeHtml(String(d.optionLabel || d.optionId || d.eventId || 'Ereignis'))}</strong><br>${formatDeltaSummary(d.effectsApplied || d.deltaSummary || {})}${note}`;
+    } else {
+      const d = row.data || {};
+      const typeLabel = String(d.type || 'system');
+      const label = d.label || d.id || 'System';
+      const wasDeadNote = typeof d.wasDead === 'boolean'
+        ? (d.wasDead ? ' · Reanimation' : ' · Stabilisierung')
+        : '';
+      node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · System (${escapeHtml(typeLabel === 'rescue' ? 'Notfallrettung' : 'System')})</div><strong>${escapeHtml(String(label))}</strong>${wasDeadNote}<br>${formatDeltaSummary(d.effectsApplied || (d.details && d.details.effectsApplied) || {})}`;
     }
 
     ui.analysisPanelTimeline.appendChild(node);
@@ -2135,7 +2200,7 @@ function renderLanding() {
 }
 
 function renderDeathOverlay() {
-  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList) {
+  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList || !ui.deathRescueBtn || !ui.deathRescueSubtext || !ui.deathRescueFeedback) {
     return;
   }
 
@@ -2161,13 +2226,23 @@ function renderDeathOverlay() {
     const empty = document.createElement('li');
     empty.textContent = 'Keine Aktionen oder Ereignisse protokolliert.';
     ui.deathHistoryList.appendChild(empty);
-    return;
+  } else {
+    for (const row of recent) {
+      const item = document.createElement('li');
+      item.innerHTML = formatRecentHistoryHtml(row);
+      ui.deathHistoryList.appendChild(item);
+    }
   }
-  for (const row of recent) {
-    const item = document.createElement('li');
-    item.innerHTML = formatRecentHistoryHtml(row);
-    ui.deathHistoryList.appendChild(item);
-  }
+
+  const meta = getCanonicalMeta(state);
+  const rescueUsed = Boolean(meta.rescue.used);
+  const rescueBusy = rescueAdPending;
+  ui.deathRescueBtn.disabled = rescueBusy;
+  ui.deathRescueBtn.textContent = rescueUsed
+    ? 'Notfallrettung bereits verwendet'
+    : (rescueBusy ? 'Werbung läuft…' : 'Notfallrettung (1×) – Werbeunterstützt');
+  ui.deathRescueSubtext.textContent = rescueUsed ? 'Einmal pro Run verfügbar (bereits genutzt)' : 'Einmal pro Run verfügbar';
+  ui.deathRescueFeedback.textContent = meta.rescue.lastResult ? String(meta.rescue.lastResult) : '';
 }
 
 function collectRecentHistoryEntries(limit = 3) {
@@ -2237,6 +2312,86 @@ function onDeathAnalyzeClick() {
   renderDeathOverlay();
 }
 
+async function onDeathRescueClick() {
+  const meta = getCanonicalMeta(state);
+  if (rescueAdPending) {
+    return;
+  }
+
+  if (meta.rescue.used) {
+    meta.rescue.lastResult = 'Notfallrettung ist nur einmal pro Run verfügbar.';
+    renderDeathOverlay();
+    schedulePersistState(true);
+    return;
+  }
+
+  const wasDeadBeforeRescue = isPlantDead();
+  const isCriticalAlive = !wasDeadBeforeRescue && Number(state.status.health) < 20;
+  if (!wasDeadBeforeRescue && !isCriticalAlive) {
+    meta.rescue.lastResult = 'Notfallrettung ist aktuell nicht erforderlich.';
+    renderDeathOverlay();
+    schedulePersistState(true);
+    return;
+  }
+
+  rescueAdPending = true;
+  meta.rescue.lastResult = 'Werbung läuft…';
+  renderDeathOverlay();
+
+  let adResult = { ok: false, reason: 'unknown' };
+  try {
+    adResult = await requestRescueAd();
+  } catch (_error) {
+    adResult = { ok: false, reason: 'error' };
+  } finally {
+    rescueAdPending = false;
+  }
+
+  if (!adResult.ok) {
+    meta.rescue.lastResult = 'Werbung nicht abgeschlossen – Rettung nicht ausgelöst.';
+    renderDeathOverlay();
+    schedulePersistState(true);
+    return;
+  }
+
+  const rescueResult = applyRescueEffects();
+  if (!rescueResult.ok) {
+    meta.rescue.lastResult = 'Notfallrettung ist aktuell nicht erforderlich.';
+    renderDeathOverlay();
+    schedulePersistState(true);
+    return;
+  }
+
+  const nowMs = Date.now();
+  meta.rescue.used = true;
+  meta.rescue.usedAtRealMs = nowMs;
+  meta.rescue.lastResult = 'Notfallrettung angewendet. Die Pflanze stabilisiert sich.';
+
+  const timestamp = {
+    realMs: nowMs,
+    simMs: Number(state.simulation.simTimeMs || 0),
+    simStamp: simStampFromMs(Number(state.simulation.simTimeMs || 0))
+  };
+  const history = getCanonicalHistory(state);
+  history.system.push({
+    type: 'rescue',
+    label: 'Notfallrettung',
+    effectsApplied: rescueResult.effectsApplied,
+    wasDead: rescueResult.wasDead,
+    timestamp,
+    atRealTimeMs: timestamp.realMs,
+    atSimTimeMs: timestamp.simMs
+  });
+  if (history.system.length > MAX_HISTORY_LOG) {
+    history.system = history.system.slice(-MAX_HISTORY_LOG);
+  }
+
+  updateVisibleOverlays();
+  syncCanonicalStateShape();
+  renderAll();
+  schedulePersistState(true);
+}
+
 async function onAnalysisResetClick() {
   const confirmed = window.confirm('Aktuellen Run wirklich zurücksetzen? Dieser Schritt löscht den gespeicherten Fortschritt.');
   if (!confirmed) {
@@ -2252,6 +2407,12 @@ async function resetRun() {
   ensureStateIntegrity(Date.now());
   syncRuntimeClocks(Date.now());
   syncCanonicalStateShape();
+  rescueAdPending = false;
+  if (state.meta && state.meta.rescue) {
+    state.meta.rescue.used = false;
+    state.meta.rescue.usedAtRealMs = null;
+    state.meta.rescue.lastResult = null;
+  }
 
   state.ui.openSheet = null;
   state.ui.deathOverlayOpen = false;
@@ -2593,6 +2754,20 @@ function getCanonicalHistory(snapshot) {
   return s.history;
 }
 
+function getCanonicalMeta(snapshot) {
+  const s = snapshot || state;
+  if (!s.meta || typeof s.meta !== 'object') {
+    s.meta = {};
+  }
+  if (!s.meta.rescue || typeof s.meta.rescue !== 'object') {
+    s.meta.rescue = {};
+  }
+  if (typeof s.meta.rescue.used !== 'boolean') s.meta.rescue.used = false;
+  if (!Number.isFinite(Number(s.meta.rescue.usedAtRealMs))) s.meta.rescue.usedAtRealMs = null;
+  if (s.meta.rescue.lastResult !== null && typeof s.meta.rescue.lastResult !== 'string') s.meta.rescue.lastResult = null;
+  return s.meta;
+}
+
 async function restoreState() {
   if (!storageAdapter) {
     return;
@@ -2607,6 +2782,7 @@ async function restoreState() {
   const plant = getCanonicalPlant(state);
   const events = getCanonicalEvents(state);
   const history = getCanonicalHistory(state);
+  const meta = getCanonicalMeta(state);
 
   if (saved.simulation && typeof saved.simulation === 'object') {
     state.simulation = {
@@ -2658,6 +2834,16 @@ async function restoreState() {
   }
   if (saved.setup && typeof saved.setup === 'object') {
     state.setup = { ...saved.setup };
+  }
+  if (saved.meta && typeof saved.meta === 'object') {
+    state.meta = {
+      ...meta,
+      ...saved.meta,
+      rescue: {
+        ...meta.rescue,
+        ...((saved.meta && saved.meta.rescue) || {})
+      }
+    };
   }
 
   migrateLegacyStateIntoCanonical(saved, state);
@@ -2816,6 +3002,13 @@ function resetStateToDefaults() {
   state.seed = SIM_GLOBAL_SEED;
   state.plantId = SIM_PLANT_ID;
   state.setup = null;
+  state.meta = {
+    rescue: {
+      used: false,
+      usedAtRealMs: null,
+      lastResult: null
+    }
+  };
   state.history = { actions: [], events: [], system: [], systemLog: [] };
   state.debug = { enabled: false, showInternalTicks: false, forceDaytime: false };
 
@@ -3088,6 +3281,13 @@ function ensureStateIntegrity(nowMs) {
     state.actions.lastResult = { ok: true, reason: 'ok', actionId: null, atRealTimeMs: nowMs };
   }
 
+  const meta = getCanonicalMeta(state);
+  meta.rescue.used = Boolean(meta.rescue.used);
+  meta.rescue.usedAtRealMs = Number.isFinite(Number(meta.rescue.usedAtRealMs)) ? Number(meta.rescue.usedAtRealMs) : null;
+  meta.rescue.lastResult = (typeof meta.rescue.lastResult === 'string' || meta.rescue.lastResult === null)
+    ? meta.rescue.lastResult
+    : null;
+
   if (!state.setup || typeof state.setup !== 'object') {
     state.setup = null;
   }
@@ -3159,6 +3359,7 @@ function syncCanonicalStateShape() {
   const plant = getCanonicalPlant(state);
   const events = getCanonicalEvents(state);
   const history = getCanonicalHistory(state);
+  const meta = getCanonicalMeta(state);
 
   state.seed = sim.globalSeed;
   state.plantId = sim.plantId;
@@ -3204,6 +3405,11 @@ function syncCanonicalStateShape() {
   history.events = Array.isArray(history.events) ? history.events : [];
   history.system = Array.isArray(history.system) ? history.system : [];
   history.systemLog = Array.isArray(history.systemLog) ? history.systemLog : [];
+  meta.rescue.used = Boolean(meta.rescue.used);
+  meta.rescue.usedAtRealMs = Number.isFinite(Number(meta.rescue.usedAtRealMs)) ? Number(meta.rescue.usedAtRealMs) : null;
+  meta.rescue.lastResult = (typeof meta.rescue.lastResult === 'string' || meta.rescue.lastResult === null)
+    ? meta.rescue.lastResult
+    : null;
 
   syncLegacyMirrorsFromCanonical(state);
 }
@@ -3266,6 +3472,66 @@ function syncLegacyMirrorsFromCanonical(snapshot) {
   s.lastEventId = events.scheduler.lastEventId || null;
   s.lastChoiceId = events.scheduler.lastChoiceId || null;
   s.historyLog = Array.isArray(history.systemLog) ? history.systemLog : [];
+}
+
+function requestRescueAd() {
+  return new Promise((resolve) => {
+    window.setTimeout(() => {
+      resolve({ ok: true });
+    }, 1200);
+  });
+}
+
+function applyRescueEffects() {
+  const before = {
+    health: Number(state.status.health) || 0,
+    stress: Number(state.status.stress) || 0,
+    risk: Number(state.status.risk) || 0,
+    growth: Number(state.status.growth) || 0
+  };
+  const wasDead = isPlantDead();
+  const isCriticalAlive = !wasDead && before.health < 20;
+  if (!wasDead && !isCriticalAlive) {
+    return { ok: false };
+  }
+
+  if (wasDead) {
+    state.status.health = 30;
+    state.status.stress = before.stress - 20;
+    state.status.risk = before.risk - 15;
+    state.status.growth = before.growth < 5 ? 5 : before.growth;
+    state.plant.isDead = false;
+    if (state.plant.phase === 'dead') {
+      const safeIndex = clampInt(Number(state.plant.stageIndex) || 0, 0, STAGE_DEFS.length - 1);
+      state.plant.phase = STAGE_DEFS[safeIndex].phase;
+    }
+    state.ui.deathOverlayOpen = false;
+    state.ui.deathOverlayAcknowledged = true;
+  } else {
+    state.status.health = before.health + 15;
+    state.status.stress = before.stress - 10;
+    state.status.risk = before.risk - 10;
+  }
+
+  clampStatus();
+
+  const after = {
+    health: Number(state.status.health) || 0,
+    stress: Number(state.status.stress) || 0,
+    risk: Number(state.status.risk) || 0,
+    growth: Number(state.status.growth) || 0
+  };
+
+  return {
+    ok: true,
+    wasDead,
+    effectsApplied: {
+      health: round2(after.health - before.health),
+      stress: round2(after.stress - before.stress),
+      risk: round2(after.risk - before.risk),
+      growth: round2(after.growth - before.growth)
+    }
+  };
 }
 
 function syncRuntimeClocks(nowMs) {
