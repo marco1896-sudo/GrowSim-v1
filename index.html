@@ -129,6 +129,19 @@
   <section id="eventSheet" class="bottom-sheet hidden" aria-hidden="true">
     <header class="sheet-header">
       <h2>Ereignis</h2>
+      <section class="analysis-settings" aria-label="Benachrichtigungen">
+        <div class="analysis-settings-row">
+          <span class="analysis-settings-label">Push-Benachrichtigungen</span>
+          <button id="pushToggleBtn" class="ghost-btn" type="button" aria-pressed="false">AUS</button>
+        </div>
+        <p id="pushToggleStatus" class="sheet-note">Deaktiviert</p>
+        <div class="analysis-settings-types">
+          <label class="analysis-settings-type"><input id="notifTypeEvents" type="checkbox"> Ereignis verfgbar</label>
+          <label class="analysis-settings-type"><input id="notifTypeCritical" type="checkbox"> Kritischer Zustand</label>
+          <label class="analysis-settings-type"><input id="notifTypeReminder" type="checkbox"> Pflege-Erinnerung</label>
+        </div>
+        <p id="pushToggleFeedback" class="sheet-note" aria-live="polite"></p>
+      </section>
       <div class="analysis-settings" aria-label="Analyse-Einstellungen">
         <span class="analysis-settings-label">Push-Benachrichtigungen</span>
         <button id="pushToggleBtn" class="ghost-btn" type="button" aria-pressed="false">AUS</button>

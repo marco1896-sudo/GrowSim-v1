@@ -115,6 +115,19 @@ const state = {
   plantId: SIM_PLANT_ID,
   setup: null,
   settings: {
+    notifications: {
+      enabled: false,
+      types: {
+        events: true,
+        critical: true,
+        reminder: true
+      },
+      runtime: {
+        lastNotifiedEventId: null,
+        lastCriticalAtRealMs: 0,
+        lastReminderAtRealMs: 0
+      }
+    }
     pushNotificationsEnabled: false
   },
   meta: {
@@ -428,6 +441,10 @@ function cacheUi() {
   ui.analysisResetBtn = document.getElementById('analysisResetBtn');
   ui.pushToggleBtn = document.getElementById('pushToggleBtn');
   ui.pushToggleStatus = document.getElementById('pushToggleStatus');
+  ui.pushToggleFeedback = document.getElementById('pushToggleFeedback');
+  ui.notifTypeEvents = document.getElementById('notifTypeEvents');
+  ui.notifTypeCritical = document.getElementById('notifTypeCritical');
+  ui.notifTypeReminder = document.getElementById('notifTypeReminder');
 
   ui.landing = document.getElementById('landing');
   ui.startRunBtn = document.getElementById('startRunBtn');
@@ -455,6 +472,9 @@ function bindUi() {
   ui.startRunBtn.addEventListener('click', onStartRun);
   ui.analysisResetBtn.addEventListener('click', onAnalysisResetClick);
   ui.pushToggleBtn.addEventListener('click', onPushToggleClick);
+  ui.notifTypeEvents.addEventListener('change', onNotificationTypeToggle);
+  ui.notifTypeCritical.addEventListener('change', onNotificationTypeToggle);
+  ui.notifTypeReminder.addEventListener('change', onNotificationTypeToggle);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
   ui.backdrop.addEventListener('click', closeSheet);
@@ -522,7 +542,7 @@ function tick() {
   resetBoostDaily(nowMs);
   updateVisibleOverlays();
   syncCanonicalStateShape();
-
+  evaluateNotificationTriggers(nowMs);
 
   if (state.ui.openSheet !== prevOpenSheet) {
     renderSheets();
@@ -545,6 +565,8 @@ function ensureRequiredUi() {
     'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
     'careCategoryList', 'careActionList', 'careFeedback', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
+    'analysisResetBtn', 'pushToggleBtn', 'pushToggleStatus', 'pushToggleFeedback',
+    'notifTypeEvents', 'notifTypeCritical', 'notifTypeReminder',
     'analysisResetBtn', 'pushToggleBtn', 'pushToggleStatus',
     'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics',
     'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn'
@@ -1935,6 +1957,25 @@ function renderAnalysisPanel(force = false) {
 }
 
 function renderPushToggle() {
+  if (!ui.pushToggleBtn || !ui.pushToggleStatus || !ui.pushToggleFeedback || !ui.notifTypeEvents || !ui.notifTypeCritical || !ui.notifTypeReminder) {
+    return;
+  }
+
+  const notifications = getCanonicalNotificationsSettings(state);
+  const enabled = notifications.enabled === true;
+  ui.pushToggleBtn.textContent = enabled ? 'AN' : 'AUS';
+  ui.pushToggleBtn.setAttribute('aria-pressed', String(enabled));
+  ui.pushToggleStatus.textContent = enabled ? 'Aktiv' : 'Deaktiviert';
+
+  ui.notifTypeEvents.checked = notifications.types.events === true;
+  ui.notifTypeCritical.checked = notifications.types.critical === true;
+  ui.notifTypeReminder.checked = notifications.types.reminder === true;
+
+  ui.notifTypeEvents.disabled = !enabled;
+  ui.notifTypeCritical.disabled = !enabled;
+  ui.notifTypeReminder.disabled = !enabled;
+
+  ui.pushToggleFeedback.textContent = notifications.lastMessage ? String(notifications.lastMessage) : '';
   if (!ui.pushToggleBtn || !ui.pushToggleStatus) {
     return;
   }
@@ -2389,6 +2430,12 @@ async function onDeathRescueClick() {
 }
 
 async function onPushToggleClick() {
+  const notifications = getCanonicalNotificationsSettings(state);
+  const currentlyEnabled = notifications.enabled === true;
+
+  if (currentlyEnabled) {
+    notifications.enabled = false;
+    notifications.lastMessage = 'Benachrichtigungen deaktiviert.';
   const currentlyEnabled = Boolean(state.settings && state.settings.pushNotificationsEnabled === true);
   if (currentlyEnabled) {
     state.settings.pushNotificationsEnabled = false;
@@ -2397,6 +2444,9 @@ async function onPushToggleClick() {
     return;
   }
 
+  if (typeof Notification === 'undefined' || !('serviceWorker' in navigator)) {
+    notifications.enabled = false;
+    notifications.lastMessage = 'Benachrichtigungen werden in diesem Browser nicht unterstützt.';
   if (typeof Notification === 'undefined') {
     state.settings.pushNotificationsEnabled = false;
     renderPushToggle();
@@ -2409,6 +2459,33 @@ async function onPushToggleClick() {
     permission = await Notification.requestPermission();
   }
 
+  if (permission !== 'granted') {
+    notifications.enabled = false;
+    notifications.lastMessage = 'Berechtigung nicht erteilt. Bitte Benachrichtigungen im Browser erlauben.';
+    renderPushToggle();
+    schedulePersistState(true);
+    return;
+  }
+
+  if (!navigator.serviceWorker.controller) {
+    notifications.enabled = false;
+    notifications.lastMessage = 'Service Worker noch nicht aktiv. Bitte einmal normal neu laden.';
+    renderPushToggle();
+    schedulePersistState(true);
+    return;
+  }
+
+  notifications.enabled = true;
+  notifications.lastMessage = 'Benachrichtigungen aktiviert.';
+  renderPushToggle();
+  schedulePersistState(true);
+}
+
+function onNotificationTypeToggle() {
+  const notifications = getCanonicalNotificationsSettings(state);
+  notifications.types.events = Boolean(ui.notifTypeEvents && ui.notifTypeEvents.checked);
+  notifications.types.critical = Boolean(ui.notifTypeCritical && ui.notifTypeCritical.checked);
+  notifications.types.reminder = Boolean(ui.notifTypeReminder && ui.notifTypeReminder.checked);
   if (permission === 'granted') {
     state.settings.pushNotificationsEnabled = true;
     await schedulePushIfAllowed(true);
@@ -2436,6 +2513,10 @@ async function resetRun() {
   syncRuntimeClocks(Date.now());
   syncCanonicalStateShape();
   rescueAdPending = false;
+  const notifications = getCanonicalNotificationsSettings(state);
+  notifications.runtime.lastNotifiedEventId = null;
+  notifications.runtime.lastCriticalAtRealMs = 0;
+  notifications.runtime.lastReminderAtRealMs = 0;
   wasCriticalHealth = false;
   if (state.meta && state.meta.rescue) {
     state.meta.rescue.used = false;
@@ -2801,6 +2882,44 @@ function getCanonicalSettings(snapshot) {
   if (!s.settings || typeof s.settings !== 'object') {
     s.settings = {};
   }
+  const notifications = getCanonicalNotificationsSettings(s);
+  s.settings.notifications = notifications;
+  return s.settings;
+}
+
+function getCanonicalNotificationsSettings(snapshot) {
+  const s = snapshot || state;
+  if (!s.settings || typeof s.settings !== 'object') {
+    s.settings = {};
+  }
+
+  const legacyEnabled = Boolean(s.settings.pushNotificationsEnabled);
+  if (!s.settings.notifications || typeof s.settings.notifications !== 'object') {
+    s.settings.notifications = {};
+  }
+
+  const n = s.settings.notifications;
+  n.enabled = typeof n.enabled === 'boolean' ? n.enabled : legacyEnabled;
+  if (!n.types || typeof n.types !== 'object') {
+    n.types = {};
+  }
+  n.types.events = typeof n.types.events === 'boolean' ? n.types.events : true;
+  n.types.critical = typeof n.types.critical === 'boolean' ? n.types.critical : true;
+  n.types.reminder = typeof n.types.reminder === 'boolean' ? n.types.reminder : true;
+
+  if (!n.runtime || typeof n.runtime !== 'object') {
+    n.runtime = {};
+  }
+  n.runtime.lastNotifiedEventId = (typeof n.runtime.lastNotifiedEventId === 'string' || n.runtime.lastNotifiedEventId === null)
+    ? n.runtime.lastNotifiedEventId
+    : null;
+  n.runtime.lastCriticalAtRealMs = Number.isFinite(Number(n.runtime.lastCriticalAtRealMs)) ? Number(n.runtime.lastCriticalAtRealMs) : 0;
+  n.runtime.lastReminderAtRealMs = Number.isFinite(Number(n.runtime.lastReminderAtRealMs)) ? Number(n.runtime.lastReminderAtRealMs) : 0;
+  n.lastMessage = (typeof n.lastMessage === 'string' || n.lastMessage === null) ? n.lastMessage : null;
+
+  return n;
+}
+
   s.settings.pushNotificationsEnabled = Boolean(s.settings.pushNotificationsEnabled);
   return s.settings;
 }
@@ -2887,6 +3006,9 @@ async function restoreState() {
   if (saved.settings && typeof saved.settings === 'object') {
     state.settings = {
       ...settings,
+      ...saved.settings
+    };
+    getCanonicalNotificationsSettings(state);
       ...saved.settings,
       pushNotificationsEnabled: Boolean(saved.settings.pushNotificationsEnabled)
     };
@@ -3049,6 +3171,20 @@ function resetStateToDefaults() {
   state.plantId = SIM_PLANT_ID;
   state.setup = null;
   state.settings = {
+    notifications: {
+      enabled: false,
+      types: {
+        events: true,
+        critical: true,
+        reminder: true
+      },
+      runtime: {
+        lastNotifiedEventId: null,
+        lastCriticalAtRealMs: 0,
+        lastReminderAtRealMs: 0
+      },
+      lastMessage: null
+    }
     pushNotificationsEnabled: false
   };
   state.meta = {
@@ -3337,6 +3473,7 @@ function ensureStateIntegrity(nowMs) {
   meta.rescue.lastResult = (typeof meta.rescue.lastResult === 'string' || meta.rescue.lastResult === null)
     ? meta.rescue.lastResult
     : null;
+  getCanonicalNotificationsSettings(state);
   settings.pushNotificationsEnabled = Boolean(settings.pushNotificationsEnabled);
 
   if (!state.setup || typeof state.setup !== 'object') {
@@ -3462,6 +3599,7 @@ function syncCanonicalStateShape() {
   meta.rescue.lastResult = (typeof meta.rescue.lastResult === 'string' || meta.rescue.lastResult === null)
     ? meta.rescue.lastResult
     : null;
+  getCanonicalNotificationsSettings(state);
   settings.pushNotificationsEnabled = Boolean(settings.pushNotificationsEnabled);
 
   syncLegacyMirrorsFromCanonical(state);
@@ -3911,50 +4049,80 @@ async function registerServiceWorker() {
   }
 }
 
-async function onPushSubscribe() {
-  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-    addLog('system', 'Push wird in diesem Browser nicht unterstützt', null);
-    renderAnalysisPanel(true);
+async function schedulePushIfAllowed(_force) {
+  // Lokale Benachrichtigungen nutzen aktuell kein Backend-Push-Scheduling.
+}
+
+function canNotify(type) {
+  const notifications = getCanonicalNotificationsSettings(state);
+  if (notifications.enabled !== true) {
+    return false;
+  }
+
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
+    return false;
+  }
+
+  if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) {
+    return false;
+  }
+
+  if (type && notifications.types[type] !== true) {
+    return false;
+  }
+
+  return true;
+}
+
+function notify(type, title, body) {
+  if (!canNotify(type)) {
     return;
   }
 
-  try {
-    const permission = await Notification.requestPermission();
-    addLog('system', `Benachrichtigungsberechtigung: ${permission}`, null);
+  const tagByType = {
+    events: 'gs-events',
+    critical: 'gs-critical',
+    reminder: 'gs-reminder'
+  };
+  const tag = tagByType[type] || 'gs-generic';
 
-    if (permission !== 'granted') {
-      renderAnalysisPanel(true);
-      return;
+  navigator.serviceWorker.controller.postMessage({
+    type: 'GS_SHOW_NOTIFICATION',
+    title,
+    options: {
+      body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      tag
     }
-
-    const registration = await navigator.serviceWorker.ready;
-    let subscription = await registration.pushManager.getSubscription();
-
-    if (!subscription) {
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: base64ToU8(VAPID_PUBLIC_KEY)
-      });
-    }
-
-    localStorage.setItem(PUSH_SUB_KEY, JSON.stringify(subscription.toJSON()));
-
-    // TODO: Replace stub call when backend is implemented.
-    await postJsonStub(appPath('api/push/subscribe'), {
-      createdAt: Date.now(),
-      subscription: subscription.toJSON()
-    });
-
-    addLog('system', 'Push-Abonnement gespeichert und an Stub-Endpunkt gesendet', null);
-    await schedulePushIfAllowed(true);
-    renderAnalysisPanel(true);
-    schedulePersistState(true);
-  } catch (error) {
-    addLog('system', `Push-Abonnement fehlgeschlagen: ${error.message}`, null);
-    renderAnalysisPanel(true);
-  }
+  });
 }
 
+function evaluateNotificationTriggers(nowMs) {
+  notifyEventAvailability();
+  notifyCriticalState(nowMs);
+  notifyReminder(nowMs);
+}
+
+function notifyEventAvailability() {
+  if (state.events.machineState !== 'activeEvent') {
+    return;
+  }
+
+  const notifications = getCanonicalNotificationsSettings(state);
+  const eventId = state.events.activeEventId || null;
+  if (!eventId || notifications.runtime.lastNotifiedEventId === eventId) {
+    return;
+  }
+
+  notify('events', 'Grow Simulator', 'Ein Ereignis ist verfügbar. Tippe, um zu reagieren.');
+  notifications.runtime.lastNotifiedEventId = eventId;
+}
+
+function notifyCriticalState(nowMs) {
+  const s = state.status || {};
+  const critical = Number(s.health) <= 15 || Number(s.risk) >= 75 || Number(s.stress) >= 80;
+  if (!critical) {
 async function schedulePushIfAllowed(force) {
   if (!state.settings || state.settings.pushNotificationsEnabled !== true) {
     return;
@@ -3964,30 +4132,54 @@ async function schedulePushIfAllowed(force) {
     return;
   }
 
-  const subRaw = localStorage.getItem(PUSH_SUB_KEY);
-  if (!subRaw) {
+  const notifications = getCanonicalNotificationsSettings(state);
+  const cooldownMs = 60 * 60 * 1000;
+  if ((nowMs - notifications.runtime.lastCriticalAtRealMs) < cooldownMs) {
     return;
   }
 
-  if (!force && state.simulation.lastPushScheduleAtMs === state.events.scheduler.nextEventRealTimeMs) {
+  const scores = [
+    { key: 'health', score: Math.max(0, 15 - Number(s.health || 0)) },
+    { key: 'risk', score: Math.max(0, Number(s.risk || 0) - 75) },
+    { key: 'stress', score: Math.max(0, Number(s.stress || 0) - 80) }
+  ].sort((a, b) => b.score - a.score || String(a.key).localeCompare(String(b.key)));
+
+  let body = 'Kritischer Zustand: Gesundheit sehr niedrig.';
+  if (scores[0].key === 'risk') {
+    body = 'Kritischer Zustand: Risiko ist sehr hoch.';
+  } else if (scores[0].key === 'stress') {
+    body = 'Kritischer Zustand: Stress ist extrem hoch.';
+  }
+
+  notify('critical', 'Grow Simulator', body);
+  notifications.runtime.lastCriticalAtRealMs = nowMs;
+}
+
+function notifyReminder(nowMs) {
+  const actions = Array.isArray(state.history && state.history.actions) ? state.history.actions : [];
+  const lastActionAtMs = actions.length
+    ? Number(actions[actions.length - 1].atRealTimeMs || actions[actions.length - 1].realTime || 0)
+    : 0;
+
+  const inactivityMs = 90 * 60 * 1000;
+  if (lastActionAtMs > 0 && (nowMs - lastActionAtMs) < inactivityMs) {
     return;
   }
 
-  state.simulation.lastPushScheduleAtMs = state.events.scheduler.nextEventRealTimeMs;
-
-  let subscriptionPayload = null;
-  try {
-    subscriptionPayload = JSON.parse(subRaw);
-  } catch (_error) {
+  const s = state.status || {};
+  const notOptimal = Number(s.water) < 50 || Number(s.nutrition) < 50 || Number(s.stress) > 55;
+  if (!notOptimal) {
     return;
   }
 
-  // TODO: Replace stub call when backend is implemented.
-  await postJsonStub(appPath('api/push/schedule'), {
-    nextEventAt: state.events.scheduler.nextEventRealTimeMs,
-    cooldownUntil: state.events.cooldownUntilMs,
-    subscription: subscriptionPayload
-  });
+  const notifications = getCanonicalNotificationsSettings(state);
+  const cooldownMs = 120 * 60 * 1000;
+  if ((nowMs - notifications.runtime.lastReminderAtRealMs) < cooldownMs) {
+    return;
+  }
+
+  notify('reminder', 'Grow Simulator', 'Deine Pflanze braucht Pflege. Öffne die App für eine Maßnahme.');
+  notifications.runtime.lastReminderAtRealMs = nowMs;
 }
 
 function notifyPlantNeedsCare(bodyText) {
