@@ -645,6 +645,38 @@ body::before {
   gap: 0.6rem;
 }
 
+
+.analysis-settings {
+  border: 1px solid rgba(180, 198, 231, 0.2);
+  border-radius: 12px;
+  background: rgba(11, 18, 31, 0.66);
+  padding: 0.55rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.analysis-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.analysis-settings-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.analysis-settings-types {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.analysis-settings-type {
+  color: var(--text-main);
+  font-size: 0.75rem;
+}
+
 .analysis-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
