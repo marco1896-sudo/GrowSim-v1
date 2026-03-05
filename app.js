@@ -46,7 +46,7 @@ const MAX_HISTORY_LOG = CONFIG.maxHistoryLog;
 const PERSIST_THROTTLE_MS = CONFIG.persistThrottleMs;
 const MAX_ELAPSED_PER_TICK_MS = 5 * 60 * 1000;
 const APP_BASE_PATH = resolveAppBasePath();
-const FREEZE_SIM_ON_DEATH = true;
+const FREEZE_SIM_ON_DEATH = true; // Für Klarheit: Simulation pausiert nach Tod der Pflanze.
 
 const DB_NAME = 'grow-sim-db';
 const DB_STORE = 'kv';
@@ -114,6 +114,9 @@ const state = {
   seed: SIM_GLOBAL_SEED,
   plantId: SIM_PLANT_ID,
   setup: null,
+  settings: {
+    pushNotificationsEnabled: false
+  },
   meta: {
     rescue: {
       used: false,
@@ -253,6 +256,7 @@ let storageAdapter = null;
 let tickHandle = null;
 let persistTimer = null;
 let rescueAdPending = false;
+let wasCriticalHealth = false;
 
 const actionDebounceUntil = Object.create(null);
 
@@ -422,6 +426,8 @@ function cacheUi() {
   ui.analysisPanelDiagnosis = document.getElementById('analysisPanelDiagnosis');
   ui.analysisPanelTimeline = document.getElementById('analysisPanelTimeline');
   ui.analysisResetBtn = document.getElementById('analysisResetBtn');
+  ui.pushToggleBtn = document.getElementById('pushToggleBtn');
+  ui.pushToggleStatus = document.getElementById('pushToggleStatus');
 
   ui.landing = document.getElementById('landing');
   ui.startRunBtn = document.getElementById('startRunBtn');
@@ -439,40 +445,6 @@ function cacheUi() {
   ui.deathRescueBtn = document.getElementById('deathRescueBtn');
   ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
   ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
-
-  if (ui.deathOverlay && (!ui.deathRescueBtn || !ui.deathRescueSubtext || !ui.deathRescueFeedback)) {
-    const card = ui.deathOverlay.querySelector('.death-card') || ui.deathOverlay.querySelector('.landing-card');
-    const actions = card ? card.querySelector('.death-actions') : null;
-    if (card) {
-      if (!ui.deathRescueBtn) {
-        const rescueBtn = document.createElement('button');
-        rescueBtn.id = 'deathRescueBtn';
-        rescueBtn.className = 'action-btn action-primary';
-        rescueBtn.type = 'button';
-        rescueBtn.textContent = 'Notfallrettung (1×) – Werbeunterstützt';
-        card.insertBefore(rescueBtn, actions || null);
-      }
-      if (!ui.deathRescueSubtext) {
-        const rescueSubtext = document.createElement('p');
-        rescueSubtext.id = 'deathRescueSubtext';
-        rescueSubtext.className = 'sheet-note';
-        rescueSubtext.textContent = 'Einmal pro Run verfügbar';
-        const rescueBtnNode = document.getElementById('deathRescueBtn');
-        card.insertBefore(rescueSubtext, (rescueBtnNode && rescueBtnNode.nextSibling) || (actions || null));
-      }
-      if (!ui.deathRescueFeedback) {
-        const rescueFeedback = document.createElement('p');
-        rescueFeedback.id = 'deathRescueFeedback';
-        rescueFeedback.className = 'sheet-note';
-        rescueFeedback.setAttribute('aria-live', 'polite');
-        const rescueSubtextNode = document.getElementById('deathRescueSubtext');
-        card.insertBefore(rescueFeedback, (rescueSubtextNode && rescueSubtextNode.nextSibling) || (actions || null));
-      }
-    }
-    ui.deathRescueBtn = document.getElementById('deathRescueBtn');
-    ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
-    ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
-  }
 }
 
 function bindUi() {
@@ -482,6 +454,7 @@ function bindUi() {
   ui.openDiagnosisBtn.addEventListener('click', () => openSheet('diagnosis'));
   ui.startRunBtn.addEventListener('click', onStartRun);
   ui.analysisResetBtn.addEventListener('click', onAnalysisResetClick);
+  ui.pushToggleBtn.addEventListener('click', onPushToggleClick);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
   ui.deathRescueBtn.addEventListener('click', onDeathRescueClick);
@@ -539,6 +512,11 @@ function tick() {
   state.simulation.lastTickRealTimeMs = nowMs;
 
   applyStatusDrift(elapsedRealMs);
+  const criticalNow = Number(state.status.health) < 20;
+  if (criticalNow && !wasCriticalHealth) {
+    notifyPlantNeedsCare('Deine Pflanze ist kritisch und braucht Pflege.');
+  }
+  wasCriticalHealth = criticalNow;
   applyActiveActionEffects(elapsedSimMs);
   advanceGrowthTick(elapsedSimMs);
   runEventStateMachine(nowMs);
@@ -568,7 +546,7 @@ function ensureRequiredUi() {
     'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
     'careCategoryList', 'careActionList', 'careFeedback', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
-    'analysisResetBtn',
+    'analysisResetBtn', 'pushToggleBtn', 'pushToggleStatus',
     'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics',
     'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn',
     'deathRescueBtn', 'deathRescueSubtext', 'deathRescueFeedback'
@@ -724,8 +702,10 @@ function syncDeathState() {
     enterDeadPhase();
   }
 
-  if (state.ui.deathOverlayAcknowledged !== true) {
+  const inAnalysis = state.ui.openSheet === 'dashboard';
+  if (!inAnalysis) {
     state.ui.deathOverlayOpen = true;
+    state.ui.deathOverlayAcknowledged = false;
   }
   return true;
 }
@@ -918,6 +898,8 @@ function activateEvent(nowMs) {
     severity: state.events.activeSeverity,
     category: eventDef.category || 'generic'
   });
+
+  notifyPlantNeedsCare('Deine Pflanze braucht Pflege.');
 }
 
 function eligibleEventsForNow(nowMs) {
@@ -1932,6 +1914,8 @@ function renderAnalysisPanel(force = false) {
     return;
   }
 
+  renderPushToggle();
+
   const activeTab = (state.ui.analysis && state.ui.analysis.activeTab) ? state.ui.analysis.activeTab : 'overview';
   const tabMap = {
     overview: ui.analysisPanelOverview,
@@ -1950,6 +1934,19 @@ function renderAnalysisPanel(force = false) {
   renderAnalysisOverview();
   renderAnalysisDiagnosis();
   renderAnalysisTimeline();
+}
+
+function renderPushToggle() {
+  if (!ui.pushToggleBtn || !ui.pushToggleStatus) {
+    return;
+  }
+
+  const enabled = Boolean(state.settings && state.settings.pushNotificationsEnabled === true);
+  ui.pushToggleBtn.textContent = enabled ? 'AN' : 'AUS';
+  ui.pushToggleBtn.setAttribute('aria-pressed', String(enabled));
+  ui.pushToggleStatus.textContent = enabled
+    ? 'Push-Benachrichtigungen aktiv'
+    : 'Push-Benachrichtigungen deaktiviert';
 }
 
 function renderAnalysisOverview() {
@@ -2236,12 +2233,13 @@ function renderDeathOverlay() {
 
   const meta = getCanonicalMeta(state);
   const rescueUsed = Boolean(meta.rescue.used);
-  const rescueBusy = rescueAdPending;
-  ui.deathRescueBtn.disabled = rescueBusy;
+  ui.deathRescueBtn.disabled = rescueAdPending || rescueUsed;
   ui.deathRescueBtn.textContent = rescueUsed
     ? 'Notfallrettung bereits verwendet'
-    : (rescueBusy ? 'Werbung läuft…' : 'Notfallrettung (1×) – Werbeunterstützt');
-  ui.deathRescueSubtext.textContent = rescueUsed ? 'Einmal pro Run verfügbar (bereits genutzt)' : 'Einmal pro Run verfügbar';
+    : (rescueAdPending ? 'Werbung läuft…' : 'Notfallrettung (1×) - Werbeunterstützt');
+  ui.deathRescueSubtext.textContent = rescueUsed
+    ? 'Einmal pro Run verfügbar (bereits genutzt)'
+    : 'Einmal pro Run verfügbar';
   ui.deathRescueFeedback.textContent = meta.rescue.lastResult ? String(meta.rescue.lastResult) : '';
 }
 
@@ -2325,9 +2323,9 @@ async function onDeathRescueClick() {
     return;
   }
 
-  const wasDeadBeforeRescue = isPlantDead();
-  const isCriticalAlive = !wasDeadBeforeRescue && Number(state.status.health) < 20;
-  if (!wasDeadBeforeRescue && !isCriticalAlive) {
+  const beforeHealth = Number(state.status.health) || 0;
+  const deadNow = isPlantDead();
+  if (!deadNow && beforeHealth >= 20) {
     meta.rescue.lastResult = 'Notfallrettung ist aktuell nicht erforderlich.';
     renderDeathOverlay();
     schedulePersistState(true);
@@ -2338,7 +2336,7 @@ async function onDeathRescueClick() {
   meta.rescue.lastResult = 'Werbung läuft…';
   renderDeathOverlay();
 
-  let adResult = { ok: false, reason: 'unknown' };
+  let adResult = { ok: false, reason: 'error' };
   try {
     adResult = await requestRescueAd();
   } catch (_error) {
@@ -2392,6 +2390,38 @@ async function onDeathRescueClick() {
   schedulePersistState(true);
 }
 
+async function onPushToggleClick() {
+  const currentlyEnabled = Boolean(state.settings && state.settings.pushNotificationsEnabled === true);
+  if (currentlyEnabled) {
+    state.settings.pushNotificationsEnabled = false;
+    renderPushToggle();
+    schedulePersistState(true);
+    return;
+  }
+
+  if (typeof Notification === 'undefined') {
+    state.settings.pushNotificationsEnabled = false;
+    renderPushToggle();
+    schedulePersistState(true);
+    return;
+  }
+
+  let permission = Notification.permission;
+  if (permission !== 'granted') {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission === 'granted') {
+    state.settings.pushNotificationsEnabled = true;
+    await schedulePushIfAllowed(true);
+  } else {
+    state.settings.pushNotificationsEnabled = false;
+  }
+
+  renderPushToggle();
+  schedulePersistState(true);
+}
+
 async function onAnalysisResetClick() {
   const confirmed = window.confirm('Aktuellen Run wirklich zurücksetzen? Dieser Schritt löscht den gespeicherten Fortschritt.');
   if (!confirmed) {
@@ -2408,6 +2438,7 @@ async function resetRun() {
   syncRuntimeClocks(Date.now());
   syncCanonicalStateShape();
   rescueAdPending = false;
+  wasCriticalHealth = false;
   if (state.meta && state.meta.rescue) {
     state.meta.rescue.used = false;
     state.meta.rescue.usedAtRealMs = null;
@@ -2767,6 +2798,15 @@ function getCanonicalMeta(snapshot) {
   if (s.meta.rescue.lastResult !== null && typeof s.meta.rescue.lastResult !== 'string') s.meta.rescue.lastResult = null;
   return s.meta;
 }
+function getCanonicalSettings(snapshot) {
+  const s = snapshot || state;
+  if (!s.settings || typeof s.settings !== 'object') {
+    s.settings = {};
+  }
+  s.settings.pushNotificationsEnabled = Boolean(s.settings.pushNotificationsEnabled);
+  return s.settings;
+}
+
 
 async function restoreState() {
   if (!storageAdapter) {
@@ -2783,6 +2823,7 @@ async function restoreState() {
   const events = getCanonicalEvents(state);
   const history = getCanonicalHistory(state);
   const meta = getCanonicalMeta(state);
+  const settings = getCanonicalSettings(state);
 
   if (saved.simulation && typeof saved.simulation === 'object') {
     state.simulation = {
@@ -2843,6 +2884,13 @@ async function restoreState() {
         ...meta.rescue,
         ...((saved.meta && saved.meta.rescue) || {})
       }
+    };
+  }
+  if (saved.settings && typeof saved.settings === 'object') {
+    state.settings = {
+      ...settings,
+      ...saved.settings,
+      pushNotificationsEnabled: Boolean(saved.settings.pushNotificationsEnabled)
     };
   }
 
@@ -3002,6 +3050,9 @@ function resetStateToDefaults() {
   state.seed = SIM_GLOBAL_SEED;
   state.plantId = SIM_PLANT_ID;
   state.setup = null;
+  state.settings = {
+    pushNotificationsEnabled: false
+  };
   state.meta = {
     rescue: {
       used: false,
@@ -3282,11 +3333,13 @@ function ensureStateIntegrity(nowMs) {
   }
 
   const meta = getCanonicalMeta(state);
+  const settings = getCanonicalSettings(state);
   meta.rescue.used = Boolean(meta.rescue.used);
   meta.rescue.usedAtRealMs = Number.isFinite(Number(meta.rescue.usedAtRealMs)) ? Number(meta.rescue.usedAtRealMs) : null;
   meta.rescue.lastResult = (typeof meta.rescue.lastResult === 'string' || meta.rescue.lastResult === null)
     ? meta.rescue.lastResult
     : null;
+  settings.pushNotificationsEnabled = Boolean(settings.pushNotificationsEnabled);
 
   if (!state.setup || typeof state.setup !== 'object') {
     state.setup = null;
@@ -3360,6 +3413,7 @@ function syncCanonicalStateShape() {
   const events = getCanonicalEvents(state);
   const history = getCanonicalHistory(state);
   const meta = getCanonicalMeta(state);
+  const settings = getCanonicalSettings(state);
 
   state.seed = sim.globalSeed;
   state.plantId = sim.plantId;
@@ -3410,6 +3464,7 @@ function syncCanonicalStateShape() {
   meta.rescue.lastResult = (typeof meta.rescue.lastResult === 'string' || meta.rescue.lastResult === null)
     ? meta.rescue.lastResult
     : null;
+  settings.pushNotificationsEnabled = Boolean(settings.pushNotificationsEnabled);
 
   syncLegacyMirrorsFromCanonical(state);
 }
@@ -3903,6 +3958,10 @@ async function onPushSubscribe() {
 }
 
 async function schedulePushIfAllowed(force) {
+  if (!state.settings || state.settings.pushNotificationsEnabled !== true) {
+    return;
+  }
+
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
     return;
   }
@@ -3931,6 +3990,44 @@ async function schedulePushIfAllowed(force) {
     cooldownUntil: state.events.cooldownUntilMs,
     subscription: subscriptionPayload
   });
+}
+
+function notifyPlantNeedsCare(bodyText) {
+  if (!state.settings || state.settings.pushNotificationsEnabled !== true) {
+    return;
+  }
+
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
+    return;
+  }
+
+  if (!('serviceWorker' in navigator)) {
+    return;
+  }
+
+  const payload = {
+    type: 'SHOW_NOTIFICATION',
+    title: 'GrowSim',
+    options: {
+      body: String(bodyText || 'Deine Pflanze braucht Pflege.'),
+      icon: '/icons/icon-192.png'
+    }
+  };
+
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage(payload);
+    return;
+  }
+
+  navigator.serviceWorker.ready
+    .then((registration) => {
+      if (registration && registration.active) {
+        registration.active.postMessage(payload);
+      }
+    })
+    .catch(() => {
+      // non-fatal
+    });
 }
 
 async function postJsonStub(url, payload) {
