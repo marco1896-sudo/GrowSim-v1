@@ -46,7 +46,7 @@ const MAX_HISTORY_LOG = CONFIG.maxHistoryLog;
 const PERSIST_THROTTLE_MS = CONFIG.persistThrottleMs;
 const MAX_ELAPSED_PER_TICK_MS = 5 * 60 * 1000;
 const APP_BASE_PATH = resolveAppBasePath();
-const FREEZE_SIM_ON_DEATH = true;
+const FREEZE_SIM_ON_DEATH = true; // Für Klarheit: Simulation pausiert nach Tod der Pflanze.
 
 const DB_NAME = 'grow-sim-db';
 const DB_STORE = 'kv';
@@ -439,40 +439,6 @@ function cacheUi() {
   ui.deathRescueBtn = document.getElementById('deathRescueBtn');
   ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
   ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
-
-  if (ui.deathOverlay && (!ui.deathRescueBtn || !ui.deathRescueSubtext || !ui.deathRescueFeedback)) {
-    const card = ui.deathOverlay.querySelector('.death-card') || ui.deathOverlay.querySelector('.landing-card');
-    const actions = card ? card.querySelector('.death-actions') : null;
-    if (card) {
-      if (!ui.deathRescueBtn) {
-        const rescueBtn = document.createElement('button');
-        rescueBtn.id = 'deathRescueBtn';
-        rescueBtn.className = 'action-btn action-primary';
-        rescueBtn.type = 'button';
-        rescueBtn.textContent = 'Notfallrettung (1×) – Werbeunterstützt';
-        card.insertBefore(rescueBtn, actions || null);
-      }
-      if (!ui.deathRescueSubtext) {
-        const rescueSubtext = document.createElement('p');
-        rescueSubtext.id = 'deathRescueSubtext';
-        rescueSubtext.className = 'sheet-note';
-        rescueSubtext.textContent = 'Einmal pro Run verfügbar';
-        const rescueBtnNode = document.getElementById('deathRescueBtn');
-        card.insertBefore(rescueSubtext, (rescueBtnNode && rescueBtnNode.nextSibling) || (actions || null));
-      }
-      if (!ui.deathRescueFeedback) {
-        const rescueFeedback = document.createElement('p');
-        rescueFeedback.id = 'deathRescueFeedback';
-        rescueFeedback.className = 'sheet-note';
-        rescueFeedback.setAttribute('aria-live', 'polite');
-        const rescueSubtextNode = document.getElementById('deathRescueSubtext');
-        card.insertBefore(rescueFeedback, (rescueSubtextNode && rescueSubtextNode.nextSibling) || (actions || null));
-      }
-    }
-    ui.deathRescueBtn = document.getElementById('deathRescueBtn');
-    ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
-    ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
-  }
 }
 
 function bindUi() {
@@ -724,8 +690,10 @@ function syncDeathState() {
     enterDeadPhase();
   }
 
-  if (state.ui.deathOverlayAcknowledged !== true) {
+  const inAnalysis = state.ui.openSheet === 'dashboard';
+  if (!inAnalysis) {
     state.ui.deathOverlayOpen = true;
+    state.ui.deathOverlayAcknowledged = false;
   }
   return true;
 }
@@ -2236,12 +2204,13 @@ function renderDeathOverlay() {
 
   const meta = getCanonicalMeta(state);
   const rescueUsed = Boolean(meta.rescue.used);
-  const rescueBusy = rescueAdPending;
-  ui.deathRescueBtn.disabled = rescueBusy;
+  ui.deathRescueBtn.disabled = rescueAdPending || rescueUsed;
   ui.deathRescueBtn.textContent = rescueUsed
     ? 'Notfallrettung bereits verwendet'
-    : (rescueBusy ? 'Werbung läuft…' : 'Notfallrettung (1×) – Werbeunterstützt');
-  ui.deathRescueSubtext.textContent = rescueUsed ? 'Einmal pro Run verfügbar (bereits genutzt)' : 'Einmal pro Run verfügbar';
+    : (rescueAdPending ? 'Werbung läuft…' : 'Notfallrettung (1×) - Werbeunterstützt');
+  ui.deathRescueSubtext.textContent = rescueUsed
+    ? 'Einmal pro Run verfügbar (bereits genutzt)'
+    : 'Einmal pro Run verfügbar';
   ui.deathRescueFeedback.textContent = meta.rescue.lastResult ? String(meta.rescue.lastResult) : '';
 }
 
@@ -2325,9 +2294,9 @@ async function onDeathRescueClick() {
     return;
   }
 
-  const wasDeadBeforeRescue = isPlantDead();
-  const isCriticalAlive = !wasDeadBeforeRescue && Number(state.status.health) < 20;
-  if (!wasDeadBeforeRescue && !isCriticalAlive) {
+  const beforeHealth = Number(state.status.health) || 0;
+  const deadNow = isPlantDead();
+  if (!deadNow && beforeHealth >= 20) {
     meta.rescue.lastResult = 'Notfallrettung ist aktuell nicht erforderlich.';
     renderDeathOverlay();
     schedulePersistState(true);
@@ -2338,7 +2307,7 @@ async function onDeathRescueClick() {
   meta.rescue.lastResult = 'Werbung läuft…';
   renderDeathOverlay();
 
-  let adResult = { ok: false, reason: 'unknown' };
+  let adResult = { ok: false, reason: 'error' };
   try {
     adResult = await requestRescueAd();
   } catch (_error) {
