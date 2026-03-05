@@ -46,7 +46,7 @@ const MAX_HISTORY_LOG = CONFIG.maxHistoryLog;
 const PERSIST_THROTTLE_MS = CONFIG.persistThrottleMs;
 const MAX_ELAPSED_PER_TICK_MS = 5 * 60 * 1000;
 const APP_BASE_PATH = resolveAppBasePath();
-const FREEZE_SIM_ON_DEATH = true;
+const FREEZE_SIM_ON_DEATH = true; // Für Klarheit: Simulation pausiert nach Tod der Pflanze.
 
 const DB_NAME = 'grow-sim-db';
 const DB_STORE = 'kv';
@@ -252,7 +252,6 @@ const warnedUiKeys = new Set();
 let storageAdapter = null;
 let tickHandle = null;
 let persistTimer = null;
-let rescueAdPending = false;
 
 const actionDebounceUntil = Object.create(null);
 
@@ -436,43 +435,6 @@ function cacheUi() {
   ui.deathHistoryList = document.getElementById('deathHistoryList');
   ui.deathResetBtn = document.getElementById('deathResetBtn');
   ui.deathAnalyzeBtn = document.getElementById('deathAnalyzeBtn');
-  ui.deathRescueBtn = document.getElementById('deathRescueBtn');
-  ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
-  ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
-
-  if (ui.deathOverlay && (!ui.deathRescueBtn || !ui.deathRescueSubtext || !ui.deathRescueFeedback)) {
-    const card = ui.deathOverlay.querySelector('.death-card') || ui.deathOverlay.querySelector('.landing-card');
-    const actions = card ? card.querySelector('.death-actions') : null;
-    if (card) {
-      if (!ui.deathRescueBtn) {
-        const rescueBtn = document.createElement('button');
-        rescueBtn.id = 'deathRescueBtn';
-        rescueBtn.className = 'action-btn action-primary';
-        rescueBtn.type = 'button';
-        rescueBtn.textContent = 'Notfallrettung (1×) – Werbeunterstützt';
-        card.insertBefore(rescueBtn, actions || null);
-      }
-      if (!ui.deathRescueSubtext) {
-        const rescueSubtext = document.createElement('p');
-        rescueSubtext.id = 'deathRescueSubtext';
-        rescueSubtext.className = 'sheet-note';
-        rescueSubtext.textContent = 'Einmal pro Run verfügbar';
-        const rescueBtnNode = document.getElementById('deathRescueBtn');
-        card.insertBefore(rescueSubtext, (rescueBtnNode && rescueBtnNode.nextSibling) || (actions || null));
-      }
-      if (!ui.deathRescueFeedback) {
-        const rescueFeedback = document.createElement('p');
-        rescueFeedback.id = 'deathRescueFeedback';
-        rescueFeedback.className = 'sheet-note';
-        rescueFeedback.setAttribute('aria-live', 'polite');
-        const rescueSubtextNode = document.getElementById('deathRescueSubtext');
-        card.insertBefore(rescueFeedback, (rescueSubtextNode && rescueSubtextNode.nextSibling) || (actions || null));
-      }
-    }
-    ui.deathRescueBtn = document.getElementById('deathRescueBtn');
-    ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
-    ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
-  }
 }
 
 function bindUi() {
@@ -484,7 +446,6 @@ function bindUi() {
   ui.analysisResetBtn.addEventListener('click', onAnalysisResetClick);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
-  ui.deathRescueBtn.addEventListener('click', onDeathRescueClick);
   ui.backdrop.addEventListener('click', closeSheet);
 
   const analysisTabs = [ui.analysisTabOverview, ui.analysisTabDiagnosis, ui.analysisTabTimeline].filter(Boolean);
@@ -570,8 +531,7 @@ function ensureRequiredUi() {
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
     'analysisResetBtn',
     'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics',
-    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn',
-    'deathRescueBtn', 'deathRescueSubtext', 'deathRescueFeedback'
+    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn'
   ];
 
   const missing = requiredKeys.filter((key) => !ui[key]);
@@ -724,8 +684,10 @@ function syncDeathState() {
     enterDeadPhase();
   }
 
-  if (state.ui.deathOverlayAcknowledged !== true) {
+  const inAnalysis = state.ui.openSheet === 'dashboard';
+  if (!inAnalysis) {
     state.ui.deathOverlayOpen = true;
+    state.ui.deathOverlayAcknowledged = false;
   }
   return true;
 }
@@ -2200,7 +2162,7 @@ function renderLanding() {
 }
 
 function renderDeathOverlay() {
-  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList || !ui.deathRescueBtn || !ui.deathRescueSubtext || !ui.deathRescueFeedback) {
+  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList) {
     return;
   }
 
@@ -2234,15 +2196,6 @@ function renderDeathOverlay() {
     }
   }
 
-  const meta = getCanonicalMeta(state);
-  const rescueUsed = Boolean(meta.rescue.used);
-  const rescueBusy = rescueAdPending;
-  ui.deathRescueBtn.disabled = rescueBusy;
-  ui.deathRescueBtn.textContent = rescueUsed
-    ? 'Notfallrettung bereits verwendet'
-    : (rescueBusy ? 'Werbung läuft…' : 'Notfallrettung (1×) – Werbeunterstützt');
-  ui.deathRescueSubtext.textContent = rescueUsed ? 'Einmal pro Run verfügbar (bereits genutzt)' : 'Einmal pro Run verfügbar';
-  ui.deathRescueFeedback.textContent = meta.rescue.lastResult ? String(meta.rescue.lastResult) : '';
 }
 
 function collectRecentHistoryEntries(limit = 3) {
@@ -2312,86 +2265,6 @@ function onDeathAnalyzeClick() {
   renderDeathOverlay();
 }
 
-async function onDeathRescueClick() {
-  const meta = getCanonicalMeta(state);
-  if (rescueAdPending) {
-    return;
-  }
-
-  if (meta.rescue.used) {
-    meta.rescue.lastResult = 'Notfallrettung ist nur einmal pro Run verfügbar.';
-    renderDeathOverlay();
-    schedulePersistState(true);
-    return;
-  }
-
-  const wasDeadBeforeRescue = isPlantDead();
-  const isCriticalAlive = !wasDeadBeforeRescue && Number(state.status.health) < 20;
-  if (!wasDeadBeforeRescue && !isCriticalAlive) {
-    meta.rescue.lastResult = 'Notfallrettung ist aktuell nicht erforderlich.';
-    renderDeathOverlay();
-    schedulePersistState(true);
-    return;
-  }
-
-  rescueAdPending = true;
-  meta.rescue.lastResult = 'Werbung läuft…';
-  renderDeathOverlay();
-
-  let adResult = { ok: false, reason: 'unknown' };
-  try {
-    adResult = await requestRescueAd();
-  } catch (_error) {
-    adResult = { ok: false, reason: 'error' };
-  } finally {
-    rescueAdPending = false;
-  }
-
-  if (!adResult.ok) {
-    meta.rescue.lastResult = 'Werbung nicht abgeschlossen – Rettung nicht ausgelöst.';
-    renderDeathOverlay();
-    schedulePersistState(true);
-    return;
-  }
-
-  const rescueResult = applyRescueEffects();
-  if (!rescueResult.ok) {
-    meta.rescue.lastResult = 'Notfallrettung ist aktuell nicht erforderlich.';
-    renderDeathOverlay();
-    schedulePersistState(true);
-    return;
-  }
-
-  const nowMs = Date.now();
-  meta.rescue.used = true;
-  meta.rescue.usedAtRealMs = nowMs;
-  meta.rescue.lastResult = 'Notfallrettung angewendet. Die Pflanze stabilisiert sich.';
-
-  const timestamp = {
-    realMs: nowMs,
-    simMs: Number(state.simulation.simTimeMs || 0),
-    simStamp: simStampFromMs(Number(state.simulation.simTimeMs || 0))
-  };
-  const history = getCanonicalHistory(state);
-  history.system.push({
-    type: 'rescue',
-    label: 'Notfallrettung',
-    effectsApplied: rescueResult.effectsApplied,
-    wasDead: rescueResult.wasDead,
-    timestamp,
-    atRealTimeMs: timestamp.realMs,
-    atSimTimeMs: timestamp.simMs
-  });
-  if (history.system.length > MAX_HISTORY_LOG) {
-    history.system = history.system.slice(-MAX_HISTORY_LOG);
-  }
-
-  updateVisibleOverlays();
-  syncCanonicalStateShape();
-  renderAll();
-  schedulePersistState(true);
-}
-
 async function onAnalysisResetClick() {
   const confirmed = window.confirm('Aktuellen Run wirklich zurücksetzen? Dieser Schritt löscht den gespeicherten Fortschritt.');
   if (!confirmed) {
@@ -2407,7 +2280,6 @@ async function resetRun() {
   ensureStateIntegrity(Date.now());
   syncRuntimeClocks(Date.now());
   syncCanonicalStateShape();
-  rescueAdPending = false;
   if (state.meta && state.meta.rescue) {
     state.meta.rescue.used = false;
     state.meta.rescue.usedAtRealMs = null;
