@@ -128,6 +128,7 @@ const state = {
         lastReminderAtRealMs: 0
       }
     }
+    pushNotificationsEnabled: false
   },
   meta: {
     rescue: {
@@ -268,6 +269,7 @@ let storageAdapter = null;
 let tickHandle = null;
 let persistTimer = null;
 let rescueAdPending = false;
+let wasCriticalHealth = false;
 
 const actionDebounceUntil = Object.create(null);
 
@@ -475,7 +477,6 @@ function bindUi() {
   ui.notifTypeReminder.addEventListener('change', onNotificationTypeToggle);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
-  ui.deathRescueBtn.addEventListener('click', onDeathRescueClick);
   ui.backdrop.addEventListener('click', closeSheet);
 
   const analysisTabs = [ui.analysisTabOverview, ui.analysisTabDiagnosis, ui.analysisTabTimeline].filter(Boolean);
@@ -530,6 +531,11 @@ function tick() {
   state.simulation.lastTickRealTimeMs = nowMs;
 
   applyStatusDrift(elapsedRealMs);
+  const criticalNow = Number(state.status.health) < 20;
+  if (criticalNow && !wasCriticalHealth) {
+    notifyPlantNeedsCare('Deine Pflanze ist kritisch und braucht Pflege.');
+  }
+  wasCriticalHealth = criticalNow;
   applyActiveActionEffects(elapsedSimMs);
   advanceGrowthTick(elapsedSimMs);
   runEventStateMachine(nowMs);
@@ -561,9 +567,9 @@ function ensureRequiredUi() {
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
     'analysisResetBtn', 'pushToggleBtn', 'pushToggleStatus', 'pushToggleFeedback',
     'notifTypeEvents', 'notifTypeCritical', 'notifTypeReminder',
+    'analysisResetBtn', 'pushToggleBtn', 'pushToggleStatus',
     'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics',
-    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn',
-    'deathRescueBtn', 'deathRescueSubtext', 'deathRescueFeedback'
+    'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn'
   ];
 
   const missing = requiredKeys.filter((key) => !ui[key]);
@@ -913,6 +919,7 @@ function activateEvent(nowMs) {
     category: eventDef.category || 'generic'
   });
 
+  notifyPlantNeedsCare('Deine Pflanze braucht Pflege.');
 }
 
 function eligibleEventsForNow(nowMs) {
@@ -1969,6 +1976,16 @@ function renderPushToggle() {
   ui.notifTypeReminder.disabled = !enabled;
 
   ui.pushToggleFeedback.textContent = notifications.lastMessage ? String(notifications.lastMessage) : '';
+  if (!ui.pushToggleBtn || !ui.pushToggleStatus) {
+    return;
+  }
+
+  const enabled = Boolean(state.settings && state.settings.pushNotificationsEnabled === true);
+  ui.pushToggleBtn.textContent = enabled ? 'AN' : 'AUS';
+  ui.pushToggleBtn.setAttribute('aria-pressed', String(enabled));
+  ui.pushToggleStatus.textContent = enabled
+    ? 'Push-Benachrichtigungen aktiv'
+    : 'Push-Benachrichtigungen deaktiviert';
 }
 
 function renderAnalysisOverview() {
@@ -2219,7 +2236,7 @@ function renderLanding() {
 }
 
 function renderDeathOverlay() {
-  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList || !ui.deathRescueBtn || !ui.deathRescueSubtext || !ui.deathRescueFeedback) {
+  if (!ui.deathOverlay || !ui.deathDriverList || !ui.deathHistoryList) {
     return;
   }
 
@@ -2419,6 +2436,9 @@ async function onPushToggleClick() {
   if (currentlyEnabled) {
     notifications.enabled = false;
     notifications.lastMessage = 'Benachrichtigungen deaktiviert.';
+  const currentlyEnabled = Boolean(state.settings && state.settings.pushNotificationsEnabled === true);
+  if (currentlyEnabled) {
+    state.settings.pushNotificationsEnabled = false;
     renderPushToggle();
     schedulePersistState(true);
     return;
@@ -2427,6 +2447,8 @@ async function onPushToggleClick() {
   if (typeof Notification === 'undefined' || !('serviceWorker' in navigator)) {
     notifications.enabled = false;
     notifications.lastMessage = 'Benachrichtigungen werden in diesem Browser nicht unterstützt.';
+  if (typeof Notification === 'undefined') {
+    state.settings.pushNotificationsEnabled = false;
     renderPushToggle();
     schedulePersistState(true);
     return;
@@ -2464,6 +2486,13 @@ function onNotificationTypeToggle() {
   notifications.types.events = Boolean(ui.notifTypeEvents && ui.notifTypeEvents.checked);
   notifications.types.critical = Boolean(ui.notifTypeCritical && ui.notifTypeCritical.checked);
   notifications.types.reminder = Boolean(ui.notifTypeReminder && ui.notifTypeReminder.checked);
+  if (permission === 'granted') {
+    state.settings.pushNotificationsEnabled = true;
+    await schedulePushIfAllowed(true);
+  } else {
+    state.settings.pushNotificationsEnabled = false;
+  }
+
   renderPushToggle();
   schedulePersistState(true);
 }
@@ -2488,6 +2517,7 @@ async function resetRun() {
   notifications.runtime.lastNotifiedEventId = null;
   notifications.runtime.lastCriticalAtRealMs = 0;
   notifications.runtime.lastReminderAtRealMs = 0;
+  wasCriticalHealth = false;
   if (state.meta && state.meta.rescue) {
     state.meta.rescue.used = false;
     state.meta.rescue.usedAtRealMs = null;
@@ -2890,6 +2920,10 @@ function getCanonicalNotificationsSettings(snapshot) {
   return n;
 }
 
+  s.settings.pushNotificationsEnabled = Boolean(s.settings.pushNotificationsEnabled);
+  return s.settings;
+}
+
 
 async function restoreState() {
   if (!storageAdapter) {
@@ -2975,6 +3009,9 @@ async function restoreState() {
       ...saved.settings
     };
     getCanonicalNotificationsSettings(state);
+      ...saved.settings,
+      pushNotificationsEnabled: Boolean(saved.settings.pushNotificationsEnabled)
+    };
   }
 
   migrateLegacyStateIntoCanonical(saved, state);
@@ -3148,6 +3185,7 @@ function resetStateToDefaults() {
       },
       lastMessage: null
     }
+    pushNotificationsEnabled: false
   };
   state.meta = {
     rescue: {
@@ -3436,6 +3474,7 @@ function ensureStateIntegrity(nowMs) {
     ? meta.rescue.lastResult
     : null;
   getCanonicalNotificationsSettings(state);
+  settings.pushNotificationsEnabled = Boolean(settings.pushNotificationsEnabled);
 
   if (!state.setup || typeof state.setup !== 'object') {
     state.setup = null;
@@ -3561,6 +3600,7 @@ function syncCanonicalStateShape() {
     ? meta.rescue.lastResult
     : null;
   getCanonicalNotificationsSettings(state);
+  settings.pushNotificationsEnabled = Boolean(settings.pushNotificationsEnabled);
 
   syncLegacyMirrorsFromCanonical(state);
 }
@@ -4083,6 +4123,12 @@ function notifyCriticalState(nowMs) {
   const s = state.status || {};
   const critical = Number(s.health) <= 15 || Number(s.risk) >= 75 || Number(s.stress) >= 80;
   if (!critical) {
+async function schedulePushIfAllowed(force) {
+  if (!state.settings || state.settings.pushNotificationsEnabled !== true) {
+    return;
+  }
+
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
     return;
   }
 
@@ -4134,6 +4180,44 @@ function notifyReminder(nowMs) {
 
   notify('reminder', 'Grow Simulator', 'Deine Pflanze braucht Pflege. Öffne die App für eine Maßnahme.');
   notifications.runtime.lastReminderAtRealMs = nowMs;
+}
+
+function notifyPlantNeedsCare(bodyText) {
+  if (!state.settings || state.settings.pushNotificationsEnabled !== true) {
+    return;
+  }
+
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
+    return;
+  }
+
+  if (!('serviceWorker' in navigator)) {
+    return;
+  }
+
+  const payload = {
+    type: 'SHOW_NOTIFICATION',
+    title: 'GrowSim',
+    options: {
+      body: String(bodyText || 'Deine Pflanze braucht Pflege.'),
+      icon: '/icons/icon-192.png'
+    }
+  };
+
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage(payload);
+    return;
+  }
+
+  navigator.serviceWorker.ready
+    .then((registration) => {
+      if (registration && registration.active) {
+        registration.active.postMessage(payload);
+      }
+    })
+    .catch(() => {
+      // non-fatal
+    });
 }
 
 async function postJsonStub(url, payload) {

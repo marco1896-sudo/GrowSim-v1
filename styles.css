@@ -656,6 +656,7 @@ body::before {
 }
 
 .analysis-settings-row {
+.analysis-settings {
   display: flex;
   align-items: center;
   justify-content: space-between;
