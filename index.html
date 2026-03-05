@@ -48,7 +48,7 @@
 
       <section class="info-bar">
         <article class="info-tile">
-          <span class="info-label">NÃ¤chstes Ereignis</span>
+          <span class="info-label">Nächstes Ereignis</span>
           <strong id="nextEventValue">--:--</strong>
         </article>
         <article class="info-tile">
@@ -72,7 +72,7 @@
         <article id="nutritionRing" class="ring ring-mini" style="--value:65; --ring-color:var(--color-nutrition);">
           <div class="ring-inner">
             <span class="mini-icon" aria-hidden="true">N</span>
-            <span class="ring-label">NÃ¤hrstoffe</span>
+            <span class="ring-label">Nährstoffe</span>
             <strong id="nutritionValue">65</strong>
           </div>
         </article>
@@ -97,13 +97,13 @@
         <button id="analyzeActionBtn" class="action-btn action-secondary" type="button">Analyse</button>
         <button id="boostActionBtn" class="action-btn action-tertiary" type="button">
           <span class="boost-title">+30 Min beschleunigen</span>
-          <span id="boostUsageText" class="boost-sub">WerbeunterstÃ¼tzt &middot; 0/6 heute</span>
+          <span id="boostUsageText" class="boost-sub">Werbeunterstützt &middot; 0/6 heute</span>
         </button>
       </section>
 
       <section class="locked-card">
         <div>
-          <strong>Erweiterte Diagnose verfÃ¼gbar</strong>
+          <strong>Erweiterte Diagnose verfügbar</strong>
           <p>Schalte mit Pro frei oder sieh eine Anzeige.</p>
         </div>
         <button id="openDiagnosisBtn" class="pill pro-pill" type="button">Pro</button>
@@ -116,10 +116,10 @@
   <section id="careSheet" class="bottom-sheet hidden" aria-hidden="true">
     <header class="sheet-header">
       <h2>Pflege</h2>
-      <button class="sheet-close" data-close-sheet type="button" aria-label="SchlieÃŸen">X</button>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
     </header>
     <div class="sheet-content">
-      <p class="sheet-note">Kategorie wÃ¤hlen, IntensitÃ¤t antippen, Aktion direkt ausfÃ¼hren.</p>
+      <p class="sheet-note">Kategorie wählen, Intensität antippen, Aktion direkt ausführen.</p>
       <div id="careCategoryList" class="care-category-list" role="tablist" aria-label="Pflegekategorien"></div>
       <div id="careActionList" class="care-action-list" aria-live="polite"></div>
       <p id="careFeedback" class="care-feedback sheet-note" aria-live="polite">Bereit.</p>
@@ -129,7 +129,7 @@
   <section id="eventSheet" class="bottom-sheet hidden" aria-hidden="true">
     <header class="sheet-header">
       <h2>Ereignis</h2>
-      <button class="sheet-close" data-close-sheet type="button" aria-label="SchlieÃŸen">X</button>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
       <section class="analysis-settings" aria-label="Benachrichtigungen">
         <div class="analysis-settings-row">
           <span class="analysis-settings-label">Push-Benachrichtigungen</span>
@@ -137,7 +137,7 @@
         </div>
         <p id="pushToggleStatus" class="sheet-note">Deaktiviert</p>
         <div class="analysis-settings-types">
-          <label class="analysis-settings-type"><input id="notifTypeEvents" type="checkbox"> Ereignis verfgbar</label>
+          <label class="analysis-settings-type"><input id="notifTypeEvents" type="checkbox"> Ereignis verfügbar</label>
           <label class="analysis-settings-type"><input id="notifTypeCritical" type="checkbox"> Kritischer Zustand</label>
           <label class="analysis-settings-type"><input id="notifTypeReminder" type="checkbox"> Pflege-Erinnerung</label>
         </div>
@@ -148,8 +148,8 @@
         <button id="pushToggleBtn" class="ghost-btn" type="button" aria-pressed="false">AUS</button>
       </div>
       <p id="pushToggleStatus" class="sheet-note">Push-Benachrichtigungen deaktiviert</p>
-      <button id="deathRescueBtn" class="action-btn action-primary" type="button">Notfallrettung (1x) - Werbeunterstuetzt</button>
-      <p id="deathRescueSubtext" class="sheet-note">Einmal pro Run verfuegbar</p>
+      <button id="deathRescueBtn" class="action-btn action-primary" type="button">Notfallrettung (1x) - Werbeunterstützt</button>
+      <p id="deathRescueSubtext" class="sheet-note">Einmal pro Run verfügbar</p>
       <p id="deathRescueFeedback" class="sheet-note" aria-live="polite"></p>
         <button id="deathResetBtn" class="action-btn action-secondary" type="button">Neuer Run starten</button>
     </header>
@@ -167,12 +167,12 @@
       <h2>Analyse</h2>
       <div class="sheet-header-actions">
         <button id="analysisResetBtn" class="ghost-btn" type="button">Run zurücksetzen</button>
-        <button class="sheet-close" data-close-sheet type="button" aria-label="SchlieÃŸen">X</button>
+        <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
       </div>
     </header>
     <div class="sheet-content analysis-content">
       <div class="gs-analysis-tabs" role="tablist" aria-label="Analyse-Tabs">
-        <button id="analysisTabOverview" class="gs-analysis-tab is-active" data-analysis-tab="overview" type="button">Ãœbersicht</button>
+        <button id="analysisTabOverview" class="gs-analysis-tab is-active" data-analysis-tab="overview" type="button">Übersicht</button>
         <button id="analysisTabDiagnosis" class="gs-analysis-tab" data-analysis-tab="diagnosis" type="button">Diagnose</button>
         <button id="analysisTabTimeline" class="gs-analysis-tab" data-analysis-tab="timeline" type="button">Verlauf</button>
       </div>
@@ -186,18 +186,18 @@
   <section id="diagnosisSheet" class="bottom-sheet hidden" aria-hidden="true">
     <header class="sheet-header">
       <h2>Diagnose</h2>
-      <button class="sheet-close" data-close-sheet type="button" aria-label="SchlieÃŸen">X</button>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
     </header>
     <div class="sheet-content">
-      <p>Dieses MVP enthÃ¤lt ein gesperrtes Platzhaltermodul fÃ¼r Diagnose.</p>
+      <p>Dieses MVP enthält ein gesperrtes Platzhaltermodul für Diagnose.</p>
       <ul class="diagnosis-list">
-        <li>Wahrscheinlichkeits-Heatmap fÃ¼r Pathogene (Pro)</li>
-        <li>Zerlegung der NÃ¤hrstofftrends (Pro)</li>
-      <button id="deathRescueBtn" class="action-btn action-primary" type="button">Notfallrettung (1x) - Werbeunterstuetzt</button>
-      <p id="deathRescueSubtext" class="sheet-note">Einmal pro Run verfuegbar</p>
+        <li>Wahrscheinlichkeits-Heatmap für Pathogene (Pro)</li>
+        <li>Zerlegung der Nährstofftrends (Pro)</li>
+      <button id="deathRescueBtn" class="action-btn action-primary" type="button">Notfallrettung (1x) - Werbeunterstützt</button>
+      <p id="deathRescueSubtext" class="sheet-note">Einmal pro Run verfügbar</p>
       <p id="deathRescueFeedback" class="sheet-note" aria-live="polite"></p>
         <button id="deathResetBtn" class="action-btn action-secondary" type="button">Neuer Run starten</button>
-        <li>Vorhersage fÃ¼r Wurzelstress (Pro)</li>
+        <li>Vorhersage für Wurzelstress (Pro)</li>
       </ul>
     </div>
   </section>
@@ -205,11 +205,11 @@
   <section id="landing" class="landing-overlay hidden" aria-hidden="true">
     <div class="landing-card">
       <h2>Einrichtung</h2>
-      <p class="sheet-note">Einmalige Grundeinstellungen fÃ¼r diesen Durchlauf.</p>
-      <label>Modus<select id="setupMode"><option value="indoor">Indoor</option><option value="outdoor">Outdoor</option><option value="greenhouse">GewÃ¤chshaus</option></select></label>
+      <p class="sheet-note">Einmalige Grundeinstellungen für diesen Durchlauf.</p>
+      <label>Modus<select id="setupMode"><option value="indoor">Indoor</option><option value="outdoor">Outdoor</option><option value="greenhouse">Gewächshaus</option></select></label>
       <label>Licht<select id="setupLight"><option value="low">Niedrig</option><option value="medium" selected>Mittel</option><option value="high">Hoch</option></select></label>
       <label>Substrat<select id="setupMedium"><option value="soil" selected>Erde</option><option value="coco">Kokos</option><option value="hydro">Hydroponik</option></select></label>
-      <label>TopfgrÃ¶ÃŸe<select id="setupPotSize"><option value="small">Klein</option><option value="medium" selected>Mittel</option><option value="large">GroÃŸ</option></select></label>
+      <label>Topfgröße<select id="setupPotSize"><option value="small">Klein</option><option value="medium" selected>Mittel</option><option value="large">Groß</option></select></label>
       <label>Genetik<select id="setupGenetics"><option value="auto" selected>Autoflower</option><option value="photo">Photoperiodisch</option></select></label>
       <button id="startRunBtn" class="action-btn action-primary" type="button">Durchlauf starten</button>
     </div>

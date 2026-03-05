@@ -44,7 +44,7 @@ const SIM_GLOBAL_SEED = CONFIG.simulation.globalSeed;
 const SIM_PLANT_ID = CONFIG.simulation.plantId;
 const MAX_HISTORY_LOG = CONFIG.maxHistoryLog;
 const PERSIST_THROTTLE_MS = CONFIG.persistThrottleMs;
-const MAX_ELAPSED_PER_TICK_MS = 5 * 60 * 1000;
+const MAX_ELAPSED_PER_TICK_MS = 5000;
 const APP_BASE_PATH = resolveAppBasePath();
 const FREEZE_SIM_ON_DEATH = true; // Für Klarheit: Simulation pausiert nach Tod der Pflanze.
 
@@ -127,7 +127,7 @@ const state = {
         lastCriticalAtRealMs: 0,
         lastReminderAtRealMs: 0
       }
-    }
+    },
     pushNotificationsEnabled: false
   },
   meta: {
@@ -267,13 +267,23 @@ const ui = {};
 const warnedUiKeys = new Set();
 let storageAdapter = null;
 let tickHandle = null;
+let loopRunning = false;
+let visibilityHandlerBound = false;
+let heartbeatWatchdogHandle = null;
 let persistTimer = null;
 let rescueAdPending = false;
 let wasCriticalHealth = false;
 
 const actionDebounceUntil = Object.create(null);
 
-document.addEventListener('DOMContentLoaded', boot);
+window.__gsBootOk = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+  boot().catch((error) => {
+    console.error('Boot promise failed', error);
+    showBootError(error);
+  });
+});
 
 async function boot() {
   try {
@@ -305,8 +315,11 @@ async function boot() {
     window.__devSelfTest = () => runDevSelfTest();
 
     startLoopOnce();
+    startHeartbeatWatchdog();
     renderAll();
     renderLanding();
+    window.__gsBootOk = true;
+    state.ui.lastRenderRealMs = Date.now();
 
     await schedulePushIfAllowed(true);
     await persistState();
@@ -328,23 +341,62 @@ async function loadCatalogs() {
 }
 
 function startLoopOnce() {
-  if (tickHandle !== null) {
+  if (loopRunning || tickHandle !== null) {
     return;
   }
+  loopRunning = true;
+  state.simulation.lastTickRealTimeMs = Date.now();
   tickHandle = setInterval(tick, state.simulation.tickIntervalMs);
 }
 
+function stopLoop() {
+  if (tickHandle !== null) {
+    clearInterval(tickHandle);
+    tickHandle = null;
+  }
+  loopRunning = false;
+}
+
+function startHeartbeatWatchdog() {
+  if (heartbeatWatchdogHandle !== null) {
+    return;
+  }
+  heartbeatWatchdogHandle = setInterval(() => {
+    if (document.visibilityState !== 'visible') {
+      return;
+    }
+    const last = Number(state.ui && state.ui.lastRenderRealMs) || 0;
+    if (!loopRunning || !Number.isFinite(last) || (Date.now() - last) > 15000) {
+      showRuntimeHaltBanner();
+    }
+  }, 3000);
+}
+
 function showBootError(error) {
-  const banner = document.createElement('div');
-  banner.style.position = 'fixed';
-  banner.style.inset = '0 auto auto 0';
-  banner.style.zIndex = '9999';
-  banner.style.background = '#701a1a';
-  banner.style.color = '#fff';
-  banner.style.padding = '8px 10px';
-  banner.style.fontSize = '12px';
-  banner.textContent = `Startfehler: ${error.message}`;
+  const stack = error && error.stack ? error.stack : String(error && error.message ? error.message : error);
+  console.error(stack);
+
+  const existing = document.getElementById('bootErrorBanner');
+  if (existing) {
+    existing.remove();
+  }
+
+  const banner = document.createElement('aside');
+  banner.id = 'bootErrorBanner';
+  banner.className = 'boot-error-banner';
+  banner.innerHTML = `
+    <strong>Fehler beim Starten</strong>
+    <p>${escapeHtml(String(error && error.message ? error.message : 'Unbekannter Fehler'))}</p>
+    <div class="boot-error-actions">
+      <button type="button" id="bootReloadBtn" class="action-btn action-primary">Neu laden</button>
+      <span>Cache-Hinweis: Wenn es weiterhin hängt, Safari → Website-Daten löschen.</span>
+    </div>
+  `;
   document.body.appendChild(banner);
+  const reloadBtn = document.getElementById('bootReloadBtn');
+  if (reloadBtn) {
+    reloadBtn.addEventListener('click', () => window.location.reload());
+  }
 }
 
 function runDevSelfTest() {
@@ -465,6 +517,9 @@ function cacheUi() {
 }
 
 function bindUi() {
+  if (visibilityHandlerBound) {
+    return;
+  }
   ui.careActionBtn.addEventListener('click', () => withDebouncedAction('care', ui.careActionBtn, () => openSheet('care')));
   ui.analyzeActionBtn.addEventListener('click', () => withDebouncedAction('analyze', ui.analyzeActionBtn, () => openSheet('dashboard')));
   ui.boostActionBtn.addEventListener('click', () => withDebouncedAction('boost', ui.boostActionBtn, onBoostAction));
@@ -496,6 +551,7 @@ function bindUi() {
   }
 
   document.addEventListener('visibilitychange', onVisibilityChange);
+  visibilityHandlerBound = true;
 }
 
 function tick() {
@@ -523,7 +579,10 @@ function tick() {
     return;
   }
 
-  const elapsedRealMs = clamp(nowMs - prevTickRealTimeMs, 0, MAX_ELAPSED_PER_TICK_MS);
+  const rawElapsed = nowMs - prevTickRealTimeMs;
+  const elapsedRealMs = Number.isFinite(rawElapsed) && rawElapsed > 0
+    ? clamp(rawElapsed, 0, MAX_ELAPSED_PER_TICK_MS)
+    : 0;
   const elapsedSimMs = elapsedRealMs * state.simulation.timeCompression;
 
   state.simulation.simTimeMs += elapsedSimMs;
@@ -549,6 +608,7 @@ function tick() {
   }
 
   renderHud();
+  state.ui.lastRenderRealMs = nowMs;
   renderEventSheet();
   renderAnalysisPanel();
   renderDeathOverlay();
@@ -1976,16 +2036,6 @@ function renderPushToggle() {
   ui.notifTypeReminder.disabled = !enabled;
 
   ui.pushToggleFeedback.textContent = notifications.lastMessage ? String(notifications.lastMessage) : '';
-  if (!ui.pushToggleBtn || !ui.pushToggleStatus) {
-    return;
-  }
-
-  const enabled = Boolean(state.settings && state.settings.pushNotificationsEnabled === true);
-  ui.pushToggleBtn.textContent = enabled ? 'AN' : 'AUS';
-  ui.pushToggleBtn.setAttribute('aria-pressed', String(enabled));
-  ui.pushToggleStatus.textContent = enabled
-    ? 'Push-Benachrichtigungen aktiv'
-    : 'Push-Benachrichtigungen deaktiviert';
 }
 
 function renderAnalysisOverview() {
@@ -2435,10 +2485,8 @@ async function onPushToggleClick() {
 
   if (currentlyEnabled) {
     notifications.enabled = false;
-    notifications.lastMessage = 'Benachrichtigungen deaktiviert.';
-  const currentlyEnabled = Boolean(state.settings && state.settings.pushNotificationsEnabled === true);
-  if (currentlyEnabled) {
     state.settings.pushNotificationsEnabled = false;
+    notifications.lastMessage = 'Benachrichtigungen deaktiviert.';
     renderPushToggle();
     schedulePersistState(true);
     return;
@@ -2446,9 +2494,8 @@ async function onPushToggleClick() {
 
   if (typeof Notification === 'undefined' || !('serviceWorker' in navigator)) {
     notifications.enabled = false;
-    notifications.lastMessage = 'Benachrichtigungen werden in diesem Browser nicht unterstützt.';
-  if (typeof Notification === 'undefined') {
     state.settings.pushNotificationsEnabled = false;
+    notifications.lastMessage = 'Benachrichtigungen werden in diesem Browser nicht unterstützt.';
     renderPushToggle();
     schedulePersistState(true);
     return;
@@ -2461,6 +2508,7 @@ async function onPushToggleClick() {
 
   if (permission !== 'granted') {
     notifications.enabled = false;
+    state.settings.pushNotificationsEnabled = false;
     notifications.lastMessage = 'Berechtigung nicht erteilt. Bitte Benachrichtigungen im Browser erlauben.';
     renderPushToggle();
     schedulePersistState(true);
@@ -2469,13 +2517,15 @@ async function onPushToggleClick() {
 
   if (!navigator.serviceWorker.controller) {
     notifications.enabled = false;
-    notifications.lastMessage = 'Service Worker noch nicht aktiv. Bitte einmal normal neu laden.';
+    state.settings.pushNotificationsEnabled = false;
+    notifications.lastMessage = 'Service Worker noch nicht aktiv – bitte einmal normal neu laden.';
     renderPushToggle();
     schedulePersistState(true);
     return;
   }
 
   notifications.enabled = true;
+  state.settings.pushNotificationsEnabled = true;
   notifications.lastMessage = 'Benachrichtigungen aktiviert.';
   renderPushToggle();
   schedulePersistState(true);
@@ -2486,13 +2536,6 @@ function onNotificationTypeToggle() {
   notifications.types.events = Boolean(ui.notifTypeEvents && ui.notifTypeEvents.checked);
   notifications.types.critical = Boolean(ui.notifTypeCritical && ui.notifTypeCritical.checked);
   notifications.types.reminder = Boolean(ui.notifTypeReminder && ui.notifTypeReminder.checked);
-  if (permission === 'granted') {
-    state.settings.pushNotificationsEnabled = true;
-    await schedulePushIfAllowed(true);
-  } else {
-    state.settings.pushNotificationsEnabled = false;
-  }
-
   renderPushToggle();
   schedulePersistState(true);
 }
@@ -2612,7 +2655,29 @@ function dismissActiveEvent() {
 function onVisibilityChange() {
   if (document.visibilityState === 'hidden') {
     schedulePersistState(true);
+    stopLoop();
+    return;
   }
+
+  if (document.visibilityState === 'visible') {
+    state.simulation.lastTickRealTimeMs = Date.now();
+    startLoopOnce();
+    if (!loopRunning) {
+      showRuntimeHaltBanner();
+    }
+  }
+}
+
+function showRuntimeHaltBanner() {
+  const existing = document.getElementById('runtimeHaltBanner');
+  if (existing) {
+    return;
+  }
+  const banner = document.createElement('div');
+  banner.id = 'runtimeHaltBanner';
+  banner.className = 'boot-error-banner';
+  banner.innerHTML = '<strong>Simulation angehalten – bitte neu laden.</strong>';
+  document.body.appendChild(banner);
 }
 
 function addLog(type, message, details) {
@@ -2920,11 +2985,6 @@ function getCanonicalNotificationsSettings(snapshot) {
   return n;
 }
 
-  s.settings.pushNotificationsEnabled = Boolean(s.settings.pushNotificationsEnabled);
-  return s.settings;
-}
-
-
 async function restoreState() {
   if (!storageAdapter) {
     return;
@@ -3009,9 +3069,6 @@ async function restoreState() {
       ...saved.settings
     };
     getCanonicalNotificationsSettings(state);
-      ...saved.settings,
-      pushNotificationsEnabled: Boolean(saved.settings.pushNotificationsEnabled)
-    };
   }
 
   migrateLegacyStateIntoCanonical(saved, state);
@@ -3184,7 +3241,7 @@ function resetStateToDefaults() {
         lastReminderAtRealMs: 0
       },
       lastMessage: null
-    }
+    },
     pushNotificationsEnabled: false
   };
   state.meta = {
@@ -4043,10 +4100,47 @@ async function registerServiceWorker() {
   }
 
   try {
-    await navigator.serviceWorker.register('./sw.js');
+    const registration = await navigator.serviceWorker.register('./sw.js');
+    if (!navigator.serviceWorker.controller) {
+      showServiceWorkerHint();
+    }
+
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+
+    registration.addEventListener('updatefound', () => {
+      const installing = registration.installing;
+      if (!installing) {
+        return;
+      }
+      installing.addEventListener('statechange', () => {
+        if (installing.state === 'installed' && registration.waiting) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+      });
+    });
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!window.__gsSwControllerRefreshed) {
+        window.__gsSwControllerRefreshed = true;
+        window.location.reload();
+      }
+    });
   } catch (_error) {
     // SW registration failures should not block app usage.
   }
+}
+
+function showServiceWorkerHint() {
+  if (document.getElementById('swHintBanner')) {
+    return;
+  }
+  const banner = document.createElement('div');
+  banner.id = 'swHintBanner';
+  banner.className = 'boot-error-banner boot-warning-banner';
+  banner.innerHTML = '<strong>Service Worker noch nicht aktiv – bitte einmal normal neu laden.</strong>';
+  document.body.appendChild(banner);
 }
 
 async function schedulePushIfAllowed(_force) {
@@ -4123,18 +4217,6 @@ function notifyCriticalState(nowMs) {
   const s = state.status || {};
   const critical = Number(s.health) <= 15 || Number(s.risk) >= 75 || Number(s.stress) >= 80;
   if (!critical) {
-async function schedulePushIfAllowed(force) {
-  if (!state.settings || state.settings.pushNotificationsEnabled !== true) {
-    return;
-  }
-
-  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
-    return;
-  }
-
-  const notifications = getCanonicalNotificationsSettings(state);
-  const cooldownMs = 60 * 60 * 1000;
-  if ((nowMs - notifications.runtime.lastCriticalAtRealMs) < cooldownMs) {
     return;
   }
 
@@ -4153,6 +4235,10 @@ async function schedulePushIfAllowed(force) {
 
   notify('critical', 'Grow Simulator', body);
   notifications.runtime.lastCriticalAtRealMs = nowMs;
+}
+
+async function schedulePushIfAllowed(_force) {
+  // Lokale Benachrichtigungen nutzen aktuell kein Backend-Push-Scheduling.
 }
 
 function notifyReminder(nowMs) {
