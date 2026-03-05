@@ -114,6 +114,9 @@ const state = {
   seed: SIM_GLOBAL_SEED,
   plantId: SIM_PLANT_ID,
   setup: null,
+  settings: {
+    pushNotificationsEnabled: false
+  },
   meta: {
     rescue: {
       used: false,
@@ -252,6 +255,8 @@ const warnedUiKeys = new Set();
 let storageAdapter = null;
 let tickHandle = null;
 let persistTimer = null;
+let rescueAdPending = false;
+let wasCriticalHealth = false;
 
 const actionDebounceUntil = Object.create(null);
 
@@ -421,6 +426,8 @@ function cacheUi() {
   ui.analysisPanelDiagnosis = document.getElementById('analysisPanelDiagnosis');
   ui.analysisPanelTimeline = document.getElementById('analysisPanelTimeline');
   ui.analysisResetBtn = document.getElementById('analysisResetBtn');
+  ui.pushToggleBtn = document.getElementById('pushToggleBtn');
+  ui.pushToggleStatus = document.getElementById('pushToggleStatus');
 
   ui.landing = document.getElementById('landing');
   ui.startRunBtn = document.getElementById('startRunBtn');
@@ -435,6 +442,9 @@ function cacheUi() {
   ui.deathHistoryList = document.getElementById('deathHistoryList');
   ui.deathResetBtn = document.getElementById('deathResetBtn');
   ui.deathAnalyzeBtn = document.getElementById('deathAnalyzeBtn');
+  ui.deathRescueBtn = document.getElementById('deathRescueBtn');
+  ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
+  ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
 }
 
 function bindUi() {
@@ -444,6 +454,7 @@ function bindUi() {
   ui.openDiagnosisBtn.addEventListener('click', () => openSheet('diagnosis'));
   ui.startRunBtn.addEventListener('click', onStartRun);
   ui.analysisResetBtn.addEventListener('click', onAnalysisResetClick);
+  ui.pushToggleBtn.addEventListener('click', onPushToggleClick);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
   ui.backdrop.addEventListener('click', closeSheet);
@@ -500,6 +511,11 @@ function tick() {
   state.simulation.lastTickRealTimeMs = nowMs;
 
   applyStatusDrift(elapsedRealMs);
+  const criticalNow = Number(state.status.health) < 20;
+  if (criticalNow && !wasCriticalHealth) {
+    notifyPlantNeedsCare('Deine Pflanze ist kritisch und braucht Pflege.');
+  }
+  wasCriticalHealth = criticalNow;
   applyActiveActionEffects(elapsedSimMs);
   advanceGrowthTick(elapsedSimMs);
   runEventStateMachine(nowMs);
@@ -529,7 +545,7 @@ function ensureRequiredUi() {
     'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
     'careCategoryList', 'careActionList', 'careFeedback', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
-    'analysisResetBtn',
+    'analysisResetBtn', 'pushToggleBtn', 'pushToggleStatus',
     'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics',
     'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn'
   ];
@@ -880,6 +896,8 @@ function activateEvent(nowMs) {
     severity: state.events.activeSeverity,
     category: eventDef.category || 'generic'
   });
+
+  notifyPlantNeedsCare('Deine Pflanze braucht Pflege.');
 }
 
 function eligibleEventsForNow(nowMs) {
@@ -1894,6 +1912,8 @@ function renderAnalysisPanel(force = false) {
     return;
   }
 
+  renderPushToggle();
+
   const activeTab = (state.ui.analysis && state.ui.analysis.activeTab) ? state.ui.analysis.activeTab : 'overview';
   const tabMap = {
     overview: ui.analysisPanelOverview,
@@ -1912,6 +1932,19 @@ function renderAnalysisPanel(force = false) {
   renderAnalysisOverview();
   renderAnalysisDiagnosis();
   renderAnalysisTimeline();
+}
+
+function renderPushToggle() {
+  if (!ui.pushToggleBtn || !ui.pushToggleStatus) {
+    return;
+  }
+
+  const enabled = Boolean(state.settings && state.settings.pushNotificationsEnabled === true);
+  ui.pushToggleBtn.textContent = enabled ? 'AN' : 'AUS';
+  ui.pushToggleBtn.setAttribute('aria-pressed', String(enabled));
+  ui.pushToggleStatus.textContent = enabled
+    ? 'Push-Benachrichtigungen aktiv'
+    : 'Push-Benachrichtigungen deaktiviert';
 }
 
 function renderAnalysisOverview() {
@@ -2196,6 +2229,16 @@ function renderDeathOverlay() {
     }
   }
 
+  const meta = getCanonicalMeta(state);
+  const rescueUsed = Boolean(meta.rescue.used);
+  ui.deathRescueBtn.disabled = rescueAdPending || rescueUsed;
+  ui.deathRescueBtn.textContent = rescueUsed
+    ? 'Notfallrettung bereits verwendet'
+    : (rescueAdPending ? 'Werbung läuft…' : 'Notfallrettung (1×) - Werbeunterstützt');
+  ui.deathRescueSubtext.textContent = rescueUsed
+    ? 'Einmal pro Run verfügbar (bereits genutzt)'
+    : 'Einmal pro Run verfügbar';
+  ui.deathRescueFeedback.textContent = meta.rescue.lastResult ? String(meta.rescue.lastResult) : '';
 }
 
 function collectRecentHistoryEntries(limit = 3) {
@@ -2265,6 +2308,118 @@ function onDeathAnalyzeClick() {
   renderDeathOverlay();
 }
 
+async function onDeathRescueClick() {
+  const meta = getCanonicalMeta(state);
+  if (rescueAdPending) {
+    return;
+  }
+
+  if (meta.rescue.used) {
+    meta.rescue.lastResult = 'Notfallrettung ist nur einmal pro Run verfügbar.';
+    renderDeathOverlay();
+    schedulePersistState(true);
+    return;
+  }
+
+  const beforeHealth = Number(state.status.health) || 0;
+  const deadNow = isPlantDead();
+  if (!deadNow && beforeHealth >= 20) {
+    meta.rescue.lastResult = 'Notfallrettung ist aktuell nicht erforderlich.';
+    renderDeathOverlay();
+    schedulePersistState(true);
+    return;
+  }
+
+  rescueAdPending = true;
+  meta.rescue.lastResult = 'Werbung läuft…';
+  renderDeathOverlay();
+
+  let adResult = { ok: false, reason: 'error' };
+  try {
+    adResult = await requestRescueAd();
+  } catch (_error) {
+    adResult = { ok: false, reason: 'error' };
+  } finally {
+    rescueAdPending = false;
+  }
+
+  if (!adResult.ok) {
+    meta.rescue.lastResult = 'Werbung nicht abgeschlossen – Rettung nicht ausgelöst.';
+    renderDeathOverlay();
+    schedulePersistState(true);
+    return;
+  }
+
+  const rescueResult = applyRescueEffects();
+  if (!rescueResult.ok) {
+    meta.rescue.lastResult = 'Notfallrettung ist aktuell nicht erforderlich.';
+    renderDeathOverlay();
+    schedulePersistState(true);
+    return;
+  }
+
+  const nowMs = Date.now();
+  meta.rescue.used = true;
+  meta.rescue.usedAtRealMs = nowMs;
+  meta.rescue.lastResult = 'Notfallrettung angewendet. Die Pflanze stabilisiert sich.';
+
+  const timestamp = {
+    realMs: nowMs,
+    simMs: Number(state.simulation.simTimeMs || 0),
+    simStamp: simStampFromMs(Number(state.simulation.simTimeMs || 0))
+  };
+  const history = getCanonicalHistory(state);
+  history.system.push({
+    type: 'rescue',
+    label: 'Notfallrettung',
+    effectsApplied: rescueResult.effectsApplied,
+    wasDead: rescueResult.wasDead,
+    timestamp,
+    atRealTimeMs: timestamp.realMs,
+    atSimTimeMs: timestamp.simMs
+  });
+  if (history.system.length > MAX_HISTORY_LOG) {
+    history.system = history.system.slice(-MAX_HISTORY_LOG);
+  }
+
+  updateVisibleOverlays();
+  syncCanonicalStateShape();
+  renderAll();
+  schedulePersistState(true);
+}
+
+async function onPushToggleClick() {
+  const currentlyEnabled = Boolean(state.settings && state.settings.pushNotificationsEnabled === true);
+  if (currentlyEnabled) {
+    state.settings.pushNotificationsEnabled = false;
+    renderPushToggle();
+    schedulePersistState(true);
+    return;
+  }
+
+  if (typeof Notification === 'undefined') {
+    state.settings.pushNotificationsEnabled = false;
+    renderPushToggle();
+    schedulePersistState(true);
+    return;
+  }
+
+  let permission = Notification.permission;
+  if (permission !== 'granted') {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission === 'granted') {
+    state.settings.pushNotificationsEnabled = true;
+    await schedulePushIfAllowed(true);
+  } else {
+    state.settings.pushNotificationsEnabled = false;
+  }
+
+  renderPushToggle();
+  schedulePersistState(true);
+}
+
 async function onAnalysisResetClick() {
   const confirmed = window.confirm('Aktuellen Run wirklich zurücksetzen? Dieser Schritt löscht den gespeicherten Fortschritt.');
   if (!confirmed) {
@@ -2280,6 +2435,8 @@ async function resetRun() {
   ensureStateIntegrity(Date.now());
   syncRuntimeClocks(Date.now());
   syncCanonicalStateShape();
+  rescueAdPending = false;
+  wasCriticalHealth = false;
   if (state.meta && state.meta.rescue) {
     state.meta.rescue.used = false;
     state.meta.rescue.usedAtRealMs = null;
@@ -2639,6 +2796,15 @@ function getCanonicalMeta(snapshot) {
   if (s.meta.rescue.lastResult !== null && typeof s.meta.rescue.lastResult !== 'string') s.meta.rescue.lastResult = null;
   return s.meta;
 }
+function getCanonicalSettings(snapshot) {
+  const s = snapshot || state;
+  if (!s.settings || typeof s.settings !== 'object') {
+    s.settings = {};
+  }
+  s.settings.pushNotificationsEnabled = Boolean(s.settings.pushNotificationsEnabled);
+  return s.settings;
+}
+
 
 async function restoreState() {
   if (!storageAdapter) {
@@ -2655,6 +2821,7 @@ async function restoreState() {
   const events = getCanonicalEvents(state);
   const history = getCanonicalHistory(state);
   const meta = getCanonicalMeta(state);
+  const settings = getCanonicalSettings(state);
 
   if (saved.simulation && typeof saved.simulation === 'object') {
     state.simulation = {
@@ -2715,6 +2882,13 @@ async function restoreState() {
         ...meta.rescue,
         ...((saved.meta && saved.meta.rescue) || {})
       }
+    };
+  }
+  if (saved.settings && typeof saved.settings === 'object') {
+    state.settings = {
+      ...settings,
+      ...saved.settings,
+      pushNotificationsEnabled: Boolean(saved.settings.pushNotificationsEnabled)
     };
   }
 
@@ -2874,6 +3048,9 @@ function resetStateToDefaults() {
   state.seed = SIM_GLOBAL_SEED;
   state.plantId = SIM_PLANT_ID;
   state.setup = null;
+  state.settings = {
+    pushNotificationsEnabled: false
+  };
   state.meta = {
     rescue: {
       used: false,
@@ -3154,11 +3331,13 @@ function ensureStateIntegrity(nowMs) {
   }
 
   const meta = getCanonicalMeta(state);
+  const settings = getCanonicalSettings(state);
   meta.rescue.used = Boolean(meta.rescue.used);
   meta.rescue.usedAtRealMs = Number.isFinite(Number(meta.rescue.usedAtRealMs)) ? Number(meta.rescue.usedAtRealMs) : null;
   meta.rescue.lastResult = (typeof meta.rescue.lastResult === 'string' || meta.rescue.lastResult === null)
     ? meta.rescue.lastResult
     : null;
+  settings.pushNotificationsEnabled = Boolean(settings.pushNotificationsEnabled);
 
   if (!state.setup || typeof state.setup !== 'object') {
     state.setup = null;
@@ -3232,6 +3411,7 @@ function syncCanonicalStateShape() {
   const events = getCanonicalEvents(state);
   const history = getCanonicalHistory(state);
   const meta = getCanonicalMeta(state);
+  const settings = getCanonicalSettings(state);
 
   state.seed = sim.globalSeed;
   state.plantId = sim.plantId;
@@ -3282,6 +3462,7 @@ function syncCanonicalStateShape() {
   meta.rescue.lastResult = (typeof meta.rescue.lastResult === 'string' || meta.rescue.lastResult === null)
     ? meta.rescue.lastResult
     : null;
+  settings.pushNotificationsEnabled = Boolean(settings.pushNotificationsEnabled);
 
   syncLegacyMirrorsFromCanonical(state);
 }
@@ -3775,6 +3956,10 @@ async function onPushSubscribe() {
 }
 
 async function schedulePushIfAllowed(force) {
+  if (!state.settings || state.settings.pushNotificationsEnabled !== true) {
+    return;
+  }
+
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
     return;
   }
@@ -3803,6 +3988,44 @@ async function schedulePushIfAllowed(force) {
     cooldownUntil: state.events.cooldownUntilMs,
     subscription: subscriptionPayload
   });
+}
+
+function notifyPlantNeedsCare(bodyText) {
+  if (!state.settings || state.settings.pushNotificationsEnabled !== true) {
+    return;
+  }
+
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
+    return;
+  }
+
+  if (!('serviceWorker' in navigator)) {
+    return;
+  }
+
+  const payload = {
+    type: 'SHOW_NOTIFICATION',
+    title: 'GrowSim',
+    options: {
+      body: String(bodyText || 'Deine Pflanze braucht Pflege.'),
+      icon: '/icons/icon-192.png'
+    }
+  };
+
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage(payload);
+    return;
+  }
+
+  navigator.serviceWorker.ready
+    .then((registration) => {
+      if (registration && registration.active) {
+        registration.active.postMessage(payload);
+      }
+    })
+    .catch(() => {
+      // non-fatal
+    });
 }
 
 async function postJsonStub(url, payload) {

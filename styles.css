@@ -645,6 +645,18 @@ body::before {
   gap: 0.6rem;
 }
 
+.analysis-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.analysis-settings-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
 .analysis-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
