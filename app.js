@@ -46,7 +46,7 @@ const MAX_HISTORY_LOG = CONFIG.maxHistoryLog;
 const PERSIST_THROTTLE_MS = CONFIG.persistThrottleMs;
 const MAX_ELAPSED_PER_TICK_MS = 5 * 60 * 1000;
 const APP_BASE_PATH = resolveAppBasePath();
-const FREEZE_SIM_ON_DEATH = true;
+const FREEZE_SIM_ON_DEATH = true; // Für Klarheit: Simulation pausiert nach Tod der Pflanze.
 
 const DB_NAME = 'grow-sim-db';
 const DB_STORE = 'kv';
@@ -114,6 +114,21 @@ const state = {
   seed: SIM_GLOBAL_SEED,
   plantId: SIM_PLANT_ID,
   setup: null,
+  settings: {
+    notifications: {
+      enabled: false,
+      types: {
+        events: true,
+        critical: true,
+        reminder: true
+      },
+      runtime: {
+        lastNotifiedEventId: null,
+        lastCriticalAtRealMs: 0,
+        lastReminderAtRealMs: 0
+      }
+    }
+  },
   meta: {
     rescue: {
       used: false,
@@ -422,6 +437,12 @@ function cacheUi() {
   ui.analysisPanelDiagnosis = document.getElementById('analysisPanelDiagnosis');
   ui.analysisPanelTimeline = document.getElementById('analysisPanelTimeline');
   ui.analysisResetBtn = document.getElementById('analysisResetBtn');
+  ui.pushToggleBtn = document.getElementById('pushToggleBtn');
+  ui.pushToggleStatus = document.getElementById('pushToggleStatus');
+  ui.pushToggleFeedback = document.getElementById('pushToggleFeedback');
+  ui.notifTypeEvents = document.getElementById('notifTypeEvents');
+  ui.notifTypeCritical = document.getElementById('notifTypeCritical');
+  ui.notifTypeReminder = document.getElementById('notifTypeReminder');
 
   ui.landing = document.getElementById('landing');
   ui.startRunBtn = document.getElementById('startRunBtn');
@@ -439,40 +460,6 @@ function cacheUi() {
   ui.deathRescueBtn = document.getElementById('deathRescueBtn');
   ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
   ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
-
-  if (ui.deathOverlay && (!ui.deathRescueBtn || !ui.deathRescueSubtext || !ui.deathRescueFeedback)) {
-    const card = ui.deathOverlay.querySelector('.death-card') || ui.deathOverlay.querySelector('.landing-card');
-    const actions = card ? card.querySelector('.death-actions') : null;
-    if (card) {
-      if (!ui.deathRescueBtn) {
-        const rescueBtn = document.createElement('button');
-        rescueBtn.id = 'deathRescueBtn';
-        rescueBtn.className = 'action-btn action-primary';
-        rescueBtn.type = 'button';
-        rescueBtn.textContent = 'Notfallrettung (1×) – Werbeunterstützt';
-        card.insertBefore(rescueBtn, actions || null);
-      }
-      if (!ui.deathRescueSubtext) {
-        const rescueSubtext = document.createElement('p');
-        rescueSubtext.id = 'deathRescueSubtext';
-        rescueSubtext.className = 'sheet-note';
-        rescueSubtext.textContent = 'Einmal pro Run verfügbar';
-        const rescueBtnNode = document.getElementById('deathRescueBtn');
-        card.insertBefore(rescueSubtext, (rescueBtnNode && rescueBtnNode.nextSibling) || (actions || null));
-      }
-      if (!ui.deathRescueFeedback) {
-        const rescueFeedback = document.createElement('p');
-        rescueFeedback.id = 'deathRescueFeedback';
-        rescueFeedback.className = 'sheet-note';
-        rescueFeedback.setAttribute('aria-live', 'polite');
-        const rescueSubtextNode = document.getElementById('deathRescueSubtext');
-        card.insertBefore(rescueFeedback, (rescueSubtextNode && rescueSubtextNode.nextSibling) || (actions || null));
-      }
-    }
-    ui.deathRescueBtn = document.getElementById('deathRescueBtn');
-    ui.deathRescueSubtext = document.getElementById('deathRescueSubtext');
-    ui.deathRescueFeedback = document.getElementById('deathRescueFeedback');
-  }
 }
 
 function bindUi() {
@@ -482,6 +469,10 @@ function bindUi() {
   ui.openDiagnosisBtn.addEventListener('click', () => openSheet('diagnosis'));
   ui.startRunBtn.addEventListener('click', onStartRun);
   ui.analysisResetBtn.addEventListener('click', onAnalysisResetClick);
+  ui.pushToggleBtn.addEventListener('click', onPushToggleClick);
+  ui.notifTypeEvents.addEventListener('change', onNotificationTypeToggle);
+  ui.notifTypeCritical.addEventListener('change', onNotificationTypeToggle);
+  ui.notifTypeReminder.addEventListener('change', onNotificationTypeToggle);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
   ui.deathRescueBtn.addEventListener('click', onDeathRescueClick);
@@ -545,7 +536,7 @@ function tick() {
   resetBoostDaily(nowMs);
   updateVisibleOverlays();
   syncCanonicalStateShape();
-
+  evaluateNotificationTriggers(nowMs);
 
   if (state.ui.openSheet !== prevOpenSheet) {
     renderSheets();
@@ -568,7 +559,8 @@ function ensureRequiredUi() {
     'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
     'careCategoryList', 'careActionList', 'careFeedback', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
-    'analysisResetBtn',
+    'analysisResetBtn', 'pushToggleBtn', 'pushToggleStatus', 'pushToggleFeedback',
+    'notifTypeEvents', 'notifTypeCritical', 'notifTypeReminder',
     'landing', 'startRunBtn', 'setupMode', 'setupLight', 'setupMedium', 'setupPotSize', 'setupGenetics',
     'deathOverlay', 'deathDriverList', 'deathHistoryList', 'deathResetBtn', 'deathAnalyzeBtn',
     'deathRescueBtn', 'deathRescueSubtext', 'deathRescueFeedback'
@@ -724,8 +716,10 @@ function syncDeathState() {
     enterDeadPhase();
   }
 
-  if (state.ui.deathOverlayAcknowledged !== true) {
+  const inAnalysis = state.ui.openSheet === 'dashboard';
+  if (!inAnalysis) {
     state.ui.deathOverlayOpen = true;
+    state.ui.deathOverlayAcknowledged = false;
   }
   return true;
 }
@@ -918,6 +912,7 @@ function activateEvent(nowMs) {
     severity: state.events.activeSeverity,
     category: eventDef.category || 'generic'
   });
+
 }
 
 function eligibleEventsForNow(nowMs) {
@@ -1932,6 +1927,8 @@ function renderAnalysisPanel(force = false) {
     return;
   }
 
+  renderPushToggle();
+
   const activeTab = (state.ui.analysis && state.ui.analysis.activeTab) ? state.ui.analysis.activeTab : 'overview';
   const tabMap = {
     overview: ui.analysisPanelOverview,
@@ -1950,6 +1947,28 @@ function renderAnalysisPanel(force = false) {
   renderAnalysisOverview();
   renderAnalysisDiagnosis();
   renderAnalysisTimeline();
+}
+
+function renderPushToggle() {
+  if (!ui.pushToggleBtn || !ui.pushToggleStatus || !ui.pushToggleFeedback || !ui.notifTypeEvents || !ui.notifTypeCritical || !ui.notifTypeReminder) {
+    return;
+  }
+
+  const notifications = getCanonicalNotificationsSettings(state);
+  const enabled = notifications.enabled === true;
+  ui.pushToggleBtn.textContent = enabled ? 'AN' : 'AUS';
+  ui.pushToggleBtn.setAttribute('aria-pressed', String(enabled));
+  ui.pushToggleStatus.textContent = enabled ? 'Aktiv' : 'Deaktiviert';
+
+  ui.notifTypeEvents.checked = notifications.types.events === true;
+  ui.notifTypeCritical.checked = notifications.types.critical === true;
+  ui.notifTypeReminder.checked = notifications.types.reminder === true;
+
+  ui.notifTypeEvents.disabled = !enabled;
+  ui.notifTypeCritical.disabled = !enabled;
+  ui.notifTypeReminder.disabled = !enabled;
+
+  ui.pushToggleFeedback.textContent = notifications.lastMessage ? String(notifications.lastMessage) : '';
 }
 
 function renderAnalysisOverview() {
@@ -2236,12 +2255,13 @@ function renderDeathOverlay() {
 
   const meta = getCanonicalMeta(state);
   const rescueUsed = Boolean(meta.rescue.used);
-  const rescueBusy = rescueAdPending;
-  ui.deathRescueBtn.disabled = rescueBusy;
+  ui.deathRescueBtn.disabled = rescueAdPending || rescueUsed;
   ui.deathRescueBtn.textContent = rescueUsed
     ? 'Notfallrettung bereits verwendet'
-    : (rescueBusy ? 'Werbung läuft…' : 'Notfallrettung (1×) – Werbeunterstützt');
-  ui.deathRescueSubtext.textContent = rescueUsed ? 'Einmal pro Run verfügbar (bereits genutzt)' : 'Einmal pro Run verfügbar';
+    : (rescueAdPending ? 'Werbung läuft…' : 'Notfallrettung (1×) - Werbeunterstützt');
+  ui.deathRescueSubtext.textContent = rescueUsed
+    ? 'Einmal pro Run verfügbar (bereits genutzt)'
+    : 'Einmal pro Run verfügbar';
   ui.deathRescueFeedback.textContent = meta.rescue.lastResult ? String(meta.rescue.lastResult) : '';
 }
 
@@ -2325,9 +2345,9 @@ async function onDeathRescueClick() {
     return;
   }
 
-  const wasDeadBeforeRescue = isPlantDead();
-  const isCriticalAlive = !wasDeadBeforeRescue && Number(state.status.health) < 20;
-  if (!wasDeadBeforeRescue && !isCriticalAlive) {
+  const beforeHealth = Number(state.status.health) || 0;
+  const deadNow = isPlantDead();
+  if (!deadNow && beforeHealth >= 20) {
     meta.rescue.lastResult = 'Notfallrettung ist aktuell nicht erforderlich.';
     renderDeathOverlay();
     schedulePersistState(true);
@@ -2338,7 +2358,7 @@ async function onDeathRescueClick() {
   meta.rescue.lastResult = 'Werbung läuft…';
   renderDeathOverlay();
 
-  let adResult = { ok: false, reason: 'unknown' };
+  let adResult = { ok: false, reason: 'error' };
   try {
     adResult = await requestRescueAd();
   } catch (_error) {
@@ -2392,6 +2412,62 @@ async function onDeathRescueClick() {
   schedulePersistState(true);
 }
 
+async function onPushToggleClick() {
+  const notifications = getCanonicalNotificationsSettings(state);
+  const currentlyEnabled = notifications.enabled === true;
+
+  if (currentlyEnabled) {
+    notifications.enabled = false;
+    notifications.lastMessage = 'Benachrichtigungen deaktiviert.';
+    renderPushToggle();
+    schedulePersistState(true);
+    return;
+  }
+
+  if (typeof Notification === 'undefined' || !('serviceWorker' in navigator)) {
+    notifications.enabled = false;
+    notifications.lastMessage = 'Benachrichtigungen werden in diesem Browser nicht unterstützt.';
+    renderPushToggle();
+    schedulePersistState(true);
+    return;
+  }
+
+  let permission = Notification.permission;
+  if (permission !== 'granted') {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission !== 'granted') {
+    notifications.enabled = false;
+    notifications.lastMessage = 'Berechtigung nicht erteilt. Bitte Benachrichtigungen im Browser erlauben.';
+    renderPushToggle();
+    schedulePersistState(true);
+    return;
+  }
+
+  if (!navigator.serviceWorker.controller) {
+    notifications.enabled = false;
+    notifications.lastMessage = 'Service Worker noch nicht aktiv. Bitte einmal normal neu laden.';
+    renderPushToggle();
+    schedulePersistState(true);
+    return;
+  }
+
+  notifications.enabled = true;
+  notifications.lastMessage = 'Benachrichtigungen aktiviert.';
+  renderPushToggle();
+  schedulePersistState(true);
+}
+
+function onNotificationTypeToggle() {
+  const notifications = getCanonicalNotificationsSettings(state);
+  notifications.types.events = Boolean(ui.notifTypeEvents && ui.notifTypeEvents.checked);
+  notifications.types.critical = Boolean(ui.notifTypeCritical && ui.notifTypeCritical.checked);
+  notifications.types.reminder = Boolean(ui.notifTypeReminder && ui.notifTypeReminder.checked);
+  renderPushToggle();
+  schedulePersistState(true);
+}
+
 async function onAnalysisResetClick() {
   const confirmed = window.confirm('Aktuellen Run wirklich zurücksetzen? Dieser Schritt löscht den gespeicherten Fortschritt.');
   if (!confirmed) {
@@ -2408,6 +2484,10 @@ async function resetRun() {
   syncRuntimeClocks(Date.now());
   syncCanonicalStateShape();
   rescueAdPending = false;
+  const notifications = getCanonicalNotificationsSettings(state);
+  notifications.runtime.lastNotifiedEventId = null;
+  notifications.runtime.lastCriticalAtRealMs = 0;
+  notifications.runtime.lastReminderAtRealMs = 0;
   if (state.meta && state.meta.rescue) {
     state.meta.rescue.used = false;
     state.meta.rescue.usedAtRealMs = null;
@@ -2767,6 +2847,49 @@ function getCanonicalMeta(snapshot) {
   if (s.meta.rescue.lastResult !== null && typeof s.meta.rescue.lastResult !== 'string') s.meta.rescue.lastResult = null;
   return s.meta;
 }
+function getCanonicalSettings(snapshot) {
+  const s = snapshot || state;
+  if (!s.settings || typeof s.settings !== 'object') {
+    s.settings = {};
+  }
+  const notifications = getCanonicalNotificationsSettings(s);
+  s.settings.notifications = notifications;
+  return s.settings;
+}
+
+function getCanonicalNotificationsSettings(snapshot) {
+  const s = snapshot || state;
+  if (!s.settings || typeof s.settings !== 'object') {
+    s.settings = {};
+  }
+
+  const legacyEnabled = Boolean(s.settings.pushNotificationsEnabled);
+  if (!s.settings.notifications || typeof s.settings.notifications !== 'object') {
+    s.settings.notifications = {};
+  }
+
+  const n = s.settings.notifications;
+  n.enabled = typeof n.enabled === 'boolean' ? n.enabled : legacyEnabled;
+  if (!n.types || typeof n.types !== 'object') {
+    n.types = {};
+  }
+  n.types.events = typeof n.types.events === 'boolean' ? n.types.events : true;
+  n.types.critical = typeof n.types.critical === 'boolean' ? n.types.critical : true;
+  n.types.reminder = typeof n.types.reminder === 'boolean' ? n.types.reminder : true;
+
+  if (!n.runtime || typeof n.runtime !== 'object') {
+    n.runtime = {};
+  }
+  n.runtime.lastNotifiedEventId = (typeof n.runtime.lastNotifiedEventId === 'string' || n.runtime.lastNotifiedEventId === null)
+    ? n.runtime.lastNotifiedEventId
+    : null;
+  n.runtime.lastCriticalAtRealMs = Number.isFinite(Number(n.runtime.lastCriticalAtRealMs)) ? Number(n.runtime.lastCriticalAtRealMs) : 0;
+  n.runtime.lastReminderAtRealMs = Number.isFinite(Number(n.runtime.lastReminderAtRealMs)) ? Number(n.runtime.lastReminderAtRealMs) : 0;
+  n.lastMessage = (typeof n.lastMessage === 'string' || n.lastMessage === null) ? n.lastMessage : null;
+
+  return n;
+}
+
 
 async function restoreState() {
   if (!storageAdapter) {
@@ -2783,6 +2906,7 @@ async function restoreState() {
   const events = getCanonicalEvents(state);
   const history = getCanonicalHistory(state);
   const meta = getCanonicalMeta(state);
+  const settings = getCanonicalSettings(state);
 
   if (saved.simulation && typeof saved.simulation === 'object') {
     state.simulation = {
@@ -2844,6 +2968,13 @@ async function restoreState() {
         ...((saved.meta && saved.meta.rescue) || {})
       }
     };
+  }
+  if (saved.settings && typeof saved.settings === 'object') {
+    state.settings = {
+      ...settings,
+      ...saved.settings
+    };
+    getCanonicalNotificationsSettings(state);
   }
 
   migrateLegacyStateIntoCanonical(saved, state);
@@ -3002,6 +3133,22 @@ function resetStateToDefaults() {
   state.seed = SIM_GLOBAL_SEED;
   state.plantId = SIM_PLANT_ID;
   state.setup = null;
+  state.settings = {
+    notifications: {
+      enabled: false,
+      types: {
+        events: true,
+        critical: true,
+        reminder: true
+      },
+      runtime: {
+        lastNotifiedEventId: null,
+        lastCriticalAtRealMs: 0,
+        lastReminderAtRealMs: 0
+      },
+      lastMessage: null
+    }
+  };
   state.meta = {
     rescue: {
       used: false,
@@ -3282,11 +3429,13 @@ function ensureStateIntegrity(nowMs) {
   }
 
   const meta = getCanonicalMeta(state);
+  const settings = getCanonicalSettings(state);
   meta.rescue.used = Boolean(meta.rescue.used);
   meta.rescue.usedAtRealMs = Number.isFinite(Number(meta.rescue.usedAtRealMs)) ? Number(meta.rescue.usedAtRealMs) : null;
   meta.rescue.lastResult = (typeof meta.rescue.lastResult === 'string' || meta.rescue.lastResult === null)
     ? meta.rescue.lastResult
     : null;
+  getCanonicalNotificationsSettings(state);
 
   if (!state.setup || typeof state.setup !== 'object') {
     state.setup = null;
@@ -3360,6 +3509,7 @@ function syncCanonicalStateShape() {
   const events = getCanonicalEvents(state);
   const history = getCanonicalHistory(state);
   const meta = getCanonicalMeta(state);
+  const settings = getCanonicalSettings(state);
 
   state.seed = sim.globalSeed;
   state.plantId = sim.plantId;
@@ -3410,6 +3560,7 @@ function syncCanonicalStateShape() {
   meta.rescue.lastResult = (typeof meta.rescue.lastResult === 'string' || meta.rescue.lastResult === null)
     ? meta.rescue.lastResult
     : null;
+  getCanonicalNotificationsSettings(state);
 
   syncLegacyMirrorsFromCanonical(state);
 }
@@ -3858,79 +4009,131 @@ async function registerServiceWorker() {
   }
 }
 
-async function onPushSubscribe() {
-  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-    addLog('system', 'Push wird in diesem Browser nicht unterstützt', null);
-    renderAnalysisPanel(true);
-    return;
-  }
-
-  try {
-    const permission = await Notification.requestPermission();
-    addLog('system', `Benachrichtigungsberechtigung: ${permission}`, null);
-
-    if (permission !== 'granted') {
-      renderAnalysisPanel(true);
-      return;
-    }
-
-    const registration = await navigator.serviceWorker.ready;
-    let subscription = await registration.pushManager.getSubscription();
-
-    if (!subscription) {
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: base64ToU8(VAPID_PUBLIC_KEY)
-      });
-    }
-
-    localStorage.setItem(PUSH_SUB_KEY, JSON.stringify(subscription.toJSON()));
-
-    // TODO: Replace stub call when backend is implemented.
-    await postJsonStub(appPath('api/push/subscribe'), {
-      createdAt: Date.now(),
-      subscription: subscription.toJSON()
-    });
-
-    addLog('system', 'Push-Abonnement gespeichert und an Stub-Endpunkt gesendet', null);
-    await schedulePushIfAllowed(true);
-    renderAnalysisPanel(true);
-    schedulePersistState(true);
-  } catch (error) {
-    addLog('system', `Push-Abonnement fehlgeschlagen: ${error.message}`, null);
-    renderAnalysisPanel(true);
-  }
+async function schedulePushIfAllowed(_force) {
+  // Lokale Benachrichtigungen nutzen aktuell kein Backend-Push-Scheduling.
 }
 
-async function schedulePushIfAllowed(force) {
+function canNotify(type) {
+  const notifications = getCanonicalNotificationsSettings(state);
+  if (notifications.enabled !== true) {
+    return false;
+  }
+
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
+    return false;
+  }
+
+  if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) {
+    return false;
+  }
+
+  if (type && notifications.types[type] !== true) {
+    return false;
+  }
+
+  return true;
+}
+
+function notify(type, title, body) {
+  if (!canNotify(type)) {
     return;
   }
 
-  const subRaw = localStorage.getItem(PUSH_SUB_KEY);
-  if (!subRaw) {
-    return;
-  }
+  const tagByType = {
+    events: 'gs-events',
+    critical: 'gs-critical',
+    reminder: 'gs-reminder'
+  };
+  const tag = tagByType[type] || 'gs-generic';
 
-  if (!force && state.simulation.lastPushScheduleAtMs === state.events.scheduler.nextEventRealTimeMs) {
-    return;
-  }
-
-  state.simulation.lastPushScheduleAtMs = state.events.scheduler.nextEventRealTimeMs;
-
-  let subscriptionPayload = null;
-  try {
-    subscriptionPayload = JSON.parse(subRaw);
-  } catch (_error) {
-    return;
-  }
-
-  // TODO: Replace stub call when backend is implemented.
-  await postJsonStub(appPath('api/push/schedule'), {
-    nextEventAt: state.events.scheduler.nextEventRealTimeMs,
-    cooldownUntil: state.events.cooldownUntilMs,
-    subscription: subscriptionPayload
+  navigator.serviceWorker.controller.postMessage({
+    type: 'GS_SHOW_NOTIFICATION',
+    title,
+    options: {
+      body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      tag
+    }
   });
+}
+
+function evaluateNotificationTriggers(nowMs) {
+  notifyEventAvailability();
+  notifyCriticalState(nowMs);
+  notifyReminder(nowMs);
+}
+
+function notifyEventAvailability() {
+  if (state.events.machineState !== 'activeEvent') {
+    return;
+  }
+
+  const notifications = getCanonicalNotificationsSettings(state);
+  const eventId = state.events.activeEventId || null;
+  if (!eventId || notifications.runtime.lastNotifiedEventId === eventId) {
+    return;
+  }
+
+  notify('events', 'Grow Simulator', 'Ein Ereignis ist verfügbar. Tippe, um zu reagieren.');
+  notifications.runtime.lastNotifiedEventId = eventId;
+}
+
+function notifyCriticalState(nowMs) {
+  const s = state.status || {};
+  const critical = Number(s.health) <= 15 || Number(s.risk) >= 75 || Number(s.stress) >= 80;
+  if (!critical) {
+    return;
+  }
+
+  const notifications = getCanonicalNotificationsSettings(state);
+  const cooldownMs = 60 * 60 * 1000;
+  if ((nowMs - notifications.runtime.lastCriticalAtRealMs) < cooldownMs) {
+    return;
+  }
+
+  const scores = [
+    { key: 'health', score: Math.max(0, 15 - Number(s.health || 0)) },
+    { key: 'risk', score: Math.max(0, Number(s.risk || 0) - 75) },
+    { key: 'stress', score: Math.max(0, Number(s.stress || 0) - 80) }
+  ].sort((a, b) => b.score - a.score || String(a.key).localeCompare(String(b.key)));
+
+  let body = 'Kritischer Zustand: Gesundheit sehr niedrig.';
+  if (scores[0].key === 'risk') {
+    body = 'Kritischer Zustand: Risiko ist sehr hoch.';
+  } else if (scores[0].key === 'stress') {
+    body = 'Kritischer Zustand: Stress ist extrem hoch.';
+  }
+
+  notify('critical', 'Grow Simulator', body);
+  notifications.runtime.lastCriticalAtRealMs = nowMs;
+}
+
+function notifyReminder(nowMs) {
+  const actions = Array.isArray(state.history && state.history.actions) ? state.history.actions : [];
+  const lastActionAtMs = actions.length
+    ? Number(actions[actions.length - 1].atRealTimeMs || actions[actions.length - 1].realTime || 0)
+    : 0;
+
+  const inactivityMs = 90 * 60 * 1000;
+  if (lastActionAtMs > 0 && (nowMs - lastActionAtMs) < inactivityMs) {
+    return;
+  }
+
+  const s = state.status || {};
+  const notOptimal = Number(s.water) < 50 || Number(s.nutrition) < 50 || Number(s.stress) > 55;
+  if (!notOptimal) {
+    return;
+  }
+
+  const notifications = getCanonicalNotificationsSettings(state);
+  const cooldownMs = 120 * 60 * 1000;
+  if ((nowMs - notifications.runtime.lastReminderAtRealMs) < cooldownMs) {
+    return;
+  }
+
+  notify('reminder', 'Grow Simulator', 'Deine Pflanze braucht Pflege. Öffne die App für eine Maßnahme.');
+  notifications.runtime.lastReminderAtRealMs = nowMs;
 }
 
 async function postJsonStub(url, payload) {
