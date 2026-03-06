@@ -123,10 +123,6 @@ body::before {
 .hero-card.main-stage {
   display: block;
   padding: 0;
-  background-image: url("/assets/backgrounds/stage_forest_main.webp");
-  background-size: cover;
-  background-position: center bottom;
-  background-repeat: no-repeat;
   background: transparent;
   backdrop-filter: none;
 }
@@ -184,24 +180,6 @@ body::before {
   pointer-events: auto;
 }
 
-.main-stage .status-ring--health {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  right: auto;
-  bottom: auto;
-  margin: 0;
-  transform: none;
-}
-
-.main-stage .status-ring--stress {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  left: auto;
-  bottom: auto;
-  margin: 0;
-  transform: none;
 .status-ring--health {
   top: 18px;
   left: 18px;
