@@ -14,7 +14,10 @@
   <div id="app-hud" class="app-hud">
     <header class="top-row">
       <span id="statusPill" class="pill status-pill">Phase: Keimling</span>
-      <span class="pill pro-pill">Pro</span>
+      <div class="top-row-actions">
+        <span class="pill pro-pill">Pro</span>
+        <button id="menuToggleBtn" class="menu-toggle-btn" type="button" aria-label="Menü öffnen" aria-haspopup="dialog" aria-expanded="false">☰</button>
+      </div>
     </header>
 
     <main class="hud-main">
@@ -130,28 +133,6 @@
     <header class="sheet-header">
       <h2>Ereignis</h2>
       <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
-      <section class="analysis-settings" aria-label="Benachrichtigungen">
-        <div class="analysis-settings-row">
-          <span class="analysis-settings-label">Push-Benachrichtigungen</span>
-          <button id="pushToggleBtn" class="ghost-btn" type="button" aria-pressed="false">AUS</button>
-        </div>
-        <p id="pushToggleStatus" class="sheet-note">Deaktiviert</p>
-        <div class="analysis-settings-types">
-          <label class="analysis-settings-type"><input id="notifTypeEvents" type="checkbox"> Ereignis verfügbar</label>
-          <label class="analysis-settings-type"><input id="notifTypeCritical" type="checkbox"> Kritischer Zustand</label>
-          <label class="analysis-settings-type"><input id="notifTypeReminder" type="checkbox"> Pflege-Erinnerung</label>
-        </div>
-        <p id="pushToggleFeedback" class="sheet-note" aria-live="polite"></p>
-      </section>
-      <div class="analysis-settings" aria-label="Analyse-Einstellungen">
-        <span class="analysis-settings-label">Push-Benachrichtigungen</span>
-        <button id="pushToggleBtn" class="ghost-btn" type="button" aria-pressed="false">AUS</button>
-      </div>
-      <p id="pushToggleStatus" class="sheet-note">Push-Benachrichtigungen deaktiviert</p>
-      <button id="deathRescueBtn" class="action-btn action-primary" type="button">Notfallrettung (1x) - Werbeunterstützt</button>
-      <p id="deathRescueSubtext" class="sheet-note">Einmal pro Run verfügbar</p>
-      <p id="deathRescueFeedback" class="sheet-note" aria-live="polite"></p>
-        <button id="deathResetBtn" class="action-btn action-secondary" type="button">Neuer Run starten</button>
     </header>
     <div class="sheet-content">
       <p id="eventStateBadge" class="sheet-badge">Status: inaktiv</p>
@@ -166,7 +147,6 @@
     <header class="sheet-header">
       <h2>Analyse</h2>
       <div class="sheet-header-actions">
-        <button id="analysisResetBtn" class="ghost-btn" type="button">Run zurücksetzen</button>
         <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
       </div>
     </header>
@@ -193,10 +173,6 @@
       <ul class="diagnosis-list">
         <li>Wahrscheinlichkeits-Heatmap für Pathogene (Pro)</li>
         <li>Zerlegung der Nährstofftrends (Pro)</li>
-      <button id="deathRescueBtn" class="action-btn action-primary" type="button">Notfallrettung (1x) - Werbeunterstützt</button>
-      <p id="deathRescueSubtext" class="sheet-note">Einmal pro Run verfügbar</p>
-      <p id="deathRescueFeedback" class="sheet-note" aria-live="polite"></p>
-        <button id="deathResetBtn" class="action-btn action-secondary" type="button">Neuer Run starten</button>
         <li>Vorhersage für Wurzelstress (Pro)</li>
       </ul>
     </div>
@@ -223,11 +199,70 @@
       <p class="sheet-note">Letzte Aktionen / Events</p>
       <ol id="deathHistoryList" class="death-list"></ol>
       <div class="death-actions">
-        <button id="deathResetBtn" class="action-btn action-primary" type="button">Neuer Run starten</button>
         <button id="deathAnalyzeBtn" class="action-btn action-secondary" type="button">Analyse ansehen</button>
       </div>
     </div>
   </section>
+
+  <div id="menuBackdrop" class="menu-backdrop hidden" aria-hidden="true"></div>
+  <section id="gameMenu" class="game-menu hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+    <header class="game-menu-header">
+      <h2 id="menuTitle">MENÜ</h2>
+      <button id="menuHeaderCloseBtn" class="sheet-close" type="button" aria-label="Menü schließen">X</button>
+    </header>
+    <div class="game-menu-content">
+      <section class="game-menu-section">
+        <h3>SPIEL</h3>
+        <button id="menuNewRunBtn" class="menu-entry" type="button"><span>🌱 Neuer Run</span><small>Starte einen neuen Durchgang.</small></button>
+        <button id="menuRescueBtn" class="menu-entry" type="button"><span>❤️ Rettungsaktion</span><small id="menuRescueSubtext">Einmalige Notfall-Rettung.</small></button>
+        <button id="menuStatsBtn" class="menu-entry" type="button"><span>📊 Run-Statistik</span><small>Öffnet die aktuelle Pflanzenanalyse.</small></button>
+      </section>
+
+      <section class="game-menu-section">
+        <h3>EINSTELLUNGEN</h3>
+        <button id="menuPushBtn" class="menu-entry" type="button" aria-pressed="false"><span>🔔 Push-Benachrichtigungen</span><small id="menuPushStatus">Deaktiviert</small></button>
+        <button id="menuLanguageBtn" class="menu-entry" type="button"><span>🌐 Sprache</span><small>Platzhalter</small></button>
+      </section>
+
+      <section class="game-menu-section">
+        <h3>SUPPORT</h3>
+        <button id="menuSupportBtn" class="menu-entry" type="button"><span>❤️ Projekt unterstützen</span><small>Platzhalter</small></button>
+        <button id="menuAboutBtn" class="menu-entry" type="button"><span>ℹ️ Über das Spiel</span><small>Infos und Team</small></button>
+      </section>
+
+      <div class="menu-quick-actions">
+        <button id="menuAchievementsBtn" class="ghost-btn" type="button">🏆 Achievements</button>
+        <button id="menuLeaderboardBtn" class="ghost-btn" type="button">📈 Rangliste</button>
+      </div>
+
+      <button id="menuCloseBtn" class="action-btn action-primary" type="button">Schließen</button>
+    </div>
+  </section>
+
+  <section id="menuDialog" class="menu-dialog hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="menuDialogTitle">
+    <div class="menu-dialog-card">
+      <h3 id="menuDialogTitle">Hinweis</h3>
+      <p id="menuDialogText" class="sheet-note">Text</p>
+      <div class="menu-dialog-actions">
+        <button id="menuDialogCancelBtn" class="ghost-btn" type="button">Abbrechen</button>
+        <button id="menuDialogConfirmBtn" class="action-btn action-primary" type="button">OK</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="hidden" aria-hidden="true">
+    <button id="analysisResetBtn" type="button"></button>
+    <button id="pushToggleBtn" type="button"></button>
+    <span id="pushToggleStatus"></span>
+    <span id="pushToggleFeedback"></span>
+    <input id="notifTypeEvents" type="checkbox">
+    <input id="notifTypeCritical" type="checkbox">
+    <input id="notifTypeReminder" type="checkbox">
+    <button id="deathRescueBtn" type="button"></button>
+    <span id="deathRescueSubtext"></span>
+    <span id="deathRescueFeedback"></span>
+    <button id="deathResetBtn" type="button"></button>
+  </div>
 
   <script src="app.js" defer></script>
 </body>
