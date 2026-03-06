@@ -246,6 +246,8 @@ const state = {
   },
   ui: {
     openSheet: null,
+    menuOpen: false,
+    menuDialogOpen: false,
     selectedBackground: 'bg_dark_01.jpg',
     visibleOverlayIds: [],
     deathOverlayOpen: false,
@@ -273,6 +275,7 @@ let heartbeatWatchdogHandle = null;
 let persistTimer = null;
 let rescueAdPending = false;
 let wasCriticalHealth = false;
+let menuDialogConfirmHandler = null;
 
 const actionDebounceUntil = Object.create(null);
 
@@ -469,12 +472,33 @@ function cacheUi() {
   ui.analyzeActionBtn = document.getElementById('analyzeActionBtn');
   ui.boostActionBtn = document.getElementById('boostActionBtn');
   ui.openDiagnosisBtn = document.getElementById('openDiagnosisBtn');
+  ui.menuToggleBtn = document.getElementById('menuToggleBtn');
 
   ui.backdrop = document.getElementById('sheetBackdrop');
   ui.careSheet = document.getElementById('careSheet');
   ui.eventSheet = document.getElementById('eventSheet');
   ui.dashboardSheet = document.getElementById('dashboardSheet');
   ui.diagnosisSheet = document.getElementById('diagnosisSheet');
+  ui.menuBackdrop = document.getElementById('menuBackdrop');
+  ui.gameMenu = document.getElementById('gameMenu');
+  ui.menuCloseBtn = document.getElementById('menuCloseBtn');
+  ui.menuHeaderCloseBtn = document.getElementById('menuHeaderCloseBtn');
+  ui.menuNewRunBtn = document.getElementById('menuNewRunBtn');
+  ui.menuRescueBtn = document.getElementById('menuRescueBtn');
+  ui.menuRescueSubtext = document.getElementById('menuRescueSubtext');
+  ui.menuStatsBtn = document.getElementById('menuStatsBtn');
+  ui.menuPushBtn = document.getElementById('menuPushBtn');
+  ui.menuPushStatus = document.getElementById('menuPushStatus');
+  ui.menuLanguageBtn = document.getElementById('menuLanguageBtn');
+  ui.menuSupportBtn = document.getElementById('menuSupportBtn');
+  ui.menuAboutBtn = document.getElementById('menuAboutBtn');
+  ui.menuAchievementsBtn = document.getElementById('menuAchievementsBtn');
+  ui.menuLeaderboardBtn = document.getElementById('menuLeaderboardBtn');
+  ui.menuDialog = document.getElementById('menuDialog');
+  ui.menuDialogTitle = document.getElementById('menuDialogTitle');
+  ui.menuDialogText = document.getElementById('menuDialogText');
+  ui.menuDialogCancelBtn = document.getElementById('menuDialogCancelBtn');
+  ui.menuDialogConfirmBtn = document.getElementById('menuDialogConfirmBtn');
 
   ui.careCategoryList = document.getElementById('careCategoryList');
   ui.careActionList = document.getElementById('careActionList');
@@ -532,6 +556,23 @@ function bindUi() {
   ui.notifTypeReminder.addEventListener('change', onNotificationTypeToggle);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
+  ui.menuToggleBtn.addEventListener('click', onMenuToggleClick);
+  ui.menuCloseBtn.addEventListener('click', closeMenu);
+  ui.menuHeaderCloseBtn.addEventListener('click', closeMenu);
+  ui.menuBackdrop.addEventListener('click', closeMenu);
+  ui.menuNewRunBtn.addEventListener('click', onMenuNewRunClick);
+  ui.menuRescueBtn.addEventListener('click', onDeathRescueClick);
+  ui.menuStatsBtn.addEventListener('click', () => {
+    closeMenu();
+    openSheet('dashboard');
+  });
+  ui.menuPushBtn.addEventListener('click', onPushToggleClick);
+  ui.menuLanguageBtn.addEventListener('click', () => openMenuPlaceholder('Sprache', 'Sprachauswahl folgt in einem späteren Update.'));
+  ui.menuSupportBtn.addEventListener('click', () => openMenuPlaceholder('Projekt unterstützen', 'Support-Optionen folgen in einem späteren Update.'));
+  ui.menuAboutBtn.addEventListener('click', () => openMenuPlaceholder('Über das Spiel', 'Grow Simulator MVP · Weitere Infos folgen.'));
+  ui.menuAchievementsBtn.addEventListener('click', () => openMenuPlaceholder('Achievements', 'Achievements sind bald verfügbar.'));
+  ui.menuLeaderboardBtn.addEventListener('click', () => openMenuPlaceholder('Rangliste', 'Die Rangliste ist bald verfügbar.'));
+  ui.menuDialogCancelBtn.addEventListener('click', closeMenuDialog);
   ui.backdrop.addEventListener('click', closeSheet);
 
   const analysisTabs = [ui.analysisTabOverview, ui.analysisTabDiagnosis, ui.analysisTabTimeline].filter(Boolean);
@@ -621,8 +662,11 @@ function ensureRequiredUi() {
     'healthValue', 'stressValue', 'waterValue', 'nutritionValue', 'growthValue', 'riskValue',
     'plantImage', 'nextEventValue', 'growthImpulseValue', 'simTimeValue', 'boostUsageText',
     'overlayBurn', 'overlayDefMg', 'overlayDefN', 'overlayMoldWarning', 'overlayPestMites', 'overlayPestThrips',
-    'careActionBtn', 'analyzeActionBtn', 'boostActionBtn', 'openDiagnosisBtn',
+    'careActionBtn', 'analyzeActionBtn', 'boostActionBtn', 'openDiagnosisBtn', 'menuToggleBtn',
     'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
+    'menuBackdrop', 'gameMenu', 'menuCloseBtn', 'menuHeaderCloseBtn', 'menuNewRunBtn', 'menuRescueBtn', 'menuRescueSubtext',
+    'menuStatsBtn', 'menuPushBtn', 'menuPushStatus', 'menuLanguageBtn', 'menuSupportBtn', 'menuAboutBtn',
+    'menuAchievementsBtn', 'menuLeaderboardBtn', 'menuDialog', 'menuDialogTitle', 'menuDialogText', 'menuDialogCancelBtn', 'menuDialogConfirmBtn',
     'careCategoryList', 'careActionList', 'careFeedback', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
     'analysisResetBtn', 'pushToggleBtn', 'pushToggleStatus', 'pushToggleFeedback',
@@ -1691,6 +1735,7 @@ function renderAll() {
   syncDeathState();
   renderHud();
   renderSheets();
+  renderGameMenu();
   renderCareSheet();
   renderEventSheet();
   renderAnalysisPanel(true);
@@ -1805,6 +1850,49 @@ function renderSheets() {
   toggleSheet(ui.eventSheet, activeSheet === 'event');
   toggleSheet(ui.dashboardSheet, activeSheet === 'dashboard');
   toggleSheet(ui.diagnosisSheet, activeSheet === 'diagnosis');
+}
+
+function renderGameMenu() {
+  if (!ui.menuBackdrop || !ui.gameMenu || !ui.menuToggleBtn) {
+    return;
+  }
+
+  const menuOpen = state.ui.menuOpen === true;
+  const dialogOpen = state.ui.menuDialogOpen === true;
+
+  ui.menuBackdrop.classList.toggle('hidden', !menuOpen);
+  ui.menuBackdrop.setAttribute('aria-hidden', String(!menuOpen));
+  ui.gameMenu.classList.toggle('hidden', !menuOpen);
+  ui.gameMenu.setAttribute('aria-hidden', String(!menuOpen));
+  ui.menuToggleBtn.setAttribute('aria-expanded', String(menuOpen));
+
+  if (ui.menuDialog) {
+    ui.menuDialog.classList.toggle('hidden', !dialogOpen);
+    ui.menuDialog.setAttribute('aria-hidden', String(!dialogOpen));
+  }
+
+  renderMenuDynamicRows();
+}
+
+function renderMenuDynamicRows() {
+  if (!ui.menuRescueBtn || !ui.menuRescueSubtext || !ui.menuPushBtn || !ui.menuPushStatus) {
+    return;
+  }
+
+  const meta = getCanonicalMeta(state);
+  const rescueUsed = Boolean(meta.rescue.used);
+  const rescueBlocked = rescueAdPending || rescueUsed;
+  ui.menuRescueBtn.disabled = rescueBlocked;
+  ui.menuRescueSubtext.textContent = rescueUsed
+    ? 'Bereits in diesem Run verwendet.'
+    : (meta.rescue.lastResult || 'Einmalige Notfall-Rettung.');
+
+  const notifications = getCanonicalNotificationsSettings(state);
+  const enabled = notifications.enabled === true;
+  ui.menuPushBtn.setAttribute('aria-pressed', String(enabled));
+  ui.menuPushStatus.textContent = notifications.lastMessage
+    ? String(notifications.lastMessage)
+    : (enabled ? 'Aktiviert' : 'Deaktiviert');
 }
 
 function toggleSheet(sheetNode, visible) {
@@ -2292,6 +2380,9 @@ function openSheet(name) {
   if (isPlantDead() && name !== 'dashboard') {
     return;
   }
+  if (state.ui.menuOpen) {
+    closeMenu();
+  }
   state.ui.openSheet = name;
   renderSheets();
 
@@ -2302,6 +2393,86 @@ function openSheet(name) {
   } else if (name === 'care') {
     renderCareSheet(true);
   }
+}
+
+function onMenuToggleClick() {
+  if (state.ui.menuOpen) {
+    closeMenu();
+    return;
+  }
+  openMenu();
+}
+
+function openMenu() {
+  state.ui.openSheet = null;
+  renderSheets();
+  state.ui.menuOpen = true;
+  renderGameMenu();
+}
+
+function closeMenu() {
+  if (state.ui.menuDialogOpen) {
+    closeMenuDialog();
+  }
+  state.ui.menuOpen = false;
+  renderGameMenu();
+}
+
+function openMenuPlaceholder(title, text) {
+  openMenuDialog({
+    title,
+    message: text,
+    cancelLabel: 'Schließen',
+    confirmLabel: '',
+    onConfirm: null
+  });
+}
+
+function onMenuNewRunClick() {
+  openMenuDialog({
+    title: 'Neuen Run starten?',
+    message: 'Deine aktuelle Pflanze wird beendet.',
+    cancelLabel: 'Abbrechen',
+    confirmLabel: 'Neuer Run',
+    onConfirm: async () => {
+      closeMenu();
+      await resetRun();
+    }
+  });
+}
+
+function openMenuDialog({ title, message, cancelLabel = 'Abbrechen', confirmLabel = 'OK', onConfirm = null }) {
+  if (!ui.menuDialogTitle || !ui.menuDialogText || !ui.menuDialogCancelBtn || !ui.menuDialogConfirmBtn) {
+    return;
+  }
+
+  ui.menuDialogTitle.textContent = title;
+  ui.menuDialogText.textContent = message;
+  ui.menuDialogCancelBtn.textContent = cancelLabel;
+  ui.menuDialogConfirmBtn.textContent = confirmLabel;
+
+  menuDialogConfirmHandler = typeof onConfirm === 'function' ? onConfirm : null;
+  ui.menuDialogConfirmBtn.classList.toggle('hidden', menuDialogConfirmHandler === null || !confirmLabel);
+  ui.menuDialogConfirmBtn.onclick = null;
+  if (menuDialogConfirmHandler) {
+    ui.menuDialogConfirmBtn.onclick = async () => {
+      const handler = menuDialogConfirmHandler;
+      closeMenuDialog();
+      await handler();
+    };
+  }
+
+  state.ui.menuDialogOpen = true;
+  renderGameMenu();
+}
+
+function closeMenuDialog() {
+  state.ui.menuDialogOpen = false;
+  menuDialogConfirmHandler = null;
+  if (ui.menuDialogConfirmBtn) {
+    ui.menuDialogConfirmBtn.onclick = null;
+  }
+  renderGameMenu();
 }
 
 function hasSetup() {
@@ -2349,16 +2520,18 @@ function renderDeathOverlay() {
     }
   }
 
-  const meta = getCanonicalMeta(state);
-  const rescueUsed = Boolean(meta.rescue.used);
-  ui.deathRescueBtn.disabled = rescueAdPending || rescueUsed;
-  ui.deathRescueBtn.textContent = rescueUsed
-    ? 'Notfallrettung bereits verwendet'
-    : (rescueAdPending ? 'Werbung läuft…' : 'Notfallrettung (1×) - Werbeunterstützt');
-  ui.deathRescueSubtext.textContent = rescueUsed
-    ? 'Einmal pro Run verfügbar (bereits genutzt)'
-    : 'Einmal pro Run verfügbar';
-  ui.deathRescueFeedback.textContent = meta.rescue.lastResult ? String(meta.rescue.lastResult) : '';
+  if (ui.deathRescueBtn && ui.deathRescueSubtext && ui.deathRescueFeedback) {
+    const meta = getCanonicalMeta(state);
+    const rescueUsed = Boolean(meta.rescue.used);
+    ui.deathRescueBtn.disabled = rescueAdPending || rescueUsed;
+    ui.deathRescueBtn.textContent = rescueUsed
+      ? 'Notfallrettung bereits verwendet'
+      : (rescueAdPending ? 'Werbung läuft…' : 'Notfallrettung (1×) - Werbeunterstützt');
+    ui.deathRescueSubtext.textContent = rescueUsed
+      ? 'Einmal pro Run verfügbar (bereits genutzt)'
+      : 'Einmal pro Run verfügbar';
+    ui.deathRescueFeedback.textContent = meta.rescue.lastResult ? String(meta.rescue.lastResult) : '';
+  }
 }
 
 function collectRecentHistoryEntries(limit = 3) {
@@ -2517,6 +2690,7 @@ async function onPushToggleClick() {
     state.settings.pushNotificationsEnabled = false;
     notifications.lastMessage = 'Benachrichtigungen deaktiviert.';
     renderPushToggle();
+    renderGameMenu();
     schedulePersistState(true);
     return;
   }
@@ -2526,6 +2700,7 @@ async function onPushToggleClick() {
     state.settings.pushNotificationsEnabled = false;
     notifications.lastMessage = 'Benachrichtigungen werden in diesem Browser nicht unterstützt.';
     renderPushToggle();
+    renderGameMenu();
     schedulePersistState(true);
     return;
   }
@@ -2540,6 +2715,7 @@ async function onPushToggleClick() {
     state.settings.pushNotificationsEnabled = false;
     notifications.lastMessage = 'Berechtigung nicht erteilt. Bitte Benachrichtigungen im Browser erlauben.';
     renderPushToggle();
+    renderGameMenu();
     schedulePersistState(true);
     return;
   }
@@ -2549,6 +2725,7 @@ async function onPushToggleClick() {
     state.settings.pushNotificationsEnabled = false;
     notifications.lastMessage = 'Service Worker noch nicht aktiv – bitte einmal normal neu laden.';
     renderPushToggle();
+    renderGameMenu();
     schedulePersistState(true);
     return;
   }
@@ -2557,6 +2734,7 @@ async function onPushToggleClick() {
   state.settings.pushNotificationsEnabled = true;
   notifications.lastMessage = 'Benachrichtigungen aktiviert.';
   renderPushToggle();
+  renderGameMenu();
   schedulePersistState(true);
 }
 
@@ -3398,6 +3576,8 @@ function resetStateToDefaults() {
 
   state.ui = {
     openSheet: null,
+    menuOpen: false,
+    menuDialogOpen: false,
     selectedBackground: 'bg_dark_01.jpg',
     visibleOverlayIds: [],
     deathOverlayOpen: false,
@@ -3594,6 +3774,12 @@ function ensureStateIntegrity(nowMs) {
   const validSheets = new Set([null, 'care', 'event', 'dashboard', 'diagnosis']);
   if (!validSheets.has(state.ui.openSheet)) {
     state.ui.openSheet = null;
+  }
+  if (typeof state.ui.menuOpen !== 'boolean') {
+    state.ui.menuOpen = false;
+  }
+  if (typeof state.ui.menuDialogOpen !== 'boolean') {
+    state.ui.menuDialogOpen = false;
   }
   if (!Array.isArray(state.ui.visibleOverlayIds)) {
     state.ui.visibleOverlayIds = [];
