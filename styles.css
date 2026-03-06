@@ -113,28 +113,95 @@ body::before {
 .hero-card {
   position: relative;
   min-height: 360px;
-  border-radius: 34px;
+  border-radius: 32px;
   border: 1px solid rgba(197, 216, 255, 0.14);
-  background: linear-gradient(160deg, rgba(9, 16, 30, 0.62), rgba(10, 18, 31, 0.4));
   box-shadow: var(--shadow-deep);
-  backdrop-filter: blur(8px);
-  display: grid;
-  grid-template-columns: 1fr 1.24fr 1fr;
-  align-items: center;
-  padding: 1.1rem 0.85rem 1.3rem;
   overflow: hidden;
   animation: rise-in 560ms ease-out both;
 }
 
-.hero-glow {
+.hero-card.main-stage {
+  display: block;
+  padding: 0;
+  background-image: url("/assets/backgrounds/stage_forest_main.webp");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  backdrop-filter: none;
+}
+
+.main-stage {
+  position: relative;
+  min-height: 360px;
+  border-radius: 32px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.main-stage__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url("/assets/backgrounds/stage_forest_main.webp");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+
+.main-stage__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(circle at center 76%, rgba(140, 255, 120, 0.16), transparent 22%),
+    linear-gradient(to bottom, rgba(3, 8, 20, 0.18), rgba(3, 8, 20, 0.32));
+  pointer-events: none;
+}
+
+.main-stage__hud {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.status-ring {
+  position: absolute;
+  pointer-events: auto;
+}
+
+.main-stage .status-ring--health {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+  transform: none;
+}
+
+.main-stage .status-ring--stress {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  left: auto;
+  bottom: auto;
+  margin: 0;
+  transform: none;
+}
+
+.main-stage__plant-wrap {
   position: absolute;
   left: 50%;
-  top: 53%;
-  width: 300px;
-  height: 300px;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(164, 226, 101, 0.35) 0%, rgba(10, 15, 28, 0) 68%);
-  pointer-events: none;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: min(78vw, 310px);
+  display: flex;
+  justify-content: center;
+  align-items: end;
 }
 
 .hero-stack {
@@ -145,21 +212,24 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  justify-self: center;
-  align-self: center;
 }
 
 .hero-stack::after {
   content: "";
   position: absolute;
-  bottom: 4%;
-  left: 16%;
-  width: 68%;
-  height: 12%;
+  bottom: 2%;
+  left: 14%;
+  width: 72%;
+  height: 14%;
   border-radius: 999px;
   background: radial-gradient(circle, rgba(188, 236, 120, 0.5), rgba(188, 236, 120, 0));
   filter: blur(6px);
   pointer-events: none;
+}
+
+.main-stage__plant {
+  width: 100%;
+  height: 100%;
 }
 
 .plant-image {
@@ -883,4 +953,20 @@ body::before {
 .boot-warning-banner {
   border-color: rgba(255, 217, 122, 0.45);
   background: rgba(122, 80, 8, 0.95);
+}
+
+
+/* TEMP DEBUG: visible plant panel + live rings */
+.hero-card.main-stage {
+  outline: 3px solid magenta;
+  box-shadow: 0 0 0 2px cyan inset;
+  background-color: rgba(255, 0, 255, 0.08);
+}
+
+#healthRing {
+  outline: 3px solid lime;
+}
+
+#stressRing {
+  outline: 3px solid red;
 }
