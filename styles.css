@@ -127,6 +127,7 @@ body::before {
   background-size: cover;
   background-position: center bottom;
   background-repeat: no-repeat;
+  background: transparent;
   backdrop-filter: none;
 }
 
@@ -167,6 +168,17 @@ body::before {
   pointer-events: none;
 }
 
+  background: linear-gradient(180deg, rgba(6, 11, 20, 0.2) 0%, rgba(7, 13, 23, 0.56) 100%);
+  pointer-events: none;
+}
+
+.main-stage__hud {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
 .status-ring {
   position: absolute;
   pointer-events: auto;
@@ -190,6 +202,14 @@ body::before {
   bottom: auto;
   margin: 0;
   transform: none;
+.status-ring--health {
+  top: 18px;
+  left: 18px;
+}
+
+.status-ring--stress {
+  top: 18px;
+  right: 18px;
 }
 
 .main-stage__plant-wrap {
@@ -202,6 +222,13 @@ body::before {
   display: flex;
   justify-content: center;
   align-items: end;
+  z-index: 2;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  width: min(78vw, 310px);
 }
 
 .hero-stack {
