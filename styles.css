@@ -115,7 +115,10 @@ body::before {
   min-height: 360px;
   border-radius: 34px;
   border: 1px solid rgba(197, 216, 255, 0.14);
-  background: linear-gradient(160deg, rgba(9, 16, 30, 0.62), rgba(10, 18, 31, 0.4));
+  background-image: url("/assets/backgrounds/stage_forest_main.webp");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
   box-shadow: var(--shadow-deep);
   backdrop-filter: blur(8px);
   display: grid;
@@ -124,6 +127,14 @@ body::before {
   padding: 1.1rem 0.85rem 1.3rem;
   overflow: hidden;
   animation: rise-in 560ms ease-out both;
+}
+
+.hero-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(9, 16, 30, 0.62), rgba(10, 18, 31, 0.4));
+  pointer-events: none;
 }
 
 .hero-glow {
