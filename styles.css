@@ -120,10 +120,7 @@ body::before {
   background-position: center bottom;
   background-repeat: no-repeat;
   box-shadow: var(--shadow-deep);
-  backdrop-filter: blur(8px);
-  display: grid;
-  grid-template-columns: 1fr 1.24fr 1fr;
-  align-items: center;
+  backdrop-filter: blur(4px);
   padding: 1.1rem 0.85rem 1.3rem;
   overflow: hidden;
   animation: rise-in 560ms ease-out both;
@@ -135,6 +132,17 @@ body::before {
   inset: 0;
   background: linear-gradient(160deg, rgba(9, 16, 30, 0.62), rgba(10, 18, 31, 0.4));
   pointer-events: none;
+}
+
+.hero-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 56%, rgba(146, 232, 124, 0.11), rgba(146, 232, 124, 0) 36%),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.32) 100%);
 }
 
 .hero-glow {
@@ -149,27 +157,82 @@ body::before {
 }
 
 .hero-stack {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%) scale(0.82);
+  transform-origin: bottom center;
   width: min(72vw, 282px);
   height: min(72vw, 282px);
-  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  justify-self: center;
-  align-self: center;
+}
+
+#healthRing {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+}
+
+#stressRing {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+.hero-card #healthRing,
+.hero-card #stressRing {
+  transform: scale(0.65);
+  transform-origin: center;
+}
+
+
+#healthRing {
+  box-shadow:
+    0 0 0 1px rgba(152, 217, 127, 0.2),
+    0 8px 20px rgba(22, 38, 29, 0.34),
+    0 0 20px rgba(145, 234, 137, 0.16);
+}
+
+#healthRing::after {
+  border-color: rgba(157, 228, 144, 0.26);
+}
+
+#stressRing {
+  box-shadow:
+    0 0 0 1px rgba(219, 128, 128, 0.22),
+    0 10px 22px rgba(48, 18, 20, 0.4),
+    0 0 16px rgba(235, 110, 118, 0.22);
+}
+
+#stressRing::after {
+  border-color: rgba(236, 126, 134, 0.3);
+}
+
+#stressRing[data-value^="7"]::after,
+#stressRing[data-value^="8"]::after,
+#stressRing[data-value^="9"]::after,
+#stressRing[data-value="100"]::after {
+  animation: stress-alert-pulse 1.8s ease-in-out infinite;
 }
 
 .hero-stack::after {
   content: "";
   position: absolute;
-  bottom: 4%;
-  left: 16%;
-  width: 68%;
-  height: 12%;
+  left: 50%;
+  bottom: -8px;
+  transform: translateX(-50%);
+  width: 132px;
+  height: 38px;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(188, 236, 120, 0.5), rgba(188, 236, 120, 0));
-  filter: blur(6px);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(132, 248, 128, 0.34) 0%,
+    rgba(132, 248, 128, 0.12) 42%,
+    rgba(132, 248, 128, 0) 100%
+  );
+  filter: blur(10px);
   pointer-events: none;
 }
 
@@ -178,7 +241,9 @@ body::before {
   height: 100%;
   object-fit: contain;
   object-position: center center;
-  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.52));
+  filter:
+    drop-shadow(0 16px 28px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 14px rgba(120, 238, 134, 0.1));
   animation: float-soft 3.8s ease-in-out infinite;
 }
 
@@ -246,6 +311,37 @@ body::before {
 
 .ring-mini::after {
   inset: 2px;
+}
+
+
+#waterRing,
+#nutritionRing,
+#growthRing,
+#riskRing {
+  transition: transform 150ms ease, box-shadow 200ms ease;
+  will-change: transform;
+}
+
+#waterRing:hover,
+#nutritionRing:hover,
+#growthRing:hover,
+#riskRing:hover {
+  box-shadow: 0 0 14px rgba(120, 255, 120, 0.16);
+}
+
+#waterRing:active,
+#nutritionRing:active,
+#growthRing:active,
+#riskRing:active {
+  transform: scale(0.94);
+}
+
+.stat-ring--updated {
+  animation: statPulse 340ms ease-out;
+}
+
+.stat-value--updated {
+  animation: statValueFlash 340ms ease-out;
 }
 
 .ring-inner {
@@ -396,6 +492,31 @@ body::before {
   background: linear-gradient(130deg, rgba(140, 195, 93, 0.92), rgba(43, 94, 56, 0.88));
   color: #f4ffe8;
   box-shadow: 0 8px 24px rgba(79, 135, 67, 0.45);
+}
+
+
+#careActionBtn {
+  position: relative;
+  box-shadow:
+    0 8px 24px rgba(79, 135, 67, 0.45),
+    0 0 18px rgba(120, 255, 120, 0.26),
+    inset 0 0 12px rgba(255, 255, 255, 0.08);
+  transition: transform 150ms ease, box-shadow 200ms ease, border-color 180ms ease;
+}
+
+#careActionBtn:hover {
+  box-shadow:
+    0 10px 26px rgba(79, 135, 67, 0.48),
+    0 0 22px rgba(120, 255, 120, 0.32),
+    inset 0 0 14px rgba(255, 255, 255, 0.1);
+}
+
+#careActionBtn:active {
+  transform: scale(0.96);
+  box-shadow:
+    0 7px 18px rgba(79, 135, 67, 0.38),
+    0 0 14px rgba(120, 255, 120, 0.24),
+    inset 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .action-secondary {
@@ -753,6 +874,50 @@ body::before {
 .timeline-meta {
   color: var(--text-muted);
   font-size: 0.68rem;
+}
+
+
+
+@keyframes statPulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  35% {
+    transform: scale(1.04);
+    filter: brightness(1.08);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes statValueFlash {
+  0% {
+    opacity: 1;
+  }
+  35% {
+    opacity: 0.74;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes stress-alert-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(237, 116, 126, 0.22),
+      inset 0 0 0 1px rgba(237, 116, 126, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px rgba(237, 116, 126, 0.08),
+      0 0 14px rgba(237, 116, 126, 0.24),
+      inset 0 0 0 1px rgba(243, 146, 153, 0.28);
+  }
 }
 
 @keyframes rise-in {

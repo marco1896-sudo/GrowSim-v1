@@ -1736,13 +1736,42 @@ function renderHud() {
   renderOverlayVisibility();
 }
 
+const STAT_RING_UPDATE_IDS = new Set(['waterRing', 'nutritionRing', 'growthRing', 'riskRing']);
+const STAT_UPDATE_ANIMATION_MS = 340;
+
+function triggerStatUpdateFeedback(ringNode, textNode) {
+  if (!ringNode || !textNode) {
+    return;
+  }
+
+  ringNode.classList.remove('stat-ring--updated');
+  textNode.classList.remove('stat-value--updated');
+
+  void ringNode.offsetWidth;
+
+  ringNode.classList.add('stat-ring--updated');
+  textNode.classList.add('stat-value--updated');
+
+  clearTimeout(ringNode._statUpdateTimerId);
+  ringNode._statUpdateTimerId = setTimeout(() => {
+    ringNode.classList.remove('stat-ring--updated');
+    textNode.classList.remove('stat-value--updated');
+  }, STAT_UPDATE_ANIMATION_MS);
+}
+
 function setRing(ringNode, textNode, value) {
   const rounded = Math.round(value);
   const roundedText = String(rounded);
+  const previousValueText = ringNode.dataset.value;
+  const valueChanged = previousValueText !== roundedText;
 
-  if (ringNode.dataset.value !== roundedText) {
+  if (valueChanged) {
     ringNode.style.setProperty('--value', roundedText);
     ringNode.dataset.value = roundedText;
+
+    if (STAT_RING_UPDATE_IDS.has(ringNode.id) && previousValueText !== undefined) {
+      triggerStatUpdateFeedback(ringNode, textNode);
+    }
   }
   if (textNode.textContent !== roundedText) {
     textNode.textContent = roundedText;
