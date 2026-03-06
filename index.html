@@ -18,37 +18,32 @@
     </header>
 
     <main class="hud-main">
-      <section class="hero-card main-stage">
-        <div class="main-stage__bg" aria-hidden="true"></div>
-        <div class="main-stage__overlay" aria-hidden="true"></div>
+      <section class="hero-card">
+        <div class="hero-glow" aria-hidden="true"></div>
 
-        <div class="main-stage__hud">
-          <article id="healthRing" class="ring ring-main status-ring status-ring--health" style="--value:85; --ring-color:var(--color-health);">
-            <div class="ring-inner">
-              <span class="ring-label">Gesundheit</span>
-              <strong id="healthValue">85</strong>
-            </div>
-          </article>
-
-          <article id="stressRing" class="ring ring-main status-ring status-ring--stress" style="--value:15; --ring-color:var(--color-stress);">
-            <div class="ring-inner">
-              <span class="ring-label">Stress</span>
-              <strong id="stressValue">15</strong>
-            </div>
-          </article>
-        </div>
-
-        <div class="main-stage__plant-wrap">
-          <div class="hero-stack">
-            <img id="plantImage" class="main-stage__plant plant-image" src="assets/plant/seedling_01.png" alt="Pflanzenstadium">
-            <img id="overlayBurn" class="overlay-image hidden" src="assets/overlays/overlay_burn.png" alt="">
-            <img id="overlayDefMg" class="overlay-image hidden" src="assets/overlays/overlay_def_mg.png" alt="">
-            <img id="overlayDefN" class="overlay-image hidden" src="assets/overlays/overlay_def_n.png" alt="">
-            <img id="overlayMoldWarning" class="overlay-image hidden" src="assets/overlays/overlay_mold_warning.png" alt="">
-            <img id="overlayPestMites" class="overlay-image hidden" src="assets/overlays/overlay_pest_mites.png" alt="">
-            <img id="overlayPestThrips" class="overlay-image hidden" src="assets/overlays/overlay_pest_thrips.png" alt="">
+        <article id="healthRing" class="ring ring-main ring-left" style="--value:85; --ring-color:var(--color-health);">
+          <div class="ring-inner">
+            <span class="ring-label">Gesundheit</span>
+            <strong id="healthValue">85</strong>
           </div>
+        </article>
+
+        <div class="hero-stack">
+          <img id="plantImage" class="plant-image" src="assets/plant/seedling_01.png" alt="Pflanzenstadium">
+          <img id="overlayBurn" class="overlay-image hidden" src="assets/overlays/overlay_burn.png" alt="">
+          <img id="overlayDefMg" class="overlay-image hidden" src="assets/overlays/overlay_def_mg.png" alt="">
+          <img id="overlayDefN" class="overlay-image hidden" src="assets/overlays/overlay_def_n.png" alt="">
+          <img id="overlayMoldWarning" class="overlay-image hidden" src="assets/overlays/overlay_mold_warning.png" alt="">
+          <img id="overlayPestMites" class="overlay-image hidden" src="assets/overlays/overlay_pest_mites.png" alt="">
+          <img id="overlayPestThrips" class="overlay-image hidden" src="assets/overlays/overlay_pest_thrips.png" alt="">
         </div>
+
+        <article id="stressRing" class="ring ring-main ring-right" style="--value:15; --ring-color:var(--color-stress);">
+          <div class="ring-inner">
+            <span class="ring-label">Stress</span>
+            <strong id="stressValue">15</strong>
+          </div>
+        </article>
       </section>
 
       <section class="info-bar">

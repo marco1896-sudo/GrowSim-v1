@@ -113,69 +113,28 @@ body::before {
 .hero-card {
   position: relative;
   min-height: 360px;
-  border-radius: 32px;
+  border-radius: 34px;
   border: 1px solid rgba(197, 216, 255, 0.14);
+  background: linear-gradient(160deg, rgba(9, 16, 30, 0.62), rgba(10, 18, 31, 0.4));
   box-shadow: var(--shadow-deep);
+  backdrop-filter: blur(8px);
+  display: grid;
+  grid-template-columns: 1fr 1.24fr 1fr;
+  align-items: center;
+  padding: 1.1rem 0.85rem 1.3rem;
   overflow: hidden;
   animation: rise-in 560ms ease-out both;
 }
 
-.main-stage {
-  position: relative;
-  min-height: 360px;
-  border-radius: 32px;
-  overflow: hidden;
-}
-
-.main-stage__bg {
+.hero-glow {
   position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image: url("/assets/backgrounds/stage_forest_main.webp");
-  background-size: cover;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-}
-
-.main-stage__overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(180deg, rgba(6, 11, 20, 0.2) 0%, rgba(7, 13, 23, 0.56) 100%);
-  pointer-events: none;
-}
-
-.main-stage__hud {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-}
-
-.status-ring {
-  position: absolute;
-  pointer-events: auto;
-}
-
-.status-ring--health {
-  top: 18px;
-  left: 18px;
-}
-
-.status-ring--stress {
-  top: 18px;
-  right: 18px;
-}
-
-.main-stage__plant-wrap {
-  position: absolute;
-  z-index: 2;
   left: 50%;
-  bottom: 28px;
-  transform: translateX(-50%);
-  display: flex;
-  justify-content: center;
-  width: min(78vw, 310px);
+  top: 53%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(164, 226, 101, 0.35) 0%, rgba(10, 15, 28, 0) 68%);
+  pointer-events: none;
 }
 
 .hero-stack {
@@ -186,15 +145,17 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
+  justify-self: center;
+  align-self: center;
 }
 
 .hero-stack::after {
   content: "";
   position: absolute;
-  bottom: 2%;
-  left: 14%;
-  width: 72%;
-  height: 14%;
+  bottom: 4%;
+  left: 16%;
+  width: 68%;
+  height: 12%;
   border-radius: 999px;
   background: radial-gradient(circle, rgba(188, 236, 120, 0.5), rgba(188, 236, 120, 0));
   filter: blur(6px);
