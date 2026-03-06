@@ -120,19 +120,11 @@ body::before {
   animation: rise-in 560ms ease-out both;
 }
 
-.hero-card.main-stage {
-  display: block;
-  padding: 0;
-  background: transparent;
-  backdrop-filter: none;
-}
-
 .main-stage {
   position: relative;
   min-height: 360px;
   border-radius: 32px;
   overflow: hidden;
-  isolation: isolate;
 }
 
 .main-stage__bg {
@@ -149,21 +141,6 @@ body::before {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background:
-    radial-gradient(circle at center 76%, rgba(140, 255, 120, 0.16), transparent 22%),
-    linear-gradient(to bottom, rgba(3, 8, 20, 0.18), rgba(3, 8, 20, 0.32));
-  pointer-events: none;
-}
-
-.main-stage__hud {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
   background: linear-gradient(180deg, rgba(6, 11, 20, 0.2) 0%, rgba(7, 13, 23, 0.56) 100%);
   pointer-events: none;
 }
@@ -192,14 +169,6 @@ body::before {
 
 .main-stage__plant-wrap {
   position: absolute;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%);
-  z-index: 2;
-  width: min(78vw, 310px);
-  display: flex;
-  justify-content: center;
-  align-items: end;
   z-index: 2;
   left: 50%;
   bottom: 28px;
@@ -230,11 +199,6 @@ body::before {
   background: radial-gradient(circle, rgba(188, 236, 120, 0.5), rgba(188, 236, 120, 0));
   filter: blur(6px);
   pointer-events: none;
-}
-
-.main-stage__plant {
-  width: 100%;
-  height: 100%;
 }
 
 .plant-image {
