@@ -123,6 +123,10 @@ body::before {
 .hero-card.main-stage {
   display: block;
   padding: 0;
+  background-image: url("/assets/backgrounds/stage_forest_main.webp");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
   background: transparent;
   backdrop-filter: none;
 }
@@ -164,6 +168,18 @@ body::before {
   pointer-events: none;
 }
 
+  pointer-events: none;
+}
+
+.main-stage__hud {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
   background: linear-gradient(180deg, rgba(6, 11, 20, 0.2) 0%, rgba(7, 13, 23, 0.56) 100%);
   pointer-events: none;
 }
@@ -180,6 +196,24 @@ body::before {
   pointer-events: auto;
 }
 
+.main-stage .status-ring--health {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+  transform: none;
+}
+
+.main-stage .status-ring--stress {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  left: auto;
+  bottom: auto;
+  margin: 0;
+  transform: none;
 .status-ring--health {
   top: 18px;
   left: 18px;
@@ -958,4 +992,20 @@ body::before {
 .boot-warning-banner {
   border-color: rgba(255, 217, 122, 0.45);
   background: rgba(122, 80, 8, 0.95);
+}
+
+
+/* TEMP DEBUG: visible plant panel + live rings */
+.hero-card.main-stage {
+  outline: 3px solid magenta;
+  box-shadow: 0 0 0 2px cyan inset;
+  background-color: rgba(255, 0, 255, 0.08);
+}
+
+#healthRing {
+  outline: 3px solid lime;
+}
+
+#stressRing {
+  outline: 3px solid red;
 }
