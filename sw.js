@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'growsim-v1-20260306-stagefix';
+const CACHE_VERSION = 'growsim-v1-20260305';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const BASE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
@@ -18,8 +18,7 @@ const APP_SHELL_FILES = [
   appPath('icons/icon-192.png'),
   appPath('icons/icon-512.png'),
   appPath('assets/backgrounds/bg_dark_01.jpg'),
-  appPath('assets/backgrounds/bg_dark_02.jpg'),
-  appPath('assets/backgrounds/stage_forest_main.webp')
+  appPath('assets/backgrounds/bg_dark_02.jpg')
 ];
 
 self.addEventListener('install', (event) => {
