@@ -160,7 +160,7 @@ const state = {
   plant: {
     phase: 'seedling',
     isDead: false,
-    stageIndex: 1,
+    stageIndex: 0,
     stageKey: 'stage_01',
     stageProgress: 0,
     stageStartSimDay: 0,
@@ -735,6 +735,8 @@ function applyStatusDrift(elapsedMs) {
 }
 
 function advanceGrowthTick(elapsedSimMs) {
+  const prevGrowth = Number(state.status.growth) || 0;
+
   if (isPlantDead()) {
     state.plant.isDead = true;
     state.plant.stageProgress = 1;
@@ -758,6 +760,20 @@ function advanceGrowthTick(elapsedSimMs) {
 
   state.plant.stageProgress = computeStageProgress(simDay, state.plant.stageIndex);
   state.status.growth = round2(computeGrowthPercent());
+
+  if (state.debug.enabled && state.debug.showInternalTicks && state.simulation.tickCount % CONFIG.logTickEveryNTicks === 0) {
+    console.debug('[growth]', {
+      tick: state.simulation.tickCount,
+      simTimeMs: state.simulation.simTimeMs,
+      oldGrowth: round2(prevGrowth),
+      newGrowth: state.status.growth,
+      water: round2(state.status.water),
+      nutrients: round2(state.status.nutrition),
+      stress: round2(state.status.stress),
+      risk: round2(state.status.risk),
+      eventActive: state.events.machineState === 'activeEvent'
+    });
+  }
 }
 
 function canAdvanceToStage(targetStageIndex, simDay) {
@@ -3305,7 +3321,7 @@ function migrateLegacyStateIntoCanonical(saved, targetState) {
       ...plant,
       phase: String(saved.growth.phase || plant.phase),
       isDead: Boolean(saved.growth.isDead),
-      stageIndex: clampInt(Number(saved.growth.stageIndex || 0) + 1, 1, STAGE_DEFS.length),
+      stageIndex: clampInt(Number(saved.growth.stageIndex || 0), 0, STAGE_DEFS.length - 1),
       stageKey: String(saved.growth.stageName || plant.stageKey),
       stageProgress: clamp(Number(saved.growth.stageProgress || 0), 0, 1),
       lastValidStageKey: String(saved.growth.lastValidStageName || plant.lastValidStageKey),
@@ -3485,7 +3501,7 @@ function resetStateToDefaults() {
   state.plant = {
     phase: 'seedling',
     isDead: false,
-    stageIndex: 1,
+    stageIndex: 0,
     stageKey: 'stage_01',
     stageProgress: 0,
     stageStartSimDay: 0,
