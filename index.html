@@ -13,7 +13,17 @@
 <body>
   <div id="app-hud" class="app-hud">
     <header class="top-row">
-      <span id="statusPill" class="pill status-pill">Phase: Keimling</span>
+      <article id="phaseCard" class="phase-card" aria-live="polite">
+        <div class="phase-card-head">
+          <strong id="phaseCardTitle" class="phase-card-title">Keimling</strong>
+          <span id="phaseCardCycle" class="phase-card-cycle">Tag</span>
+        </div>
+        <p id="phaseCardSubtitle" class="phase-card-subtitle">0% bis Vegetationsphase</p>
+        <div class="phase-progress" role="progressbar" aria-label="Fortschritt in aktueller Phase" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span id="phaseProgressFill" class="phase-progress-fill"></span>
+          <span id="phaseProgressMarker" class="phase-progress-marker" aria-hidden="true"></span>
+        </div>
+      </article>
       <div class="top-row-actions">
         <span class="pill pro-pill">Pro</span>
         <button id="menuToggleBtn" class="menu-toggle-btn" type="button" aria-label="Menü öffnen" aria-haspopup="dialog" aria-expanded="false">☰</button>
