@@ -57,24 +57,35 @@ const EVENTS_CATALOG_VERSION = '20260301-de';
 const ACTIONS_CATALOG_VERSION = '20260304-v1';
 const VAPID_PUBLIC_KEY = 'BElxPLACEHOLDERp8v2C4CwY6ofqP5E8v2rFjQvqW8g4bW2-v8JvKc-l7dXXn4N1xqjY7PqFhL3O8m4jzWzI8v7jA';
 
-const TOTAL_LIFECYCLE_SIM_DAYS = 56;
-const GROWTH_TARGET_SIM_DAYS = 7;
+const REAL_RUN_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const TOTAL_LIFECYCLE_SIM_DAYS = 88;
 const SIM_DAY_MS = 24 * 60 * 60 * 1000;
-const GROWTH_TARGET_SIM_MS = GROWTH_TARGET_SIM_DAYS * SIM_DAY_MS;
+const TOTAL_LIFECYCLE_SIM_MS = TOTAL_LIFECYCLE_SIM_DAYS * SIM_DAY_MS;
 
 const STAGE_DEFS = Object.freeze([
   Object.freeze({ index: 0, id: 'germination', label: 'Keimung', simDayStart: 0, phase: 'seedling', minHealth: 30, maxStress: 85 }),
-  Object.freeze({ index: 1, id: 'seedling', label: 'Keimling', simDayStart: 2, phase: 'seedling', minHealth: 35, maxStress: 80 }),
-  Object.freeze({ index: 2, id: 'early_vegetative', label: 'Frühe Vegetationsphase', simDayStart: 5, phase: 'vegetative', minHealth: 40, maxStress: 75 }),
-  Object.freeze({ index: 3, id: 'vegetative', label: 'Vegetationsphase', simDayStart: 10, phase: 'vegetative', minHealth: 42, maxStress: 72 }),
-  Object.freeze({ index: 4, id: 'late_vegetative', label: 'Späte Vegetationsphase', simDayStart: 15, phase: 'vegetative', minHealth: 45, maxStress: 70 }),
-  Object.freeze({ index: 5, id: 'pre_flower', label: 'Vorblüte', simDayStart: 20, phase: 'vegetative', minHealth: 48, maxStress: 65 }),
-  Object.freeze({ index: 6, id: 'stretch', label: 'Streckphase', simDayStart: 25, phase: 'flowering', minHealth: 50, maxStress: 60 }),
-  Object.freeze({ index: 7, id: 'early_flower', label: 'Frühe Blüte', simDayStart: 30, phase: 'flowering', minHealth: 52, maxStress: 58 }),
-  Object.freeze({ index: 8, id: 'flower', label: 'Blüte', simDayStart: 36, phase: 'flowering', minHealth: 54, maxStress: 55 }),
-  Object.freeze({ index: 9, id: 'late_flower', label: 'Späte Blüte', simDayStart: 42, phase: 'flowering', minHealth: 55, maxStress: 52 }),
-  Object.freeze({ index: 10, id: 'ripening', label: 'Reife', simDayStart: 48, phase: 'harvest', minHealth: 56, maxStress: 50 }),
-  Object.freeze({ index: 11, id: 'harvest_ready', label: 'Erntereif', simDayStart: 54, phase: 'harvest', minHealth: 0, maxStress: 100 })
+  Object.freeze({ index: 1, id: 'seedling', label: 'Keimling', simDayStart: 3, phase: 'seedling', minHealth: 35, maxStress: 80 }),
+  Object.freeze({ index: 2, id: 'early_vegetative', label: 'Frühe Vegetationsphase', simDayStart: 8, phase: 'vegetative', minHealth: 40, maxStress: 75 }),
+  Object.freeze({ index: 3, id: 'vegetative', label: 'Vegetationsphase', simDayStart: 16, phase: 'vegetative', minHealth: 42, maxStress: 72 }),
+  Object.freeze({ index: 4, id: 'late_vegetative', label: 'Späte Vegetationsphase', simDayStart: 24, phase: 'vegetative', minHealth: 45, maxStress: 70 }),
+  Object.freeze({ index: 5, id: 'pre_flower', label: 'Vorblüte', simDayStart: 31, phase: 'vegetative', minHealth: 48, maxStress: 65 }),
+  Object.freeze({ index: 6, id: 'stretch', label: 'Streckphase', simDayStart: 39, phase: 'flowering', minHealth: 50, maxStress: 60 }),
+  Object.freeze({ index: 7, id: 'early_flower', label: 'Frühe Blüte', simDayStart: 47, phase: 'flowering', minHealth: 52, maxStress: 58 }),
+  Object.freeze({ index: 8, id: 'flower', label: 'Blüte', simDayStart: 57, phase: 'flowering', minHealth: 54, maxStress: 55 }),
+  Object.freeze({ index: 9, id: 'late_flower', label: 'Späte Blüte', simDayStart: 66, phase: 'flowering', minHealth: 55, maxStress: 52 }),
+  Object.freeze({ index: 10, id: 'ripening', label: 'Reife', simDayStart: 75, phase: 'harvest', minHealth: 56, maxStress: 50 }),
+  Object.freeze({ index: 11, id: 'harvest_ready', label: 'Erntereif', simDayStart: 84, phase: 'harvest', minHealth: 0, maxStress: 100 })
+]);
+
+const DEFAULT_STAGE_TIMELINE = Object.freeze([
+  Object.freeze({ id: 'germination_seedling', label: 'Keimung / Sämling', phase: 'seedling', simDayStart: 0 }),
+  Object.freeze({ id: 'early_vegetative', label: 'Frühe Vegetation', phase: 'vegetative', simDayStart: 4 }),
+  Object.freeze({ id: 'mid_vegetative', label: 'Mittlere Vegetation', phase: 'vegetative', simDayStart: 14 }),
+  Object.freeze({ id: 'late_vegetative_preflower', label: 'Späte Vegetation / Vorblüte', phase: 'vegetative', simDayStart: 28 }),
+  Object.freeze({ id: 'early_flower', label: 'Frühe Blüte', phase: 'flowering', simDayStart: 38 }),
+  Object.freeze({ id: 'mid_flower', label: 'Mittlere Blüte', phase: 'flowering', simDayStart: 52 }),
+  Object.freeze({ id: 'late_flower_ripe', label: 'Späte Blüte / Reife', phase: 'flowering', simDayStart: 68 }),
+  Object.freeze({ id: 'finish', label: 'Reife / Finish', phase: 'harvest', simDayStart: 82 })
 ]);
 
 const STAGE_ASSET_FALLBACK = Object.freeze({
@@ -141,7 +152,7 @@ const state = {
   },
   simulation: {
     nowMs: now,
-    startRealTimeMs: initialSimTimeMs,
+    startRealTimeMs: now,
     lastTickRealTimeMs: now,
     simTimeMs: initialSimTimeMs,
     simEpochMs: initialSimTimeMs,
@@ -651,9 +662,11 @@ function tick() {
 
 function applySimulationDelta(elapsedRealMs, nowMs) {
   const safeElapsedRealMs = Number.isFinite(elapsedRealMs) && elapsedRealMs > 0 ? elapsedRealMs : 0;
-  const elapsedSimMs = safeElapsedRealMs * state.simulation.timeCompression;
+  const plantTime = getPlantTimeFromElapsed(nowMs);
+  const previousSimTimeMs = Number(state.simulation.simTimeMs) || Number(state.simulation.simEpochMs) || plantTime.simTimeMs;
+  const elapsedSimMs = Math.max(0, plantTime.simTimeMs - previousSimTimeMs);
 
-  state.simulation.simTimeMs += elapsedSimMs;
+  state.simulation.simTimeMs = plantTime.simTimeMs;
   state.simulation.isDaytime = isDaytimeAtSimTime(state.simulation.simTimeMs);
   state.simulation.lastTickRealTimeMs = nowMs;
 
@@ -786,14 +799,14 @@ function advanceGrowthTick(elapsedSimMs) {
   updateQualityTier();
 
   const simDay = simDayFloat();
-  const nextStageIndex = state.plant.stageIndex + 1;
+  const stage = getCurrentStage(simDay);
 
-  if (nextStageIndex < STAGE_DEFS.length && canAdvanceToStage(nextStageIndex, simDay)) {
-    setGrowthStageIndex(nextStageIndex);
-  }
-
-  state.plant.stageProgress = computeStageProgress(simDay, state.plant.stageIndex);
-  state.status.growth = round2(computeGrowthPercent());
+  state.plant.stageIndex = stage.stageIndex;
+  state.plant.phase = stage.current.phase;
+  state.plant.stageKey = stageAssetKeyForIndex(stage.stageIndex);
+  state.plant.lastValidStageKey = state.plant.stageKey;
+  state.plant.stageProgress = stage.progressInPhase;
+  state.status.growth = round2(computeGrowthPercent(state.simulation.nowMs));
 
   if (state.debug.enabled && state.debug.showInternalTicks && state.simulation.tickCount % CONFIG.logTickEveryNTicks === 0) {
     console.debug('[growth]', {
@@ -884,70 +897,135 @@ function syncDeathState() {
   return true;
 }
 
-function computeGrowthPercent() {
+function getElapsedRealMsSinceRunStart(nowMs) {
+  const startMs = Number(state.simulation.startRealTimeMs);
+  const safeStartMs = Number.isFinite(startMs) ? startMs : nowMs;
+  return clamp(nowMs - safeStartMs, 0, REAL_RUN_DURATION_MS);
+}
+
+function getTotalRunProgress(nowMs) {
+  return clamp(getElapsedRealMsSinceRunStart(nowMs) / REAL_RUN_DURATION_MS, 0, 1);
+}
+
+function getPlantTimeFromElapsed(nowMs) {
+  const totalRunProgress = getTotalRunProgress(nowMs);
+  const elapsedPlantMs = totalRunProgress * TOTAL_LIFECYCLE_SIM_MS;
+  const simTimeMs = Number(state.simulation.simEpochMs) + elapsedPlantMs;
+
+  return {
+    totalRunProgress,
+    elapsedPlantMs,
+    simTimeMs,
+    simDay: clamp(elapsedPlantMs / SIM_DAY_MS, 0, TOTAL_LIFECYCLE_SIM_DAYS)
+  };
+}
+
+function getStageTimeline() {
+  const source = Array.isArray(STAGE_DEFS) && STAGE_DEFS.length >= 2 ? STAGE_DEFS : DEFAULT_STAGE_TIMELINE;
+  const cleaned = [];
+
+  for (let i = 0; i < source.length; i += 1) {
+    const item = source[i] || {};
+    const rawStart = Number(item.simDayStart);
+    const simDayStart = Number.isFinite(rawStart) ? rawStart : NaN;
+    if (!Number.isFinite(simDayStart)) {
+      continue;
+    }
+    cleaned.push({
+      index: cleaned.length,
+      id: typeof item.id === 'string' && item.id ? item.id : `stage_${i + 1}`,
+      label: typeof item.label === 'string' && item.label ? item.label : `Phase ${i + 1}`,
+      phase: typeof item.phase === 'string' && item.phase ? item.phase : 'vegetative',
+      simDayStart: clamp(simDayStart, 0, TOTAL_LIFECYCLE_SIM_DAYS)
+    });
+  }
+
+  cleaned.sort((a, b) => a.simDayStart - b.simDayStart);
+  const strictlyIncreasing = cleaned.length >= 2
+    && cleaned[0].simDayStart === 0
+    && cleaned.every((stage, idx) => idx === 0 || stage.simDayStart > cleaned[idx - 1].simDayStart);
+
+  return strictlyIncreasing ? cleaned : DEFAULT_STAGE_TIMELINE;
+}
+
+function getCurrentStage(simDay) {
+  const timeline = getStageTimeline();
+  const safeDay = clamp(Number(simDay) || 0, 0, TOTAL_LIFECYCLE_SIM_DAYS);
+
+  let currentIndex = timeline.length - 1;
+  for (let i = 0; i < timeline.length; i += 1) {
+    const current = timeline[i];
+    const next = timeline[i + 1];
+    const endDay = next ? next.simDayStart : TOTAL_LIFECYCLE_SIM_DAYS;
+    if (safeDay >= current.simDayStart && safeDay < endDay) {
+      currentIndex = i;
+      break;
+    }
+  }
+
+  const current = timeline[currentIndex] || timeline[0];
+  const next = timeline[currentIndex + 1] || null;
+  const startDay = current ? current.simDayStart : 0;
+  const endDay = next ? next.simDayStart : TOTAL_LIFECYCLE_SIM_DAYS;
+  const span = Math.max(0.25, endDay - startDay);
+  const progressInPhase = clamp((safeDay - startDay) / span, 0, 1);
+
+  return {
+    timeline,
+    stageIndex: currentIndex,
+    current,
+    next,
+    startDay,
+    endDay,
+    progressInPhase
+  };
+}
+
+function computeGrowthPercent(nowMs = Date.now()) {
   if (state.plant.phase === 'dead') {
     return 0;
   }
-  return computeGrowthFromElapsed(Math.max(0, state.simulation.simTimeMs - state.simulation.simEpochMs));
-}
-
-function computeGrowthFromElapsed(elapsedSimMs) {
-  const safeElapsedMs = Number.isFinite(elapsedSimMs) ? elapsedSimMs : 0;
-  return clamp((safeElapsedMs / GROWTH_TARGET_SIM_MS) * 100, 0, 100);
+  return round2(getTotalRunProgress(nowMs) * 100);
 }
 
 function computeStageProgress(simDay, stageIndex) {
-  const current = STAGE_DEFS[clampInt(stageIndex, 0, STAGE_DEFS.length - 1)];
-  const next = STAGE_DEFS[Math.min(STAGE_DEFS.length - 1, stageIndex + 1)];
-
-  if (!current || !next || current.index === next.index) {
-    return simDay >= TOTAL_LIFECYCLE_SIM_DAYS ? 1 : 0;
+  const snapshot = getCurrentStage(simDay);
+  if (clampInt(stageIndex, 0, snapshot.timeline.length - 1) !== snapshot.stageIndex) {
+    return snapshot.progressInPhase;
   }
-
-  const startDay = current.simDayStart + deterministicStageDelayDays(current.index);
-  const endDay = next.simDayStart + deterministicStageDelayDays(next.index);
-  const span = Math.max(0.25, endDay - startDay);
-  return clamp((simDay - startDay) / span, 0, 1);
+  return snapshot.progressInPhase;
 }
 
 function getPhaseCardViewModel() {
-  const safeStageIndex = clampInt(Number(state.plant.stageIndex) || 0, 0, STAGE_DEFS.length - 1);
-  const currentStage = STAGE_DEFS[safeStageIndex] || STAGE_DEFS[0];
-  const nextStage = STAGE_DEFS[safeStageIndex + 1] || null;
-
   const isDead = state.plant.phase === 'dead' || state.plant.isDead === true;
+  const stage = getCurrentStage(simDayFloat());
   const fallbackPhaseLabel = PHASE_LABEL_DE[state.plant.phase] || PHASE_LABEL_DE.seedling;
-  const currentLabel = currentStage && currentStage.label ? currentStage.label : fallbackPhaseLabel;
-
-  let progressUnit = Number(state.plant.stageProgress);
-  if (!Number.isFinite(progressUnit)) {
-    progressUnit = computeStageProgress(simDayFloat(), safeStageIndex);
-  }
-  const progressPercent = clamp(Math.round(clamp(progressUnit, 0, 1) * 100), 0, 100);
+  const title = stage.current && stage.current.label ? stage.current.label : fallbackPhaseLabel;
+  const progressPercent = clamp(Math.round(stage.progressInPhase * 100), 0, 100);
 
   if (isDead) {
     return {
-      title: currentLabel,
+      title,
       subtitle: 'Pflanze eingegangen',
       progressPercent: 100,
       nextLabel: null
     };
   }
 
-  if (!nextStage || nextStage.index === safeStageIndex) {
+  if (!stage.next) {
     return {
-      title: currentLabel,
-      subtitle: 'Finale Phase erreicht',
-      progressPercent: 100,
-      nextLabel: null
+      title,
+      subtitle: progressPercent >= 100 ? 'Finish läuft' : `${progressPercent}% bis Ernte`,
+      progressPercent,
+      nextLabel: 'Ernte'
     };
   }
 
   return {
-    title: currentLabel,
-    subtitle: `${progressPercent}% bis ${nextStage.label}`,
+    title,
+    subtitle: `${progressPercent}% bis ${stage.next.label}`,
     progressPercent,
-    nextLabel: nextStage.label
+    nextLabel: stage.next.label
   };
 }
 
@@ -1356,10 +1434,20 @@ function setGrowthFromPercent(percent) {
     return;
   }
 
-  const units = clamp((percent / 100) * STAGE_DEFS.length, 0, STAGE_DEFS.length);
-  const stageIndex = Math.min(STAGE_DEFS.length - 1, Math.floor(units));
-  setGrowthStageIndex(stageIndex);
-  state.plant.stageProgress = clamp(units - stageIndex, 0, 1);
+  const targetProgress = clamp(Number(percent) / 100, 0, 1);
+  const nowMs = Date.now();
+  state.simulation.startRealTimeMs = nowMs - (targetProgress * REAL_RUN_DURATION_MS);
+
+  const plantTime = getPlantTimeFromElapsed(nowMs);
+  state.simulation.simTimeMs = plantTime.simTimeMs;
+  state.simulation.lastTickRealTimeMs = nowMs;
+
+  const stage = getCurrentStage(plantTime.simDay);
+  state.plant.stageIndex = stage.stageIndex;
+  state.plant.phase = stage.current.phase;
+  state.plant.stageKey = stageAssetKeyForIndex(stage.stageIndex);
+  state.plant.lastValidStageKey = state.plant.stageKey;
+  state.plant.stageProgress = stage.progressInPhase;
 }
 
 function enterEventCooldown(nowMs) {
@@ -1771,7 +1859,7 @@ function nextDaytimeRealMs(realNowMs, simTimeMs) {
 
   shifted.setHours(SIM_DAY_START_HOUR, 0, 0, 0);
   const simDeltaMs = Math.max(0, shifted.getTime() - simTimeMs);
-  const realDeltaMs = Math.ceil(simDeltaMs / state.simulation.timeCompression);
+  const realDeltaMs = Math.ceil(simDeltaMs * (REAL_RUN_DURATION_MS / TOTAL_LIFECYCLE_SIM_MS));
   return realNowMs + realDeltaMs;
 }
 
@@ -2691,14 +2779,26 @@ function formatRecentHistoryHtml(row) {
 }
 
 function onStartRun() {
+  const nowMs = Date.now();
   state.setup = {
     mode: ui.setupMode.value || 'indoor',
     light: ui.setupLight.value || 'medium',
     medium: ui.setupMedium.value || 'soil',
     potSize: ui.setupPotSize.value || 'medium',
     genetics: ui.setupGenetics.value || 'auto',
-    createdAtReal: Date.now()
+    createdAtReal: nowMs
   };
+
+  state.simulation.startRealTimeMs = nowMs;
+  state.simulation.lastTickRealTimeMs = nowMs;
+  state.simulation.simEpochMs = alignToSimStartHour(nowMs, SIM_START_HOUR);
+  state.simulation.simTimeMs = state.simulation.simEpochMs;
+  state.status.growth = 0;
+  state.plant.stageIndex = 0;
+  state.plant.stageProgress = 0;
+  state.plant.phase = getCurrentStage(0).current.phase;
+  state.plant.stageKey = stageAssetKeyForIndex(0);
+  state.plant.lastValidStageKey = state.plant.stageKey;
 
   syncCanonicalStateShape();
   renderLanding();
@@ -3175,7 +3275,7 @@ function getCanonicalSimulation(snapshot) {
 
   const nowMs = Date.now();
   if (!Number.isFinite(s.simulation.nowMs)) s.simulation.nowMs = nowMs;
-  if (!Number.isFinite(s.simulation.startRealTimeMs)) s.simulation.startRealTimeMs = alignToSimStartHour(nowMs, SIM_START_HOUR);
+  if (!Number.isFinite(s.simulation.startRealTimeMs)) s.simulation.startRealTimeMs = nowMs;
   if (!Number.isFinite(s.simulation.lastTickRealTimeMs)) s.simulation.lastTickRealTimeMs = nowMs;
   if (!Number.isFinite(s.simulation.simTimeMs)) s.simulation.simTimeMs = alignToSimStartHour(nowMs, SIM_START_HOUR);
   if (!Number.isFinite(s.simulation.simEpochMs)) s.simulation.simEpochMs = s.simulation.startRealTimeMs;
@@ -3204,7 +3304,7 @@ function getCanonicalPlant(snapshot) {
 
   if (typeof s.plant.phase !== 'string') s.plant.phase = 'seedling';
   if (typeof s.plant.isDead !== 'boolean') s.plant.isDead = false;
-  if (!Number.isFinite(s.plant.stageIndex)) s.plant.stageIndex = 1;
+  if (!Number.isFinite(s.plant.stageIndex)) s.plant.stageIndex = 0;
   if (typeof s.plant.stageKey !== 'string') s.plant.stageKey = 'stage_01';
   if (!Number.isFinite(s.plant.stageProgress)) s.plant.stageProgress = 0;
   if (!Number.isFinite(s.plant.stageStartSimDay)) s.plant.stageStartSimDay = 0;
@@ -3428,7 +3528,7 @@ function migrateLegacyStateIntoCanonical(saved, targetState) {
     targetState.simulation = {
       ...sim,
       ...saved.sim,
-      startRealTimeMs: Number(saved.sim.simEpochMs || sim.startRealTimeMs),
+      startRealTimeMs: Number(saved.sim.startRealTimeMs || saved.sim.simEpochMs || sim.startRealTimeMs),
       lastTickRealTimeMs: Number(saved.sim.lastTickAtMs || sim.lastTickRealTimeMs),
       simEpochMs: Number(saved.sim.simEpochMs || sim.simEpochMs),
       tickIntervalMs: Number(saved.sim.tickIntervalMs || sim.tickIntervalMs),
@@ -3442,7 +3542,7 @@ function migrateLegacyStateIntoCanonical(saved, targetState) {
       ...plant,
       phase: String(saved.growth.phase || plant.phase),
       isDead: Boolean(saved.growth.isDead),
-      stageIndex: clampInt(Number(saved.growth.stageIndex || 0), 0, STAGE_DEFS.length - 1),
+      stageIndex: clampInt(Number(saved.growth.stageIndex || 0), 0, Math.max(0, getStageTimeline().length - 1)),
       stageKey: String(saved.growth.stageName || plant.stageKey),
       stageProgress: clamp(Number(saved.growth.stageProgress || 0), 0, 1),
       lastValidStageKey: String(saved.growth.lastValidStageName || plant.lastValidStageKey),
@@ -3600,7 +3700,7 @@ function resetStateToDefaults() {
 
   state.simulation = {
     nowMs: fallbackNow,
-    startRealTimeMs: fallbackSimStart,
+    startRealTimeMs: fallbackNow,
     lastTickRealTimeMs: fallbackNow,
     simTimeMs: fallbackSimStart,
     simEpochMs: fallbackSimStart,
@@ -3775,11 +3875,11 @@ function ensureStateIntegrity(nowMs) {
   state.plant.isDead = deadRequested;
 
   if (!deadRequested) {
-    state.plant.stageIndex = clampInt(state.plant.stageIndex, 0, STAGE_DEFS.length - 1);
+    state.plant.stageIndex = clampInt(state.plant.stageIndex, 0, Math.max(0, getStageTimeline().length - 1));
     state.plant.stageProgress = clamp(state.plant.stageProgress, 0, 1);
     state.plant.stageKey = normalizeStageKey(stageAssetKeyForIndex(state.plant.stageIndex));
     state.plant.lastValidStageKey = state.plant.stageKey;
-    state.plant.phase = STAGE_DEFS[state.plant.stageIndex].phase;
+    state.plant.phase = getStageTimeline()[state.plant.stageIndex]?.phase || 'seedling';
   } else {
     state.plant.phase = 'dead';
     state.plant.stageKey = normalizeStageKey(state.plant.lastValidStageKey || 'stage_01');
@@ -3968,7 +4068,7 @@ function syncCanonicalStateShape() {
   sim.dayWindow = { startHour: SIM_DAY_START_HOUR, endHour: SIM_NIGHT_START_HOUR };
   sim.isDaytime = isDaytimeAtSimTime(sim.simTimeMs);
 
-  plant.stageStartSimDay = STAGE_DEFS[Math.max(0, plant.stageIndex - 1)]?.simDayStart || 0;
+  plant.stageStartSimDay = getStageTimeline()[Math.max(0, plant.stageIndex)]?.simDayStart || 0;
   plant.lifecycle = {
     ...plant.lifecycle,
     totalSimDays: TOTAL_LIFECYCLE_SIM_DAYS,
@@ -4102,8 +4202,8 @@ function applyRescueEffects() {
     state.status.growth = before.growth < 5 ? 5 : before.growth;
     state.plant.isDead = false;
     if (state.plant.phase === 'dead') {
-      const safeIndex = clampInt(Number(state.plant.stageIndex) || 0, 0, STAGE_DEFS.length - 1);
-      state.plant.phase = STAGE_DEFS[safeIndex].phase;
+      const safeIndex = clampInt(Number(state.plant.stageIndex) || 0, 0, Math.max(0, getStageTimeline().length - 1));
+      state.plant.phase = getStageTimeline()[safeIndex]?.phase || 'seedling';
     }
     state.ui.deathOverlayOpen = false;
     state.ui.deathOverlayAcknowledged = true;
