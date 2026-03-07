@@ -58,7 +58,9 @@ const ACTIONS_CATALOG_VERSION = '20260304-v1';
 const VAPID_PUBLIC_KEY = 'BElxPLACEHOLDERp8v2C4CwY6ofqP5E8v2rFjQvqW8g4bW2-v8JvKc-l7dXXn4N1xqjY7PqFhL3O8m4jzWzI8v7jA';
 
 const TOTAL_LIFECYCLE_SIM_DAYS = 56;
+const GROWTH_TARGET_SIM_DAYS = 7;
 const SIM_DAY_MS = 24 * 60 * 60 * 1000;
+const GROWTH_TARGET_SIM_MS = GROWTH_TARGET_SIM_DAYS * SIM_DAY_MS;
 
 const STAGE_DEFS = Object.freeze([
   Object.freeze({ index: 0, id: 'germination', label: 'Keimung', simDayStart: 0, phase: 'seedling', minHealth: 30, maxStress: 85 }),
@@ -213,7 +215,7 @@ const state = {
     stress: 15,
     water: 70,
     nutrition: 65,
-    growth: 10,
+    growth: 0,
     risk: 20
   },
   boost: {
@@ -303,7 +305,9 @@ async function boot() {
     applyBackgroundAsset();
     await registerServiceWorker();
 
-    syncRuntimeClocks(Date.now());
+    const bootNowMs = Date.now();
+    syncSimulationFromElapsedTime(bootNowMs);
+    syncRuntimeClocks(bootNowMs);
     syncActiveEventFromCatalog();
     updateVisibleOverlays();
     syncCanonicalStateShape();
@@ -348,7 +352,6 @@ function startLoopOnce() {
     return;
   }
   loopRunning = true;
-  state.simulation.lastTickRealTimeMs = Date.now();
   tickHandle = setInterval(tick, state.simulation.tickIntervalMs);
 }
 
@@ -598,6 +601,8 @@ function bindUi() {
   }
 
   document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('focus', onWindowFocus);
+  window.addEventListener('pageshow', onPageShow);
   visibilityHandlerBound = true;
 }
 
@@ -630,13 +635,29 @@ function tick() {
   const elapsedRealMs = Number.isFinite(rawElapsed) && rawElapsed > 0
     ? clamp(rawElapsed, 0, MAX_ELAPSED_PER_TICK_MS)
     : 0;
-  const elapsedSimMs = elapsedRealMs * state.simulation.timeCompression;
+  applySimulationDelta(elapsedRealMs, nowMs);
+
+  if (state.ui.openSheet !== prevOpenSheet) {
+    renderSheets();
+  }
+
+  renderHud();
+  state.ui.lastRenderRealMs = nowMs;
+  renderEventSheet();
+  renderAnalysisPanel();
+  renderDeathOverlay();
+  schedulePersistState();
+}
+
+function applySimulationDelta(elapsedRealMs, nowMs) {
+  const safeElapsedRealMs = Number.isFinite(elapsedRealMs) && elapsedRealMs > 0 ? elapsedRealMs : 0;
+  const elapsedSimMs = safeElapsedRealMs * state.simulation.timeCompression;
 
   state.simulation.simTimeMs += elapsedSimMs;
   state.simulation.isDaytime = isDaytimeAtSimTime(state.simulation.simTimeMs);
   state.simulation.lastTickRealTimeMs = nowMs;
 
-  applyStatusDrift(elapsedRealMs);
+  applyStatusDrift(safeElapsedRealMs);
   const criticalNow = Number(state.status.health) < 20;
   if (criticalNow && !wasCriticalHealth) {
     notifyPlantNeedsCare('Deine Pflanze ist kritisch und braucht Pflege.');
@@ -649,17 +670,23 @@ function tick() {
   updateVisibleOverlays();
   syncCanonicalStateShape();
   evaluateNotificationTriggers(nowMs);
+}
 
-  if (state.ui.openSheet !== prevOpenSheet) {
-    renderSheets();
+function syncSimulationFromElapsedTime(nowMs) {
+  state.simulation.nowMs = nowMs;
+
+  if (syncDeathState() && FREEZE_SIM_ON_DEATH) {
+    state.simulation.lastTickRealTimeMs = nowMs;
+    state.simulation.growthImpulse = 0;
+    syncCanonicalStateShape();
+    return;
   }
 
-  renderHud();
-  state.ui.lastRenderRealMs = nowMs;
-  renderEventSheet();
-  renderAnalysisPanel();
-  renderDeathOverlay();
-  schedulePersistState();
+  const previousTickMs = Number(state.simulation.lastTickRealTimeMs);
+  const safePreviousTickMs = Number.isFinite(previousTickMs) ? previousTickMs : nowMs;
+  const elapsedRealMs = Math.max(0, nowMs - safePreviousTickMs);
+
+  applySimulationDelta(elapsedRealMs, nowMs);
 }
 
 function ensureRequiredUi() {
@@ -861,8 +888,12 @@ function computeGrowthPercent() {
   if (state.plant.phase === 'dead') {
     return 0;
   }
-  const stageUnit = state.plant.stageIndex + state.plant.stageProgress;
-  return clamp((stageUnit / STAGE_DEFS.length) * 100, 0, 100);
+  return computeGrowthFromElapsed(Math.max(0, state.simulation.simTimeMs - state.simulation.simEpochMs));
+}
+
+function computeGrowthFromElapsed(elapsedSimMs) {
+  const safeElapsedMs = Number.isFinite(elapsedSimMs) ? elapsedSimMs : 0;
+  return clamp((safeElapsedMs / GROWTH_TARGET_SIM_MS) * 100, 0, 100);
 }
 
 function computeStageProgress(simDay, stageIndex) {
@@ -2952,12 +2983,33 @@ function onVisibilityChange() {
   }
 
   if (document.visibilityState === 'visible') {
-    state.simulation.lastTickRealTimeMs = Date.now();
+    syncSimulationFromElapsedTime(Date.now());
     startLoopOnce();
+    renderAll();
+    schedulePersistState();
     if (!loopRunning) {
       showRuntimeHaltBanner();
     }
   }
+}
+
+function onWindowFocus() {
+  if (document.visibilityState !== 'visible') {
+    return;
+  }
+  syncSimulationFromElapsedTime(Date.now());
+  renderAll();
+  schedulePersistState();
+}
+
+function onPageShow() {
+  if (document.visibilityState !== 'visible') {
+    return;
+  }
+  syncSimulationFromElapsedTime(Date.now());
+  startLoopOnce();
+  renderAll();
+  schedulePersistState();
 }
 
 function showRuntimeHaltBanner() {
@@ -3623,7 +3675,7 @@ function resetStateToDefaults() {
     stress: 15,
     water: 70,
     nutrition: 65,
-    growth: 10,
+    growth: 0,
     risk: 20
   };
 
@@ -4088,7 +4140,9 @@ function syncRuntimeClocks(nowMs) {
     state.simulation.simTimeMs = alignToSimStartHour(nowMs, SIM_START_HOUR);
   }
   state.simulation.isDaytime = isDaytimeAtSimTime(state.simulation.simTimeMs);
-  state.simulation.lastTickRealTimeMs = nowMs;
+  if (!Number.isFinite(state.simulation.lastTickRealTimeMs)) {
+    state.simulation.lastTickRealTimeMs = nowMs;
+  }
 }
 
 async function loadEventCatalog() {
