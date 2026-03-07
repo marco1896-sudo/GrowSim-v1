@@ -1,0 +1,30 @@
+{
+  "exports": {
+    "mobile": {
+      "folder": "04_Output/exports_mobile",
+      "sizes": [
+        512,
+        1024,
+        1536,
+        2048
+      ],
+      "compression": "aggressive"
+    },
+    "hd": {
+      "folder": "04_Output/exports_hd",
+      "sizes": [
+        2048,
+        3072,
+        4096
+      ],
+      "compression": "balanced"
+    }
+  },
+  "transparency_required": [
+    "plants",
+    "plants_variants",
+    "events",
+    "icons"
+  ],
+  "naming": "<category>_<theme>_<subject>_<state>_v###"
+}

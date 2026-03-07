@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2026-03-07T10:14:00+01:00",
+  "categories": {
+    "plants": [],
+    "plant_variants": [],
+    "events": [],
+    "icons": [],
+    "backgrounds": [],
+    "animations": [],
+    "exports_mobile": [],
+    "exports_hd": []
+  },
+  "schema": {
+    "id": "string",
+    "category": "string",
+    "path": "string",
+    "width": "number",
+    "height": "number",
+    "format": "string",
+    "version": "string",
+    "tags": [
+      "string"
+    ]
+  },
+  "engine_usage": "Game engine loads assets by category+id and resolves best variant via tags/state/version."
+}

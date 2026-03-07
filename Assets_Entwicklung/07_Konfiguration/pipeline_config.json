@@ -1,0 +1,33 @@
+{
+  "stages": [
+    "prompt",
+    "generate",
+    "cleanup",
+    "variation",
+    "optimize",
+    "qa",
+    "manifest",
+    "export"
+  ],
+  "default_models": {
+    "plants": "falai/flux-dev-lora",
+    "backgrounds": "bytedance/seedream-4-5",
+    "icons": "falai/reve",
+    "animations": "video-generation/default"
+  },
+  "mobile": {
+    "max_width": 2048,
+    "preferred_formats": [
+      "webp",
+      "png"
+    ],
+    "target_max_kb": 450
+  },
+  "hd": {
+    "max_width": 4096,
+    "preferred_formats": [
+      "png",
+      "webp"
+    ]
+  }
+}
