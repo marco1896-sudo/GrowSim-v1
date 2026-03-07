@@ -440,7 +440,13 @@ function runDevSelfTest() {
 }
 
 function cacheUi() {
-  ui.statusPill = document.getElementById('statusPill');
+  ui.phaseCard = document.getElementById('phaseCard');
+  ui.phaseCardTitle = document.getElementById('phaseCardTitle');
+  ui.phaseCardCycle = document.getElementById('phaseCardCycle');
+  ui.phaseCardSubtitle = document.getElementById('phaseCardSubtitle');
+  ui.phaseProgressFill = document.getElementById('phaseProgressFill');
+  ui.phaseProgressMarker = document.getElementById('phaseProgressMarker');
+  ui.phaseProgress = ui.phaseCard ? ui.phaseCard.querySelector('.phase-progress') : null;
   ui.healthRing = document.getElementById('healthRing');
   ui.stressRing = document.getElementById('stressRing');
   ui.waterRing = document.getElementById('waterRing');
@@ -658,7 +664,8 @@ function tick() {
 
 function ensureRequiredUi() {
   const requiredKeys = [
-    'statusPill', 'healthRing', 'stressRing', 'waterRing', 'nutritionRing', 'growthRing', 'riskRing',
+    'phaseCard', 'phaseCardTitle', 'phaseCardCycle', 'phaseCardSubtitle', 'phaseProgressFill', 'phaseProgressMarker', 'phaseProgress',
+    'healthRing', 'stressRing', 'waterRing', 'nutritionRing', 'growthRing', 'riskRing',
     'healthValue', 'stressValue', 'waterValue', 'nutritionValue', 'growthValue', 'riskValue',
     'plantImage', 'nextEventValue', 'growthImpulseValue', 'simTimeValue', 'boostUsageText',
     'overlayBurn', 'overlayDefMg', 'overlayDefN', 'overlayMoldWarning', 'overlayPestMites', 'overlayPestThrips',
@@ -870,6 +877,47 @@ function computeStageProgress(simDay, stageIndex) {
   const endDay = next.simDayStart + deterministicStageDelayDays(next.index);
   const span = Math.max(0.25, endDay - startDay);
   return clamp((simDay - startDay) / span, 0, 1);
+}
+
+function getPhaseCardViewModel() {
+  const safeStageIndex = clampInt(Number(state.plant.stageIndex) || 0, 0, STAGE_DEFS.length - 1);
+  const currentStage = STAGE_DEFS[safeStageIndex] || STAGE_DEFS[0];
+  const nextStage = STAGE_DEFS[safeStageIndex + 1] || null;
+
+  const isDead = state.plant.phase === 'dead' || state.plant.isDead === true;
+  const fallbackPhaseLabel = PHASE_LABEL_DE[state.plant.phase] || PHASE_LABEL_DE.seedling;
+  const currentLabel = currentStage && currentStage.label ? currentStage.label : fallbackPhaseLabel;
+
+  let progressUnit = Number(state.plant.stageProgress);
+  if (!Number.isFinite(progressUnit)) {
+    progressUnit = computeStageProgress(simDayFloat(), safeStageIndex);
+  }
+  const progressPercent = clamp(Math.round(clamp(progressUnit, 0, 1) * 100), 0, 100);
+
+  if (isDead) {
+    return {
+      title: currentLabel,
+      subtitle: 'Pflanze eingegangen',
+      progressPercent: 100,
+      nextLabel: null
+    };
+  }
+
+  if (!nextStage || nextStage.index === safeStageIndex) {
+    return {
+      title: currentLabel,
+      subtitle: 'Finale Phase erreicht',
+      progressPercent: 100,
+      nextLabel: null
+    };
+  }
+
+  return {
+    title: currentLabel,
+    subtitle: `${progressPercent}% bis ${nextStage.label}`,
+    progressPercent,
+    nextLabel: nextStage.label
+  };
 }
 
 function updateLifecycleAverages(elapsedSimMs) {
@@ -1761,14 +1809,35 @@ function renderAll() {
 
 function renderHud() {
   const dead = isPlantDead();
-  const phaseLabel = PHASE_LABEL_DE[state.plant.phase] || PHASE_LABEL_DE.seedling;
   const dayNight = state.simulation.isDaytime ? 'Tag' : 'Nacht';
-  const statusText = `Phase: ${phaseLabel} · ${dayNight}`;
+  const phaseCard = getPhaseCardViewModel();
   const boostText = `Werbeunterstützt · ${state.boost.boostUsedToday}/${state.boost.boostMaxPerDay} heute`;
 
-  if (ui.statusPill.textContent !== statusText) {
-    ui.statusPill.textContent = statusText;
+  if (ui.phaseCardTitle && ui.phaseCardTitle.textContent !== phaseCard.title) {
+    ui.phaseCardTitle.textContent = phaseCard.title;
   }
+  if (ui.phaseCardCycle && ui.phaseCardCycle.textContent !== dayNight) {
+    ui.phaseCardCycle.textContent = dayNight;
+  }
+  if (ui.phaseCardSubtitle && ui.phaseCardSubtitle.textContent !== phaseCard.subtitle) {
+    ui.phaseCardSubtitle.textContent = phaseCard.subtitle;
+  }
+  if (ui.phaseProgressFill) {
+    ui.phaseProgressFill.style.setProperty('--phase-progress', String(phaseCard.progressPercent));
+  }
+  if (ui.phaseCard) {
+    ui.phaseCard.classList.toggle('phase-card--complete', phaseCard.progressPercent >= 100);
+  }
+  if (ui.phaseProgress) {
+    ui.phaseProgress.setAttribute('aria-valuenow', String(phaseCard.progressPercent));
+  }
+  if (ui.phaseProgressMarker) {
+    ui.phaseProgressMarker.classList.toggle('hidden', !phaseCard.nextLabel || phaseCard.progressPercent >= 100);
+  }
+  if (ui.phaseCard) {
+    ui.phaseCard.setAttribute('aria-label', `Phase ${phaseCard.title}. ${phaseCard.subtitle}.`);
+  }
+
   if (ui.boostUsageText.textContent !== boostText) {
     ui.boostUsageText.textContent = boostText;
   }
