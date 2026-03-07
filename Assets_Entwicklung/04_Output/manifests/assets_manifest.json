@@ -1,11 +1,274 @@
 {
   "version": "1.0.0",
-  "updated_at": "2026-03-07T10:14:00+01:00",
+  "updated_at": "2026-03-07T10:31:07+0100",
   "categories": {
-    "plants": [],
+    "plants": [
+      {
+        "id": "plant_flowering",
+        "category": "plants",
+        "path": "04_Output/plants/plant_flowering.png",
+        "width": 1024,
+        "height": 1024,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "regen-required"
+        ]
+      },
+      {
+        "id": "plant_mature",
+        "category": "plants",
+        "path": "04_Output/plants/plant_mature.png",
+        "width": 1024,
+        "height": 1024,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "regen-required"
+        ]
+      },
+      {
+        "id": "plant_medium_veg",
+        "category": "plants",
+        "path": "04_Output/plants/plant_medium_veg.png",
+        "width": 1024,
+        "height": 1024,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "regen-required"
+        ]
+      },
+      {
+        "id": "plant_seedling",
+        "category": "plants",
+        "path": "04_Output/plants/plant_seedling.png",
+        "width": 1024,
+        "height": 1024,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "regen-required"
+        ]
+      },
+      {
+        "id": "plant_small_veg",
+        "category": "plants",
+        "path": "04_Output/plants/plant_small_veg.png",
+        "width": 1024,
+        "height": 1024,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "regen-required"
+        ]
+      }
+    ],
     "plant_variants": [],
-    "events": [],
-    "icons": [],
+    "events": [
+      {
+        "id": "event_aphids",
+        "category": "events",
+        "path": "04_Output/events/event_aphids.png",
+        "width": 1024,
+        "height": 1024,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "regen-required"
+        ]
+      },
+      {
+        "id": "event_heat_stress",
+        "category": "events",
+        "path": "04_Output/events/event_heat_stress.png",
+        "width": 1024,
+        "height": 1024,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "regen-required"
+        ]
+      },
+      {
+        "id": "event_nitrogen_deficiency",
+        "category": "events",
+        "path": "04_Output/events/event_nitrogen_deficiency.png",
+        "width": 1024,
+        "height": 1024,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "regen-required"
+        ]
+      },
+      {
+        "id": "event_overwatering",
+        "category": "events",
+        "path": "04_Output/events/event_overwatering.png",
+        "width": 1024,
+        "height": 1024,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "regen-required"
+        ]
+      },
+      {
+        "id": "event_spider_mites",
+        "category": "events",
+        "path": "04_Output/events/event_spider_mites.png",
+        "width": 1024,
+        "height": 1024,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "regen-required"
+        ]
+      }
+    ],
+    "icons": [
+      {
+        "id": "growth_speed",
+        "category": "icons",
+        "path": "04_Output/icons/growth_speed.png",
+        "width": 512,
+        "height": 512,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "ready"
+        ]
+      },
+      {
+        "id": "harvest",
+        "category": "icons",
+        "path": "04_Output/icons/harvest.png",
+        "width": 512,
+        "height": 512,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "ready"
+        ]
+      },
+      {
+        "id": "humidity",
+        "category": "icons",
+        "path": "04_Output/icons/humidity.png",
+        "width": 512,
+        "height": 512,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "ready"
+        ]
+      },
+      {
+        "id": "light",
+        "category": "icons",
+        "path": "04_Output/icons/light.png",
+        "width": 512,
+        "height": 512,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "ready"
+        ]
+      },
+      {
+        "id": "nutrients",
+        "category": "icons",
+        "path": "04_Output/icons/nutrients.png",
+        "width": 512,
+        "height": 512,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "ready"
+        ]
+      },
+      {
+        "id": "pests",
+        "category": "icons",
+        "path": "04_Output/icons/pests.png",
+        "width": 512,
+        "height": 512,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "ready"
+        ]
+      },
+      {
+        "id": "plant_health",
+        "category": "icons",
+        "path": "04_Output/icons/plant_health.png",
+        "width": 512,
+        "height": 512,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "ready"
+        ]
+      },
+      {
+        "id": "temperature",
+        "category": "icons",
+        "path": "04_Output/icons/temperature.png",
+        "width": 512,
+        "height": 512,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "ready"
+        ]
+      },
+      {
+        "id": "warning",
+        "category": "icons",
+        "path": "04_Output/icons/warning.png",
+        "width": 512,
+        "height": 512,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "ready"
+        ]
+      },
+      {
+        "id": "water",
+        "category": "icons",
+        "path": "04_Output/icons/water.png",
+        "width": 512,
+        "height": 512,
+        "format": "png",
+        "version": "v001",
+        "tags": [
+          "pilot-batch",
+          "ready"
+        ]
+      }
+    ],
     "backgrounds": [],
     "animations": [],
     "exports_mobile": [],
