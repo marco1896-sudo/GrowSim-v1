@@ -1,9 +1,0 @@
-{
-  "tick_seconds": 60,
-  "global_seed": "growsim-seed-v1",
-  "difficulty_ramp_days": 21,
-  "ideal_bands": {
-    "water": { "low": 55, "high": 80 },
-    "nutrition": { "low": 50, "high": 85 }
-  }
-}
