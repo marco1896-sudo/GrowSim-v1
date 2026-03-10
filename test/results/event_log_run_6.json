@@ -1,0 +1,415 @@
+[
+  {
+    "day": 5.27,
+    "stage": 3,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "outdoor",
+    "stress_level": 5.22,
+    "resulting_status_change": {
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 7.78,
+    "stage": 3,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "outdoor",
+    "stress_level": 21.92,
+    "resulting_status_change": {
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 8.32,
+    "stage": 3,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 25.51,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 10.57,
+    "stage": 4,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 32.06,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 11.48,
+    "stage": 4,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 33.36,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 12.51,
+    "stage": 4,
+    "event_id": "v2_positive_outdoor_sun_window",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "outdoor",
+    "stress_level": 40.17,
+    "resulting_status_change": {
+      "risk": -1,
+      "growth": 1.6
+    }
+  },
+  {
+    "day": 13.36,
+    "stage": 4,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "outdoor",
+    "stress_level": 42.37,
+    "resulting_status_change": {
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 13.87,
+    "stage": 4,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 41.08,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 14.43,
+    "stage": 4,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 41.84,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 15.48,
+    "stage": 5,
+    "event_id": "v2_positive_outdoor_sun_window",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "outdoor",
+    "stress_level": 44.75,
+    "resulting_status_change": {
+      "risk": -1,
+      "growth": 1.6
+    }
+  },
+  {
+    "day": 16.55,
+    "stage": 5,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 46.22,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 17.46,
+    "stage": 5,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "outdoor",
+    "stress_level": 46.78,
+    "resulting_status_change": {
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 18.59,
+    "stage": 5,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 49.85,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -0.05
+    }
+  },
+  {
+    "day": 19.69,
+    "stage": 5,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 52.36,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -0.41
+    }
+  },
+  {
+    "day": 20.39,
+    "stage": 6,
+    "event_id": "v2_positive_outdoor_sun_window",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "outdoor",
+    "stress_level": 55.35,
+    "resulting_status_change": {
+      "risk": -0.05,
+      "growth": 1.6
+    }
+  },
+  {
+    "day": 21.7,
+    "stage": 6,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 58.65,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -0.58
+    }
+  },
+  {
+    "day": 22.78,
+    "stage": 6,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 61.06,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 24.78,
+    "stage": 6,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 67.08,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -1.42
+    }
+  },
+  {
+    "day": 25.37,
+    "stage": 7,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 65.49,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -0.07
+    }
+  },
+  {
+    "day": 27.8,
+    "stage": 7,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 74.72,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -1.63
+    }
+  },
+  {
+    "day": 28.29,
+    "stage": 7,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 75.72,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 30.83,
+    "stage": 8,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 82.35,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -1.84
+    }
+  },
+  {
+    "day": 31.6,
+    "stage": 8,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 79.95,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -0.14
+    }
+  },
+  {
+    "day": 34.74,
+    "stage": 8,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 92.33,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -1.14
+    }
+  },
+  {
+    "day": 35.53,
+    "stage": 8,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 90.57,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -0.07
+    }
+  },
+  {
+    "day": 37.83,
+    "stage": 9,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 95.94,
+    "resulting_status_change": {
+      "stress": -2
+    }
+  },
+  {
+    "day": 38.4,
+    "stage": 9,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 93.67,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -0.07
+    }
+  },
+  {
+    "day": 41.8,
+    "stage": 9,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 97.41,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -1.63
+    }
+  },
+  {
+    "day": 45.29,
+    "stage": 10,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 48.29,
+    "stage": 11,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 51.48,
+    "stage": 11,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 93.33,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -0.07
+    }
+  }
+]

@@ -1,0 +1,881 @@
+[
+  {
+    "day": 4.78,
+    "stage": 2,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 40.94,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 5.32,
+    "stage": 3,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 45.55,
+    "resulting_status_change": {
+      "health": 3,
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 5.9,
+    "stage": 3,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 49.87,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 6.55,
+    "stage": 3,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 53.2,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 8.41,
+    "stage": 3,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 77.79,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 8.84,
+    "stage": 3,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 78.72,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 10.9,
+    "stage": 4,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 11.25,
+    "stage": 4,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 11.59,
+    "stage": 4,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 12.89,
+    "stage": 4,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 13.86,
+    "stage": 4,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 14.37,
+    "stage": 4,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 15.48,
+    "stage": 5,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 15.89,
+    "stage": 5,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 16.82,
+    "stage": 5,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 17.46,
+    "stage": 5,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 17.84,
+    "stage": 5,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 18.58,
+    "stage": 5,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 19.64,
+    "stage": 5,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 20.38,
+    "stage": 6,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 20.86,
+    "stage": 6,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 21.56,
+    "stage": 6,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 22.34,
+    "stage": 6,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 22.73,
+    "stage": 6,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 23.29,
+    "stage": 6,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 23.63,
+    "stage": 6,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 24.36,
+    "stage": 6,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 25.25,
+    "stage": 7,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 25.54,
+    "stage": 7,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 26.57,
+    "stage": 7,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 27.58,
+    "stage": 7,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 27.85,
+    "stage": 7,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 28.35,
+    "stage": 7,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 29.67,
+    "stage": 7,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 31.63,
+    "stage": 8,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 32.36,
+    "stage": 8,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 32.83,
+    "stage": 8,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 33.44,
+    "stage": 8,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 33.89,
+    "stage": 8,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 35.41,
+    "stage": 8,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 35.9,
+    "stage": 8,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 36.63,
+    "stage": 9,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 37.56,
+    "stage": 9,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 38.3,
+    "stage": 9,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 38.58,
+    "stage": 9,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 39.68,
+    "stage": 9,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 40.51,
+    "stage": 9,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 41.75,
+    "stage": 9,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 42.31,
+    "stage": 10,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 42.63,
+    "stage": 10,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 43.48,
+    "stage": 10,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 44.36,
+    "stage": 10,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 44.69,
+    "stage": 10,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 45.63,
+    "stage": 10,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 46.39,
+    "stage": 10,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 46.77,
+    "stage": 10,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 47.73,
+    "stage": 10,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 48.53,
+    "stage": 11,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 49.73,
+    "stage": 11,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 50.53,
+    "stage": 11,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 50.88,
+    "stage": 11,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 51.59,
+    "stage": 11,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 52.74,
+    "stage": 11,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 53.4,
+    "stage": 11,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 100,
+    "resulting_status_change": {
+      "risk": -8
+    }
+  },
+  {
+    "day": 53.8,
+    "stage": 11,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 54.49,
+    "stage": 12,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 96,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  }
+]

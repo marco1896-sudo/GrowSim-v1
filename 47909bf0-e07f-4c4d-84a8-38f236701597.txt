@@ -1,0 +1,2 @@
+Ja, ich meine, wenn ich im OpenClaw Gateway bin, am Laptop, dann kann ich auch keine Nachricht schicken.
+Die Gede steht, wird dann sofort als in Warteschlange markiert und es wird angezeigt, dass halt gearbeitet wird.

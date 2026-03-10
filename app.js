@@ -202,7 +202,8 @@ const state = {
       lastEventCategory: null,
       deferredUntilDaytime: false,
       windowRealMinutes: { min: 30, max: 90 },
-      eventCooldowns: {}
+      eventCooldowns: {},
+      categoryCooldowns: {}
     },
     active: null,
     history: [],
@@ -1216,6 +1217,15 @@ function isEventEligible(eventDef, cooldowns, nowMs) {
     return false;
   }
 
+  const categoryCooldowns = state.events && state.events.scheduler && state.events.scheduler.categoryCooldowns
+    ? state.events.scheduler.categoryCooldowns
+    : {};
+  const categoryKey = String(eventDef.category || 'generic');
+  const categoryBlockedUntil = Number(categoryCooldowns[categoryKey] || 0);
+  if (categoryBlockedUntil > nowMs) {
+    return false;
+  }
+
   return evaluateEventTriggers(eventDef.triggers || {});
 }
 
@@ -1468,6 +1478,13 @@ function enterEventCooldown(nowMs) {
   if (activeEventId) {
     state.events.scheduler.eventCooldowns[activeEventId] = nowMs + perEventCooldownMs;
   }
+
+  const categoryKey = String(state.events.activeCategory || 'generic');
+  const categoryCooldownMs = categoryKey === 'positive'
+    ? Math.max(EVENT_COOLDOWN_MS, 45 * 60 * 1000)
+    : EVENT_COOLDOWN_MS;
+  state.events.scheduler.categoryCooldowns[categoryKey] = nowMs + categoryCooldownMs;
+
   state.events.active = null;
 
   addLog('system', 'Ereignis abgeschlossen, Abklingzeit gestartet', {
@@ -2088,8 +2105,8 @@ function renderMenuDynamicRows() {
   const rescueBlocked = rescueAdPending || rescueUsed;
   ui.menuRescueBtn.disabled = rescueBlocked;
   ui.menuRescueSubtext.textContent = rescueUsed
-    ? 'Bereits in diesem Run verwendet.'
-    : (meta.rescue.lastResult || 'Einmalige Notfall-Rettung.');
+    ? '1× pro Run bereits genutzt.'
+    : (meta.rescue.lastResult || '1× pro Run verfügbar.');
 
   const notifications = getCanonicalNotificationsSettings(state);
   const enabled = notifications.enabled === true;
@@ -2729,11 +2746,11 @@ function renderDeathOverlay() {
     const rescueUsed = Boolean(meta.rescue.used);
     ui.deathRescueBtn.disabled = rescueAdPending || rescueUsed;
     ui.deathRescueBtn.textContent = rescueUsed
-      ? 'Notfallrettung bereits verwendet'
-      : (rescueAdPending ? 'Werbung läuft…' : 'Notfallrettung (1×) - Werbeunterstützt');
+      ? 'Rettungsaktion bereits genutzt'
+      : 'Rettungsaktion nutzen';
     ui.deathRescueSubtext.textContent = rescueUsed
-      ? 'Einmal pro Run verfügbar (bereits genutzt)'
-      : 'Einmal pro Run verfügbar';
+      ? '1× pro Run bereits verbraucht.'
+      : '1× pro Run';
     ui.deathRescueFeedback.textContent = meta.rescue.lastResult ? String(meta.rescue.lastResult) : '';
   }
 }
@@ -2807,7 +2824,15 @@ function onStartRun() {
 }
 
 async function onDeathResetClick() {
-  await resetRun();
+  openMenuDialog({
+    title: 'Neuen Run starten?',
+    message: 'Der aktuelle Durchlauf wird beendet und ein neuer Run gestartet.',
+    cancelLabel: 'Abbrechen',
+    confirmLabel: 'Neuen Run starten',
+    onConfirm: async () => {
+      await resetRun();
+    }
+  });
 }
 
 function onDeathAnalyzeClick() {
@@ -2824,7 +2849,7 @@ async function onDeathRescueClick() {
   }
 
   if (meta.rescue.used) {
-    meta.rescue.lastResult = 'Notfallrettung ist nur einmal pro Run verfügbar.';
+    meta.rescue.lastResult = 'Rettungsaktion ist nur 1× pro Run verfügbar.';
     renderDeathOverlay();
     schedulePersistState(true);
     return;
@@ -2839,25 +2864,7 @@ async function onDeathRescueClick() {
     return;
   }
 
-  rescueAdPending = true;
-  meta.rescue.lastResult = 'Werbung läuft…';
-  renderDeathOverlay();
-
-  let adResult = { ok: false, reason: 'error' };
-  try {
-    adResult = await requestRescueAd();
-  } catch (_error) {
-    adResult = { ok: false, reason: 'error' };
-  } finally {
-    rescueAdPending = false;
-  }
-
-  if (!adResult.ok) {
-    meta.rescue.lastResult = 'Werbung nicht abgeschlossen – Rettung nicht ausgelöst.';
-    renderDeathOverlay();
-    schedulePersistState(true);
-    return;
-  }
+  rescueAdPending = false;
 
   const rescueResult = applyRescueEffects();
   if (!rescueResult.ok) {
@@ -2870,7 +2877,7 @@ async function onDeathRescueClick() {
   const nowMs = Date.now();
   meta.rescue.used = true;
   meta.rescue.usedAtRealMs = nowMs;
-  meta.rescue.lastResult = 'Notfallrettung angewendet. Die Pflanze stabilisiert sich.';
+  meta.rescue.lastResult = 'Rettungsaktion angewendet. Die Pflanze stabilisiert sich.';
 
   const timestamp = {
     realMs: nowMs,
@@ -3338,7 +3345,8 @@ function getCanonicalEvents(snapshot) {
       lastEventCategory: null,
       deferredUntilDaytime: false,
       windowRealMinutes: { min: 30, max: 90 },
-      eventCooldowns: {}
+      eventCooldowns: {},
+      categoryCooldowns: {}
     };
   }
   if (!s.events.active || typeof s.events.active !== 'object') {
@@ -3752,7 +3760,8 @@ function resetStateToDefaults() {
       lastEventCategory: null,
       deferredUntilDaytime: false,
       windowRealMinutes: { min: 30, max: 90 },
-      eventCooldowns: {}
+      eventCooldowns: {},
+      categoryCooldowns: {}
     },
     active: null,
     history: [],
@@ -3992,9 +4001,17 @@ function ensureStateIntegrity(nowMs) {
   if (!state.events.scheduler.eventCooldowns || typeof state.events.scheduler.eventCooldowns !== 'object') {
     state.events.scheduler.eventCooldowns = {};
   }
+  if (!state.events.scheduler.categoryCooldowns || typeof state.events.scheduler.categoryCooldowns !== 'object') {
+    state.events.scheduler.categoryCooldowns = {};
+  }
   for (const [eventId, untilMs] of Object.entries(state.events.scheduler.eventCooldowns)) {
     if (!Number.isFinite(Number(untilMs)) || Number(untilMs) <= nowMs) {
       delete state.events.scheduler.eventCooldowns[eventId];
+    }
+  }
+  for (const [categoryId, untilMs] of Object.entries(state.events.scheduler.categoryCooldowns)) {
+    if (!Number.isFinite(Number(untilMs)) || Number(untilMs) <= nowMs) {
+      delete state.events.scheduler.categoryCooldowns[categoryId];
     }
   }
   if (!Array.isArray(state.events.history)) {
@@ -4086,7 +4103,8 @@ function syncCanonicalStateShape() {
     lastEventRealTimeMs: Number(events.scheduler.lastEventRealTimeMs || 0),
     deferredUntilDaytime: !sim.isDaytime,
     windowRealMinutes: { min: 30, max: 90 },
-    eventCooldowns: events.scheduler.eventCooldowns || {}
+    eventCooldowns: events.scheduler.eventCooldowns || {},
+    categoryCooldowns: events.scheduler.categoryCooldowns || {}
   };
 
   events.active = events.machineState === 'activeEvent'
@@ -4187,7 +4205,10 @@ function applyRescueEffects() {
     health: Number(state.status.health) || 0,
     stress: Number(state.status.stress) || 0,
     risk: Number(state.status.risk) || 0,
-    growth: Number(state.status.growth) || 0
+    growth: Number(state.status.growth) || 0,
+    water: Number(state.status.water) || 0,
+    nutrition: Number(state.status.nutrition) || 0,
+    qualityScore: Number(state.plant?.lifecycle?.qualityScore) || 0
   };
   const wasDead = isPlantDead();
   const isCriticalAlive = !wasDead && before.health < 20;
@@ -4196,10 +4217,15 @@ function applyRescueEffects() {
   }
 
   if (wasDead) {
-    state.status.health = 30;
-    state.status.stress = before.stress - 20;
-    state.status.risk = before.risk - 15;
-    state.status.growth = before.growth < 5 ? 5 : before.growth;
+    state.status.health = 34;
+    state.status.stress = before.stress - 22;
+    state.status.risk = before.risk - 18;
+    state.status.water = Math.max(before.water, 40);
+    state.status.nutrition = Math.max(before.nutrition, 32);
+    state.status.growth = Math.max(4, before.growth - 2);
+    if (state.plant && state.plant.lifecycle && Number.isFinite(before.qualityScore)) {
+      state.plant.lifecycle.qualityScore = round2(Math.max(0, before.qualityScore - 6));
+    }
     state.plant.isDead = false;
     if (state.plant.phase === 'dead') {
       const safeIndex = clampInt(Number(state.plant.stageIndex) || 0, 0, Math.max(0, getStageTimeline().length - 1));
@@ -4219,7 +4245,10 @@ function applyRescueEffects() {
     health: Number(state.status.health) || 0,
     stress: Number(state.status.stress) || 0,
     risk: Number(state.status.risk) || 0,
-    growth: Number(state.status.growth) || 0
+    growth: Number(state.status.growth) || 0,
+    water: Number(state.status.water) || 0,
+    nutrition: Number(state.status.nutrition) || 0,
+    qualityScore: Number(state.plant?.lifecycle?.qualityScore) || 0
   };
 
   return {
@@ -4229,7 +4258,10 @@ function applyRescueEffects() {
       health: round2(after.health - before.health),
       stress: round2(after.stress - before.stress),
       risk: round2(after.risk - before.risk),
-      growth: round2(after.growth - before.growth)
+      growth: round2(after.growth - before.growth),
+      water: round2(after.water - before.water),
+      nutrition: round2(after.nutrition - before.nutrition),
+      qualityScore: round2(after.qualityScore - before.qualityScore)
     }
   };
 }
@@ -4390,6 +4422,8 @@ function normalizeEvent(rawEvent, sourceVersion = 'v1') {
     cooldownRealMinutes: clamp(Number(rawEvent.cooldownRealMinutes) || 120, 10, 24 * 60),
     learningNote: String(rawEvent.learningNote || ''),
     severity: normalizeSeverity(rawEvent.severity),
+    polarity: inferEventPolarity(rawEvent, category),
+    environment: inferEnvironmentScope(rawEvent),
     tags: Array.isArray(rawEvent.tags) ? rawEvent.tags.map(String) : [],
     options,
     sourceVersion
@@ -4403,8 +4437,48 @@ function inferCategoryFromTags(tags) {
   if (t.some((x) => x.includes('pest'))) return 'pest';
   if (t.some((x) => x.includes('mold') || x.includes('disease'))) return 'disease';
   if (t.some((x) => x.includes('train'))) return 'training';
-  if (t.some((x) => x.includes('env') || x.includes('heat') || x.includes('cold'))) return 'environment';
+  if (t.some((x) => x.includes('env') || x.includes('heat') || x.includes('cold') || x.includes('weather'))) return 'environment';
+  if (t.some((x) => x.includes('positive') || x.includes('recovery') || x.includes('ideal'))) return 'positive';
   return 'generic';
+}
+
+function inferEventPolarity(rawEvent, category) {
+  const explicit = String((rawEvent && rawEvent.polarity) || '').trim().toLowerCase();
+  if (explicit === 'positive' || explicit === 'negative' || explicit === 'neutral') {
+    return explicit;
+  }
+
+  if (String(category) === 'positive') {
+    return 'positive';
+  }
+
+  const tags = Array.isArray(rawEvent && rawEvent.tags)
+    ? rawEvent.tags.map((x) => String(x).toLowerCase())
+    : [];
+
+  if (tags.some((x) => x.includes('positive') || x.includes('ideal') || x.includes('recovery') || x.includes('bonus'))) {
+    return 'positive';
+  }
+
+  return 'negative';
+}
+
+function inferEnvironmentScope(rawEvent) {
+  const setup = rawEvent && rawEvent.triggers && rawEvent.triggers.setup && typeof rawEvent.triggers.setup === 'object'
+    ? rawEvent.triggers.setup
+    : {};
+  const modeIn = Array.isArray(setup.modeIn) ? setup.modeIn.map((x) => String(x).toLowerCase()) : [];
+  if (!modeIn.length) {
+    return 'both';
+  }
+
+  const hasIndoor = modeIn.includes('indoor');
+  const hasOutdoor = modeIn.includes('outdoor') || modeIn.includes('greenhouse');
+
+  if (hasIndoor && hasOutdoor) return 'both';
+  if (hasIndoor) return 'indoor';
+  if (hasOutdoor) return 'outdoor';
+  return 'both';
 }
 
 function syncActiveEventFromCatalog() {
@@ -4484,6 +4558,36 @@ function normalizeSeverity(rawSeverity) {
   return 3;
 }
 
+function computeEventDynamicWeight(item) {
+  const base = Math.max(0.01, Number(item.weight) || 1);
+  const risk = Number(state.status.risk) || 0;
+  const stress = Number(state.status.stress) || 0;
+  const health = Number(state.status.health) || 0;
+
+  let factor = 1;
+
+  if (item.category === 'positive') {
+    const recent = state.events.history.slice(-4);
+    const negativeRecent = recent
+      .filter((entry) => String(entry && entry.category || '').toLowerCase() !== 'positive')
+      .length;
+    const positiveRecent = recent.length - negativeRecent;
+
+    factor += negativeRecent >= 2 ? 0.35 : 0;
+    factor += health < 55 ? 0.2 : 0;
+    factor -= positiveRecent >= 2 ? 0.45 : 0;
+  } else {
+    factor += risk >= 60 ? 0.15 : 0;
+    factor += stress >= 55 ? 0.1 : 0;
+  }
+
+  if (item.category === 'disease' && risk < 40) {
+    factor *= 0.85;
+  }
+
+  return Math.max(0.01, round2(base * factor));
+}
+
 function selectEventDeterministically(catalog, nowMs) {
   if (!Array.isArray(catalog) || !catalog.length) {
     return null;
@@ -4491,6 +4595,7 @@ function selectEventDeterministically(catalog, nowMs) {
 
   let candidates = catalog.slice().sort((a, b) => String(a.id).localeCompare(String(b.id)));
   const lastCategory = state.events.scheduler.lastEventCategory || null;
+  const lastEventId = state.events.scheduler.lastEventId || null;
 
   if (lastCategory) {
     const alt = candidates.filter((item) => item.category !== lastCategory);
@@ -4499,9 +4604,16 @@ function selectEventDeterministically(catalog, nowMs) {
     }
   }
 
+  if (lastEventId) {
+    const noDirectRepeat = candidates.filter((item) => item.id !== lastEventId);
+    if (noDirectRepeat.length) {
+      candidates = noDirectRepeat;
+    }
+  }
+
   const weighted = candidates.map((item) => ({
     item,
-    weight: Math.max(0.01, Number(item.weight) || 1)
+    weight: computeEventDynamicWeight(item)
   }));
 
   const totalWeight = weighted.reduce((sum, row) => sum + row.weight, 0);
@@ -4525,6 +4637,8 @@ function selectEventDeterministically(catalog, nowMs) {
         purpose,
         pickedId: row.item.id,
         pickedCategory: row.item.category,
+        pickedPolarity: row.item.polarity || 'negative',
+        pickedEnvironment: row.item.environment || 'both',
         eligibleCount: candidates.length
       });
       return row.item;

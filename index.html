@@ -209,7 +209,11 @@
       <p class="sheet-note">Letzte Aktionen / Events</p>
       <ol id="deathHistoryList" class="death-list"></ol>
       <div class="death-actions">
-        <button id="deathAnalyzeBtn" class="action-btn action-secondary" type="button">Analyse ansehen</button>
+        <button id="deathRescueBtn" class="action-btn action-primary" type="button">Rettungsaktion nutzen</button>
+        <span id="deathRescueSubtext" class="sheet-note">1× pro Run</span>
+        <span id="deathRescueFeedback" class="sheet-note"></span>
+        <button id="deathResetBtn" class="action-btn action-secondary" type="button">Neuen Run starten</button>
+        <button id="deathAnalyzeBtn" class="action-btn action-ghost" type="button">Analyse ansehen</button>
       </div>
     </div>
   </section>
@@ -268,10 +272,7 @@
     <input id="notifTypeEvents" type="checkbox">
     <input id="notifTypeCritical" type="checkbox">
     <input id="notifTypeReminder" type="checkbox">
-    <button id="deathRescueBtn" type="button"></button>
-    <span id="deathRescueSubtext"></span>
-    <span id="deathRescueFeedback"></span>
-    <button id="deathResetBtn" type="button"></button>
+
   </div>
 
   <script src="app.js" defer></script>
