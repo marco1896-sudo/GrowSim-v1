@@ -292,6 +292,8 @@ function renderHud() {
   renderOverlayVisibility();
 }
 
+const UI_STAT_RING_UPDATE_IDS = new Set(['waterRing', 'nutritionRing', 'growthRing', 'riskRing']);
+const UI_STAT_UPDATE_ANIMATION_MS = 340;
 const STAT_RING_UPDATE_IDS = new Set(['waterRing', 'nutritionRing', 'growthRing', 'riskRing']);
 const STAT_UPDATE_ANIMATION_MS = 340;
 
@@ -312,6 +314,7 @@ function triggerStatUpdateFeedback(ringNode, textNode) {
   ringNode._statUpdateTimerId = setTimeout(() => {
     ringNode.classList.remove('stat-ring--updated');
     textNode.classList.remove('stat-value--updated');
+  }, UI_STAT_UPDATE_ANIMATION_MS);
   }, STAT_UPDATE_ANIMATION_MS);
 }
 
@@ -325,6 +328,7 @@ function setRing(ringNode, textNode, value) {
     ringNode.style.setProperty('--value', roundedText);
     ringNode.dataset.value = roundedText;
 
+    if (UI_STAT_RING_UPDATE_IDS.has(ringNode.id) && previousValueText !== undefined) {
     if (STAT_RING_UPDATE_IDS.has(ringNode.id) && previousValueText !== undefined) {
       triggerStatUpdateFeedback(ringNode, textNode);
     }
