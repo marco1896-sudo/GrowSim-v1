@@ -75,28 +75,28 @@
       </section>
 
       <section class="mini-rings">
-        <article id="waterRing" class="ring ring-mini" style="--value:70; --ring-color:var(--color-water);">
+        <article id="waterRing" class="ring ring-mini" role="button" tabindex="0" aria-label="Wasser Details öffnen" style="--value:70; --ring-color:var(--color-water);">
           <div class="ring-inner">
             <span class="mini-icon" aria-hidden="true">W</span>
             <span class="ring-label">Wasser</span>
             <strong id="waterValue">70</strong>
           </div>
         </article>
-        <article id="nutritionRing" class="ring ring-mini" style="--value:65; --ring-color:var(--color-nutrition);">
+        <article id="nutritionRing" class="ring ring-mini" role="button" tabindex="0" aria-label="Nährstoffe Details öffnen" style="--value:65; --ring-color:var(--color-nutrition);">
           <div class="ring-inner">
             <span class="mini-icon" aria-hidden="true">N</span>
             <span class="ring-label">Nährstoffe</span>
             <strong id="nutritionValue">65</strong>
           </div>
         </article>
-        <article id="growthRing" class="ring ring-mini" style="--value:10; --ring-color:var(--color-growth);">
+        <article id="growthRing" class="ring ring-mini" role="button" tabindex="0" aria-label="Wachstum Details öffnen" style="--value:10; --ring-color:var(--color-growth);">
           <div class="ring-inner">
             <span class="mini-icon" aria-hidden="true">G</span>
             <span class="ring-label">Wachstum</span>
             <strong id="growthValue">10</strong>
           </div>
         </article>
-        <article id="riskRing" class="ring ring-mini" style="--value:20; --ring-color:var(--color-risk);">
+        <article id="riskRing" class="ring ring-mini" role="button" tabindex="0" aria-label="Risiko Details öffnen" style="--value:20; --ring-color:var(--color-risk);">
           <div class="ring-inner">
             <span class="mini-icon" aria-hidden="true">R</span>
             <span class="ring-label">Risiko</span>
@@ -185,6 +185,20 @@
         <li>Zerlegung der Nährstofftrends (Pro)</li>
         <li>Vorhersage für Wurzelstress (Pro)</li>
       </ul>
+    </div>
+  </section>
+
+  <section id="statDetailSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2 id="statDetailTitle">Statistik</h2>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
+    </header>
+    <div class="sheet-content stat-detail-content">
+      <p id="statDetailValue" class="stat-detail-value">0</p>
+      <p id="statDetailStatus" class="sheet-badge">Status: -</p>
+      <p id="statDetailExplanation" class="sheet-note">-</p>
+      <p id="statDetailRecommendation" class="stat-detail-recommendation">-</p>
+      <button id="statDetailPrimaryBtn" class="action-btn action-primary" type="button">Aktion</button>
     </div>
   </section>
 

@@ -451,6 +451,16 @@ body::before {
 #riskRing {
   transition: transform 150ms ease, box-shadow 200ms ease;
   will-change: transform;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#waterRing:focus-visible,
+#nutritionRing:focus-visible,
+#growthRing:focus-visible,
+#riskRing:focus-visible {
+  outline: 2px solid rgba(178, 219, 255, 0.7);
+  outline-offset: 2px;
 }
 
 #waterRing:hover,
@@ -884,6 +894,25 @@ body::before {
 .sheet-content {
   padding: 0.8rem 0.9rem 1.08rem;
   overflow-y: auto;
+}
+
+
+.stat-detail-content {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.stat-detail-value {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.stat-detail-recommendation {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--text-soft);
 }
 
 #dashboardSheet .sheet-content,
