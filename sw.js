@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'growsim-v1-20260305';
+const CACHE_VERSION = 'growsim-v1-20260310';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const BASE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
@@ -13,6 +13,11 @@ const APP_SHELL_FILES = [
   appPath('index.html'),
   appPath('styles.css'),
   appPath('app.js'),
+  appPath('sim.js'),
+  appPath('events.js'),
+  appPath('ui.js'),
+  appPath('storage.js'),
+  appPath('notifications.js'),
   appPath('manifest.webmanifest'),
   appPath('data/events.json'),
   appPath('icons/icon-192.png'),
