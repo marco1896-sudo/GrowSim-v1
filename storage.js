@@ -910,3 +910,21 @@ function syncLegacyMirrorsFromCanonical(snapshot) {
   s.historyLog = Array.isArray(history.systemLog) ? history.systemLog : [];
 }
 
+window.GrowSimStorage = Object.freeze({
+  localStorageAdapter,
+  getCanonicalSimulation,
+  getCanonicalPlant,
+  getCanonicalEvents,
+  getCanonicalHistory,
+  getCanonicalMeta,
+  getCanonicalSettings,
+  getCanonicalNotificationsSettings,
+  restoreState,
+  persistState,
+  schedulePersistState,
+  migrateState,
+  resetStateToDefaults,
+  ensureStateIntegrity,
+  syncCanonicalStateShape,
+  syncLegacyMirrorsFromCanonical
+});
