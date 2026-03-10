@@ -235,23 +235,6 @@ const state = {
     boostMaxPerDay: 6,
     dayStamp: dayStamp(now)
   },
-  event: {
-    machineState: 'idle',
-    activeEventId: null,
-    activeEventTitle: '',
-    activeEventText: '',
-    activeLearningNote: '',
-    activeOptions: [],
-    activeSeverity: 1,
-    activeCooldownRealMinutes: 120,
-    activeCategory: 'generic',
-    activeTags: [],
-    lastEventAtMs: 0,
-    nextEventAtMs: now + EVENT_ROLL_MIN_REAL_MS,
-    cooldownUntilMs: 0,
-    lastChoiceId: null,
-    catalog: []
-  },
   actions: {
     catalog: [],
     byId: {},
@@ -1462,6 +1445,7 @@ function setGrowthFromPercent(percent) {
 
 function enterEventCooldown(nowMs) {
   const activeEventId = state.events.activeEventId;
+  const activeCategory = String(state.events.activeCategory || 'generic');
   const perEventCooldownMs = Math.round((Number(state.events.activeCooldownRealMinutes) || 120) * 60 * 1000);
 
   state.events.machineState = 'cooldown';
@@ -1479,7 +1463,7 @@ function enterEventCooldown(nowMs) {
     state.events.scheduler.eventCooldowns[activeEventId] = nowMs + perEventCooldownMs;
   }
 
-  const categoryKey = String(state.events.activeCategory || 'generic');
+  const categoryKey = activeCategory;
   const categoryCooldownMs = categoryKey === 'positive'
     ? Math.max(EVENT_COOLDOWN_MS, 45 * 60 * 1000)
     : EVENT_COOLDOWN_MS;
@@ -3566,29 +3550,33 @@ function migrateLegacyStateIntoCanonical(saved, targetState) {
   }
 
   if (saved.event && typeof saved.event === 'object') {
-    targetState.events = {
-      ...events,
-      machineState: String(saved.event.machineState || events.machineState),
-      activeEventId: saved.event.activeEventId || null,
-      activeEventTitle: String(saved.event.activeEventTitle || ''),
-      activeEventText: String(saved.event.activeEventText || ''),
-      activeLearningNote: String(saved.event.activeLearningNote || ''),
-      activeOptions: Array.isArray(saved.event.activeOptions) ? saved.event.activeOptions : [],
-      activeSeverity: Number(saved.event.activeSeverity || 1),
-      activeCooldownRealMinutes: Number(saved.event.activeCooldownRealMinutes || 120),
-      activeCategory: String(saved.event.activeCategory || 'generic'),
-      activeTags: Array.isArray(saved.event.activeTags) ? saved.event.activeTags : [],
-      lastEventAtMs: Number(saved.event.lastEventAtMs || 0),
-      cooldownUntilMs: Number(saved.event.cooldownUntilMs || 0),
-      catalog: Array.isArray(saved.event.catalog) ? saved.event.catalog : events.catalog,
-      scheduler: {
-        ...events.scheduler,
-        nextEventRealTimeMs: Number(saved.event.nextEventAtMs || events.scheduler.nextEventRealTimeMs),
-        lastEventRealTimeMs: Number(saved.event.lastEventAtMs || events.scheduler.lastEventRealTimeMs),
-        lastEventId: typeof saved.event.activeEventId === 'string' ? saved.event.activeEventId : events.scheduler.lastEventId,
-        lastChoiceId: typeof saved.event.lastChoiceId === 'string' ? saved.event.lastChoiceId : events.scheduler.lastChoiceId
-      }
-    };
+    const hasUsableEventsState = Boolean(saved.events && typeof saved.events === 'object' && saved.events.scheduler && typeof saved.events.scheduler === 'object');
+
+    if (!hasUsableEventsState) {
+      targetState.events = {
+        ...events,
+        machineState: String(saved.event.machineState || events.machineState),
+        activeEventId: saved.event.activeEventId || null,
+        activeEventTitle: String(saved.event.activeEventTitle || ''),
+        activeEventText: String(saved.event.activeEventText || ''),
+        activeLearningNote: String(saved.event.activeLearningNote || ''),
+        activeOptions: Array.isArray(saved.event.activeOptions) ? saved.event.activeOptions : [],
+        activeSeverity: Number(saved.event.activeSeverity || 1),
+        activeCooldownRealMinutes: Number(saved.event.activeCooldownRealMinutes || 120),
+        activeCategory: String(saved.event.activeCategory || 'generic'),
+        activeTags: Array.isArray(saved.event.activeTags) ? saved.event.activeTags : [],
+        lastEventAtMs: Number(saved.event.lastEventAtMs || 0),
+        cooldownUntilMs: Number(saved.event.cooldownUntilMs || 0),
+        catalog: Array.isArray(saved.event.catalog) ? saved.event.catalog : events.catalog,
+        scheduler: {
+          ...events.scheduler,
+          nextEventRealTimeMs: Number(saved.event.nextEventAtMs || events.scheduler.nextEventRealTimeMs),
+          lastEventRealTimeMs: Number(saved.event.lastEventAtMs || events.scheduler.lastEventRealTimeMs),
+          lastEventId: typeof saved.event.activeEventId === 'string' ? saved.event.activeEventId : events.scheduler.lastEventId,
+          lastChoiceId: typeof saved.event.lastChoiceId === 'string' ? saved.event.lastChoiceId : events.scheduler.lastChoiceId
+        }
+      };
+    }
   }
 
   if (Array.isArray(saved.historyLog) && !history.system.length) {
@@ -3792,24 +3780,6 @@ function resetStateToDefaults() {
     boostUsedToday: 0,
     boostMaxPerDay: 6,
     dayStamp: dayStamp(fallbackNow)
-  };
-
-  state.event = {
-    machineState: 'idle',
-    activeEventId: null,
-    activeEventTitle: '',
-    activeEventText: '',
-    activeLearningNote: '',
-    activeOptions: [],
-    activeSeverity: 1,
-    activeCooldownRealMinutes: 120,
-    activeCategory: 'generic',
-    activeTags: [],
-    lastEventAtMs: 0,
-    nextEventAtMs: fallbackNow + EVENT_ROLL_MIN_REAL_MS,
-    cooldownUntilMs: 0,
-    lastChoiceId: null,
-    catalog: preservedEventCatalog
   };
 
   state.actions = {
@@ -4129,6 +4099,10 @@ function syncCanonicalStateShape() {
   getCanonicalNotificationsSettings(state);
   settings.pushNotificationsEnabled = Boolean(settings.pushNotificationsEnabled);
 
+  if (Object.prototype.hasOwnProperty.call(state, 'event')) {
+    delete state.event;
+  }
+
   syncLegacyMirrorsFromCanonical(state);
 }
 
@@ -4167,24 +4141,6 @@ function syncLegacyMirrorsFromCanonical(snapshot) {
     observedSimMs: plant.observedSimMs,
     qualityTier: plant.lifecycle.qualityTier,
     qualityLocked: Boolean(plant.lifecycle.qualityLocked)
-  };
-
-  s.event = {
-    machineState: events.machineState,
-    activeEventId: events.activeEventId,
-    activeEventTitle: events.activeEventTitle,
-    activeEventText: events.activeEventText,
-    activeLearningNote: events.activeLearningNote,
-    activeOptions: events.activeOptions,
-    activeSeverity: events.activeSeverity,
-    activeCooldownRealMinutes: events.activeCooldownRealMinutes,
-    activeCategory: events.activeCategory,
-    activeTags: events.activeTags,
-    lastEventAtMs: events.lastEventAtMs,
-    nextEventAtMs: events.scheduler.nextEventRealTimeMs,
-    cooldownUntilMs: events.cooldownUntilMs,
-    lastChoiceId: events.scheduler.lastChoiceId,
-    catalog: events.catalog
   };
 
   s.lastEventId = events.scheduler.lastEventId || null;
