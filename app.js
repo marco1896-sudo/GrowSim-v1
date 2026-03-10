@@ -255,7 +255,8 @@ const state = {
     },
     analysis: {
       activeTab: 'overview'
-    }
+    },
+    statDetailKey: null
   },
   lastEventId: null,
   lastChoiceId: null,
@@ -1643,6 +1644,7 @@ function renderSheets() {
   toggleSheet(ui.eventSheet, activeSheet === 'event');
   toggleSheet(ui.dashboardSheet, activeSheet === 'dashboard');
   toggleSheet(ui.diagnosisSheet, activeSheet === 'diagnosis');
+  toggleSheet(ui.statDetailSheet, activeSheet === 'statDetail');
 }
 
 function renderGameMenu() {
@@ -2169,6 +2171,134 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+
+const STAT_DETAIL_CONFIG = Object.freeze({
+  water: Object.freeze({
+    title: 'Wasser',
+    buttonLabel: 'Gießen',
+    action: () => openSheet('care'),
+    getValue: () => Math.round(Number(state.status.water) || 0),
+    getStatus: (value) => {
+      if (value >= 80) return 'Optimal';
+      if (value >= 60) return 'Stabil';
+      if (value >= 40) return 'Beobachten';
+      return 'Kritisch';
+    },
+    getExplanation: (value) => {
+      if (value >= 80) return 'Wasser ist aktuell optimal. Die Pflanze bleibt gut versorgt.';
+      if (value >= 60) return 'Wasser ist aktuell stabil. In den nächsten Zyklen noch unkritisch.';
+      if (value >= 40) return 'Wasser wird knapper und sollte beobachtet werden.';
+      return 'Wasser ist niedrig, Trockenstress kann schnell ansteigen.';
+    },
+    getRecommendation: (value) => value < 60
+      ? 'Empfehlung: Pflege öffnen und zeitnah gießen.'
+      : 'Empfehlung: Feuchtigkeit halten und den Verlauf beobachten.'
+  }),
+  nutrition: Object.freeze({
+    title: 'Nährstoffe',
+    buttonLabel: 'Pflege öffnen',
+    action: () => openSheet('care'),
+    getValue: () => Math.round(Number(state.status.nutrition) || 0),
+    getStatus: (value) => {
+      if (value >= 80) return 'Sehr gut';
+      if (value >= 60) return 'Solide';
+      if (value >= 40) return 'Leicht schwach';
+      return 'Mangelrisiko';
+    },
+    getExplanation: (value) => {
+      if (value >= 60) return 'Nährstoffe unterstützen das Wachstum aktuell noch ausreichend.';
+      if (value >= 40) return 'Sinkende Nährstoffe können das Wachstum bald bremsen.';
+      return 'Nährstoffmangel begrenzt Entwicklung und erhöht Stresspotenzial.';
+    },
+    getRecommendation: (value) => value < 60
+      ? 'Empfehlung: Pflege öffnen und eine passende Düngungsmaßnahme prüfen.'
+      : 'Empfehlung: Nährstoffniveau halten und regelmäßig kontrollieren.'
+  }),
+  growth: Object.freeze({
+    title: 'Wachstum',
+    buttonLabel: 'Analyse öffnen',
+    action: () => openSheet('dashboard'),
+    getValue: () => Math.round(Number(state.status.growth) || 0),
+    getStatus: (value, impulse) => {
+      if (value >= 70 || impulse >= 0.12) return 'Guter Fortschritt';
+      if (value >= 40 || impulse >= 0.03) return 'Solide Entwicklung';
+      if (value <= 5 || impulse <= 0.005) return 'Kein aktiver Wachstumsfortschritt';
+      return 'Gebremst';
+    },
+    getExplanation: (_value, impulse) => {
+      if (impulse >= 0.12) return `Das Wachstum läuft stabil. Aktueller Impuls: ${impulse.toFixed(2)}.`;
+      if (impulse >= 0.03) return `Das Wachstum entwickelt sich solide. Impuls: ${impulse.toFixed(2)}.`;
+      return `Das Wachstum ist aktuell gebremst. Impuls: ${impulse.toFixed(2)}.`;
+    },
+    getRecommendation: (value) => value < 40
+      ? 'Empfehlung: Analyse öffnen und Wasser-/Nährstofftreiber prüfen.'
+      : 'Empfehlung: Kurs halten und per Analyse auf Limitierungen achten.'
+  }),
+  risk: Object.freeze({
+    title: 'Risiko',
+    buttonLabel: 'Analyse öffnen',
+    action: () => openSheet('dashboard'),
+    getValue: () => Math.round(Number(state.status.risk) || 0),
+    getStatus: (value) => {
+      if (value >= 75) return 'Kritisch';
+      if (value >= 50) return 'Hoch';
+      if (value >= 25) return 'Erhöht';
+      return 'Niedrig';
+    },
+    getExplanation: (_value) => {
+      const topDriver = diagnosisDrivers()[0];
+      if (!topDriver || topDriver.label === 'Stabiler Zustand') {
+        return 'Aktuell besteht nur geringes Risiko.';
+      }
+      return `Wichtigster Treiber: ${topDriver.label}. ${topDriver.reason}`;
+    },
+    getRecommendation: (value) => value >= 50
+      ? 'Empfehlung: Analyse öffnen und Gegenmaßnahmen priorisieren.'
+      : 'Empfehlung: Entwicklung beobachten und Risikoquellen früh prüfen.'
+  })
+});
+
+function onStatRingPress(statKey) {
+  if (!STAT_DETAIL_CONFIG[statKey]) {
+    return;
+  }
+  state.ui.statDetailKey = statKey;
+  openSheet('statDetail');
+}
+
+function onStatDetailPrimaryAction() {
+  const config = STAT_DETAIL_CONFIG[state.ui.statDetailKey];
+  if (!config || typeof config.action !== 'function') {
+    return;
+  }
+  config.action();
+}
+
+function renderStatDetailSheet() {
+  if (!ui.statDetailSheet || state.ui.openSheet !== 'statDetail') {
+    return;
+  }
+
+  const key = state.ui.statDetailKey;
+  const config = STAT_DETAIL_CONFIG[key];
+  if (!config) {
+    return;
+  }
+
+  const value = config.getValue();
+  const impulse = Number(state.simulation && state.simulation.growthImpulse) || 0;
+  const status = config.getStatus(value, impulse);
+  const explanation = config.getExplanation(value, impulse);
+  const recommendation = config.getRecommendation(value, impulse);
+
+  ui.statDetailTitle.textContent = config.title;
+  ui.statDetailValue.textContent = `${value}`;
+  ui.statDetailStatus.textContent = `Status: ${status}`;
+  ui.statDetailExplanation.textContent = explanation;
+  ui.statDetailRecommendation.textContent = recommendation;
+  ui.statDetailPrimaryBtn.textContent = config.buttonLabel;
+}
+
 function openSheet(name) {
   if (isPlantDead() && name !== 'dashboard') {
     return;
@@ -2176,6 +2306,11 @@ function openSheet(name) {
   if (state.ui.menuOpen) {
     closeMenu();
   }
+
+  if (name !== 'statDetail') {
+    state.ui.statDetailKey = null;
+  }
+
   state.ui.openSheet = name;
   renderSheets();
 
@@ -2185,6 +2320,8 @@ function openSheet(name) {
     renderEventSheet();
   } else if (name === 'care') {
     renderCareSheet(true);
+  } else if (name === 'statDetail') {
+    renderStatDetailSheet();
   }
 }
 
@@ -2627,6 +2764,7 @@ function closeSheet() {
     return;
   }
   state.ui.openSheet = null;
+  state.ui.statDetailKey = null;
   renderSheets();
 }
 

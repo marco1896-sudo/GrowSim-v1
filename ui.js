@@ -73,6 +73,13 @@ function cacheUi() {
   ui.eventSheet = document.getElementById('eventSheet');
   ui.dashboardSheet = document.getElementById('dashboardSheet');
   ui.diagnosisSheet = document.getElementById('diagnosisSheet');
+  ui.statDetailSheet = document.getElementById('statDetailSheet');
+  ui.statDetailTitle = document.getElementById('statDetailTitle');
+  ui.statDetailValue = document.getElementById('statDetailValue');
+  ui.statDetailStatus = document.getElementById('statDetailStatus');
+  ui.statDetailExplanation = document.getElementById('statDetailExplanation');
+  ui.statDetailRecommendation = document.getElementById('statDetailRecommendation');
+  ui.statDetailPrimaryBtn = document.getElementById('statDetailPrimaryBtn');
   ui.menuBackdrop = document.getElementById('menuBackdrop');
   ui.gameMenu = document.getElementById('gameMenu');
   ui.menuCloseBtn = document.getElementById('menuCloseBtn');
@@ -142,6 +149,30 @@ function bindUi() {
   ui.analyzeActionBtn.addEventListener('click', () => withDebouncedAction('analyze', ui.analyzeActionBtn, () => openSheet('dashboard')));
   ui.boostActionBtn.addEventListener('click', () => withDebouncedAction('boost', ui.boostActionBtn, onBoostAction));
   ui.openDiagnosisBtn.addEventListener('click', () => openSheet('diagnosis'));
+
+  const statRingBindings = [
+    { node: ui.waterRing, key: 'water' },
+    { node: ui.nutritionRing, key: 'nutrition' },
+    { node: ui.growthRing, key: 'growth' },
+    { node: ui.riskRing, key: 'risk' }
+  ];
+  for (const binding of statRingBindings) {
+    if (!binding.node) {
+      continue;
+    }
+    binding.node.addEventListener('click', () => onStatRingPress(binding.key));
+    binding.node.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        onStatRingPress(binding.key);
+      }
+    });
+  }
+
+  if (ui.statDetailPrimaryBtn) {
+    ui.statDetailPrimaryBtn.addEventListener('click', onStatDetailPrimaryAction);
+  }
+
   ui.startRunBtn.addEventListener('click', onStartRun);
   ui.analysisResetBtn.addEventListener('click', onAnalysisResetClick);
   ui.pushToggleBtn.addEventListener('click', onPushToggleClick);
@@ -199,7 +230,8 @@ function ensureRequiredUi() {
     'plantImage', 'nextEventValue', 'growthImpulseValue', 'simTimeValue', 'boostUsageText',
     'overlayBurn', 'overlayDefMg', 'overlayDefN', 'overlayMoldWarning', 'overlayPestMites', 'overlayPestThrips',
     'careActionBtn', 'analyzeActionBtn', 'boostActionBtn', 'openDiagnosisBtn', 'menuToggleBtn',
-    'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet',
+    'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet', 'statDetailSheet',
+    'statDetailTitle', 'statDetailValue', 'statDetailStatus', 'statDetailExplanation', 'statDetailRecommendation', 'statDetailPrimaryBtn',
     'menuBackdrop', 'gameMenu', 'menuCloseBtn', 'menuHeaderCloseBtn', 'menuNewRunBtn', 'menuRescueBtn', 'menuRescueSubtext',
     'menuStatsBtn', 'menuPushBtn', 'menuPushStatus', 'menuLanguageBtn', 'menuSupportBtn', 'menuAboutBtn',
     'menuAchievementsBtn', 'menuLeaderboardBtn', 'menuDialog', 'menuDialogTitle', 'menuDialogText', 'menuDialogCancelBtn', 'menuDialogConfirmBtn',
