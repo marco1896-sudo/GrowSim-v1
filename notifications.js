@@ -47,14 +47,15 @@ function notify(type, title, body) {
     reminder: 'gs-reminder'
   };
   const tag = tagByType[type] || 'gs-generic';
+  const iconUrl = new URL('icons/icon-192.png', self.location).href;
 
   navigator.serviceWorker.controller.postMessage({
     type: 'GS_SHOW_NOTIFICATION',
     title,
     options: {
       body,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
+      icon: iconUrl,
+      badge: iconUrl,
       tag
     }
   });
@@ -83,6 +84,12 @@ function notifyEventAvailability() {
 
 function notifyCriticalState(nowMs) {
   const notifications = getCanonicalNotificationsSettings(state);
+  const currentNowMs = Number.isFinite(Number(nowMs)) ? Number(nowMs) : Date.now();
+  const cooldownMs = 60 * 1000;
+  if ((currentNowMs - Number(notifications.runtime.lastCriticalAtRealMs || 0)) < cooldownMs) {
+    return;
+  }
+
   const s = state.status || {};
   const critical = Number(s.health) <= 15 || Number(s.risk) >= 75 || Number(s.stress) >= 80;
   if (!critical) {
@@ -103,7 +110,7 @@ function notifyCriticalState(nowMs) {
   }
 
   notify('critical', 'Grow Simulator', body);
-  notifications.runtime.lastCriticalAtRealMs = Number.isFinite(Number(nowMs)) ? Number(nowMs) : Date.now();
+  notifications.runtime.lastCriticalAtRealMs = currentNowMs;
 }
 
 function notifyReminder(nowMs) {
@@ -151,7 +158,7 @@ function notifyPlantNeedsCare(bodyText) {
     title: 'GrowSim',
     options: {
       body: String(bodyText || 'Deine Pflanze braucht Pflege.'),
-      icon: '/icons/icon-192.png'
+      icon: new URL('icons/icon-192.png', self.location).href
     }
   };
 

@@ -20,6 +20,8 @@ const APP_SHELL_FILES = [
   appPath('notifications.js'),
   appPath('manifest.webmanifest'),
   appPath('data/events.json'),
+  appPath('data/events.v2.json'),
+  appPath('data/actions.json'),
   appPath('icons/icon-192.png'),
   appPath('icons/icon-512.png'),
   appPath('assets/backgrounds/bg_dark_01.jpg'),
@@ -63,7 +65,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname === appPath('data/events.json')) {
+  if (url.pathname === appPath('data/events.json') || url.pathname === appPath('data/events.v2.json') || url.pathname === appPath('data/actions.json')) {
     event.respondWith(networkFirst(event.request, SHELL_CACHE));
     return;
   }
