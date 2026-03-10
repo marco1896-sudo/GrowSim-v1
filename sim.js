@@ -444,6 +444,9 @@ function normalizeStageKey(rawStageKey) {
 }
 
 function onBoostAction() {
+  const BOOST_PLANT_EFFECT_MS = 6 * 60 * 1000;
+  const BOOST_GROWTH_PERCENT_DELTA = 0.1;
+
   if (isPlantDead()) {
     addLog('action', 'Boost blockiert: Pflanze ist eingegangen', null);
     renderAll();
@@ -460,8 +463,8 @@ function onBoostAction() {
   }
 
   state.boost.boostUsedToday += 1;
-  applyStatusDrift(BOOST_ADVANCE_MS);
-  applyGrowthPercentDelta(6);
+  applyStatusDrift(BOOST_PLANT_EFFECT_MS);
+  applyGrowthPercentDelta(BOOST_GROWTH_PERCENT_DELTA);
 
   state.events.scheduler.nextEventRealTimeMs = Math.max(nowMs, state.events.scheduler.nextEventRealTimeMs - BOOST_ADVANCE_MS);
   state.events.cooldownUntilMs = Math.max(nowMs, state.events.cooldownUntilMs - BOOST_ADVANCE_MS);
@@ -684,4 +687,3 @@ async function loadActionsCatalog() {
     });
   }
 }
-
