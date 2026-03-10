@@ -1462,6 +1462,7 @@ function setGrowthFromPercent(percent) {
 
 function enterEventCooldown(nowMs) {
   const activeEventId = state.events.activeEventId;
+  const activeCategory = String(state.events.activeCategory || 'generic');
   const perEventCooldownMs = Math.round((Number(state.events.activeCooldownRealMinutes) || 120) * 60 * 1000);
 
   state.events.machineState = 'cooldown';
@@ -1479,7 +1480,7 @@ function enterEventCooldown(nowMs) {
     state.events.scheduler.eventCooldowns[activeEventId] = nowMs + perEventCooldownMs;
   }
 
-  const categoryKey = String(state.events.activeCategory || 'generic');
+  const categoryKey = activeCategory;
   const categoryCooldownMs = categoryKey === 'positive'
     ? Math.max(EVENT_COOLDOWN_MS, 45 * 60 * 1000)
     : EVENT_COOLDOWN_MS;
