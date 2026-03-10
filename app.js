@@ -36,6 +36,8 @@ const EVENT_ROLL_MIN_REAL_MS = CONFIG.timing.eventRollMinRealMs;
 const EVENT_ROLL_MAX_REAL_MS = CONFIG.timing.eventRollMaxRealMs;
 const EVENT_COOLDOWN_MS = CONFIG.timing.eventCooldownMs;
 const BOOST_ADVANCE_MS = CONFIG.boostAdvanceMs;
+const BOOST_PLANT_EFFECT_MS = 6 * 60 * 1000;
+const BOOST_GROWTH_PERCENT_DELTA = 0.1;
 const SIM_TIME_COMPRESSION = CONFIG.simulation.timeCompression;
 const SIM_DAY_START_HOUR = CONFIG.simulation.dayStartHour;
 const SIM_NIGHT_START_HOUR = CONFIG.simulation.nightStartHour;
@@ -1381,8 +1383,8 @@ function onBoostAction() {
   }
 
   state.boost.boostUsedToday += 1;
-  applyStatusDrift(BOOST_ADVANCE_MS);
-  applyGrowthPercentDelta(6);
+  applyStatusDrift(BOOST_PLANT_EFFECT_MS);
+  applyGrowthPercentDelta(BOOST_GROWTH_PERCENT_DELTA);
 
   state.events.scheduler.nextEventRealTimeMs = Math.max(nowMs, state.events.scheduler.nextEventRealTimeMs - BOOST_ADVANCE_MS);
   state.events.cooldownUntilMs = Math.max(nowMs, state.events.cooldownUntilMs - BOOST_ADVANCE_MS);
