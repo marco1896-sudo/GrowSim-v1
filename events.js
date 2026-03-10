@@ -1045,3 +1045,24 @@ async function registerServiceWorker() {
   }
 }
 
+window.GrowSimEvents = Object.freeze({
+  runEventStateMachine,
+  activateEvent,
+  eligibleEventsForNow,
+  isEventEligible,
+  evaluateEventTriggers,
+  evaluateSetupConstraints,
+  evaluateTriggerCondition,
+  resolveTriggerField,
+  onEventOptionClick,
+  enterEventCooldown,
+  deterministicRoll,
+  eventThreshold,
+  shouldTriggerEvent,
+  deterministicEventDelayMs,
+  cooldownMs,
+  computeEventDynamicWeight,
+  selectEventDeterministically,
+  scheduleNextEventRoll,
+  registerServiceWorker
+});

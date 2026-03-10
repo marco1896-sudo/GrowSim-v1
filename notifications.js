@@ -82,6 +82,7 @@ function notifyEventAvailability() {
 }
 
 function notifyCriticalState(nowMs) {
+  const notifications = getCanonicalNotificationsSettings(state);
   const s = state.status || {};
   const critical = Number(s.health) <= 15 || Number(s.risk) >= 75 || Number(s.stress) >= 80;
   if (!critical) {
@@ -102,11 +103,7 @@ function notifyCriticalState(nowMs) {
   }
 
   notify('critical', 'Grow Simulator', body);
-  notifications.runtime.lastCriticalAtRealMs = nowMs;
-}
-
-async function schedulePushIfAllowed(_force) {
-  // Lokale Benachrichtigungen nutzen aktuell kein Backend-Push-Scheduling.
+  notifications.runtime.lastCriticalAtRealMs = Number.isFinite(Number(nowMs)) ? Number(nowMs) : Date.now();
 }
 
 function notifyReminder(nowMs) {
@@ -245,3 +242,20 @@ function dbDelete(db, key) {
   });
 }
 
+window.GrowSimNotifications = Object.freeze({
+  showServiceWorkerHint,
+  schedulePushIfAllowed,
+  canNotify,
+  notify,
+  evaluateNotificationTriggers,
+  notifyEventAvailability,
+  notifyCriticalState,
+  notifyReminder,
+  notifyPlantNeedsCare,
+  postJsonStub,
+  base64ToU8,
+  openDb,
+  dbGet,
+  dbSet,
+  dbDelete
+});

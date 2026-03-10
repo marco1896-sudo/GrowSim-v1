@@ -276,6 +276,8 @@ let menuDialogConfirmHandler = null;
 
 const actionDebounceUntil = Object.create(null);
 
+wireDomainOwnership();
+
 window.__gsBootOk = false;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -284,6 +286,70 @@ document.addEventListener('DOMContentLoaded', () => {
     showBootError(error);
   });
 });
+
+function wireDomainOwnership() {
+  const eventsApi = window.GrowSimEvents;
+  if (eventsApi && typeof eventsApi === 'object') {
+    runEventStateMachine = eventsApi.runEventStateMachine;
+    activateEvent = eventsApi.activateEvent;
+    eligibleEventsForNow = eventsApi.eligibleEventsForNow;
+    isEventEligible = eventsApi.isEventEligible;
+    evaluateEventTriggers = eventsApi.evaluateEventTriggers;
+    evaluateSetupConstraints = eventsApi.evaluateSetupConstraints;
+    evaluateTriggerCondition = eventsApi.evaluateTriggerCondition;
+    resolveTriggerField = eventsApi.resolveTriggerField;
+    onEventOptionClick = eventsApi.onEventOptionClick;
+    enterEventCooldown = eventsApi.enterEventCooldown;
+    deterministicRoll = eventsApi.deterministicRoll;
+    eventThreshold = eventsApi.eventThreshold;
+    shouldTriggerEvent = eventsApi.shouldTriggerEvent;
+    deterministicEventDelayMs = eventsApi.deterministicEventDelayMs;
+    cooldownMs = eventsApi.cooldownMs;
+    computeEventDynamicWeight = eventsApi.computeEventDynamicWeight;
+    selectEventDeterministically = eventsApi.selectEventDeterministically;
+    scheduleNextEventRoll = eventsApi.scheduleNextEventRoll;
+    registerServiceWorker = eventsApi.registerServiceWorker;
+  }
+
+  const storageApi = window.GrowSimStorage;
+  if (storageApi && typeof storageApi === 'object') {
+    localStorageAdapter = storageApi.localStorageAdapter;
+    getCanonicalSimulation = storageApi.getCanonicalSimulation;
+    getCanonicalPlant = storageApi.getCanonicalPlant;
+    getCanonicalEvents = storageApi.getCanonicalEvents;
+    getCanonicalHistory = storageApi.getCanonicalHistory;
+    getCanonicalMeta = storageApi.getCanonicalMeta;
+    getCanonicalSettings = storageApi.getCanonicalSettings;
+    getCanonicalNotificationsSettings = storageApi.getCanonicalNotificationsSettings;
+    restoreState = storageApi.restoreState;
+    persistState = storageApi.persistState;
+    schedulePersistState = storageApi.schedulePersistState;
+    migrateState = storageApi.migrateState;
+    resetStateToDefaults = storageApi.resetStateToDefaults;
+    ensureStateIntegrity = storageApi.ensureStateIntegrity;
+    syncCanonicalStateShape = storageApi.syncCanonicalStateShape;
+    syncLegacyMirrorsFromCanonical = storageApi.syncLegacyMirrorsFromCanonical;
+  }
+
+  const notificationsApi = window.GrowSimNotifications;
+  if (notificationsApi && typeof notificationsApi === 'object') {
+    showServiceWorkerHint = notificationsApi.showServiceWorkerHint;
+    schedulePushIfAllowed = notificationsApi.schedulePushIfAllowed;
+    canNotify = notificationsApi.canNotify;
+    notify = notificationsApi.notify;
+    evaluateNotificationTriggers = notificationsApi.evaluateNotificationTriggers;
+    notifyEventAvailability = notificationsApi.notifyEventAvailability;
+    notifyCriticalState = notificationsApi.notifyCriticalState;
+    notifyReminder = notificationsApi.notifyReminder;
+    notifyPlantNeedsCare = notificationsApi.notifyPlantNeedsCare;
+    postJsonStub = notificationsApi.postJsonStub;
+    base64ToU8 = notificationsApi.base64ToU8;
+    openDb = notificationsApi.openDb;
+    dbGet = notificationsApi.dbGet;
+    dbSet = notificationsApi.dbSet;
+    dbDelete = notificationsApi.dbDelete;
+  }
+}
 
 async function boot() {
   try {
@@ -4260,6 +4326,7 @@ function notifyEventAvailability() {
 }
 
 function notifyCriticalState(nowMs) {
+  const notifications = getCanonicalNotificationsSettings(state);
   const s = state.status || {};
   const critical = Number(s.health) <= 15 || Number(s.risk) >= 75 || Number(s.stress) >= 80;
   if (!critical) {
@@ -4280,7 +4347,7 @@ function notifyCriticalState(nowMs) {
   }
 
   notify('critical', 'Grow Simulator', body);
-  notifications.runtime.lastCriticalAtRealMs = nowMs;
+  notifications.runtime.lastCriticalAtRealMs = Number.isFinite(Number(nowMs)) ? Number(nowMs) : Date.now();
 }
 
 async function schedulePushIfAllowed(_force) {
