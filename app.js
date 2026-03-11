@@ -37,6 +37,8 @@ const EVENT_ROLL_MAX_REAL_MS = CONFIG.timing.eventRollMaxRealMs;
 const EVENT_COOLDOWN_MS = CONFIG.timing.eventCooldownMs;
 const EVENT_RESOLUTION_MS = 10 * 60 * 1000;
 const BOOST_ADVANCE_MS = CONFIG.boostAdvanceMs;
+// Absichtlich limitierter Boost: Event-Timer um 30 Min vorziehen,
+// Pflanzenwerte nur leicht anstoßen (kein vollständiger 30-Minuten-Simulationssprung).
 const BOOST_PLANT_EFFECT_MS = 3 * 60 * 1000;
 const BOOST_GROWTH_PERCENT_DELTA = 0.02;
 const SIM_TIME_COMPRESSION = CONFIG.simulation.timeCompression;
@@ -296,8 +298,41 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function wireDomainOwnership() {
+  const ownership = {
+    events: 'legacy_app',
+    storage: 'legacy_app',
+    notifications: 'legacy_app',
+    eventSheetUi: 'legacy_app'
+  };
+
   const eventsApi = window.GrowSimEvents;
   if (eventsApi && typeof eventsApi === 'object') {
+    const requiredEventFns = [
+      'runEventStateMachine',
+      'activateEvent',
+      'eligibleEventsForNow',
+      'isEventEligible',
+      'evaluateEventTriggers',
+      'evaluateSetupConstraints',
+      'evaluateTriggerCondition',
+      'resolveTriggerField',
+      'onEventOptionClick',
+      'enterEventCooldown',
+      'deterministicRoll',
+      'eventThreshold',
+      'shouldTriggerEvent',
+      'deterministicEventDelayMs',
+      'cooldownMs',
+      'computeEventDynamicWeight',
+      'selectEventDeterministically',
+      'scheduleNextEventRoll',
+      'registerServiceWorker'
+    ];
+    const missingEventFns = requiredEventFns.filter((fnName) => typeof eventsApi[fnName] !== 'function');
+    if (missingEventFns.length) {
+      throw new Error(`GrowSimEvents API unvollständig: ${missingEventFns.join(', ')}`);
+    }
+
     runEventStateMachine = eventsApi.runEventStateMachine;
     activateEvent = eventsApi.activateEvent;
     eligibleEventsForNow = eventsApi.eligibleEventsForNow;
@@ -317,6 +352,7 @@ function wireDomainOwnership() {
     selectEventDeterministically = eventsApi.selectEventDeterministically;
     scheduleNextEventRoll = eventsApi.scheduleNextEventRoll;
     registerServiceWorker = eventsApi.registerServiceWorker;
+    ownership.events = 'events_module';
   }
 
   const storageApi = window.GrowSimStorage;
@@ -337,6 +373,7 @@ function wireDomainOwnership() {
     ensureStateIntegrity = storageApi.ensureStateIntegrity;
     syncCanonicalStateShape = storageApi.syncCanonicalStateShape;
     syncLegacyMirrorsFromCanonical = storageApi.syncLegacyMirrorsFromCanonical;
+    ownership.storage = 'storage_module';
   }
 
   const notificationsApi = window.GrowSimNotifications;
@@ -356,7 +393,30 @@ function wireDomainOwnership() {
     dbGet = notificationsApi.dbGet;
     dbSet = notificationsApi.dbSet;
     dbDelete = notificationsApi.dbDelete;
+    ownership.notifications = 'notifications_module';
   }
+
+  const uiApi = window.GrowSimUI;
+  if (uiApi && typeof uiApi === 'object') {
+    const requiredUiEventSheetFns = [
+      'renderEventSheet',
+      'closeSheet',
+      'dismissActiveEvent',
+      'openSheet'
+    ];
+    const missingUiFns = requiredUiEventSheetFns.filter((fnName) => typeof uiApi[fnName] !== 'function');
+    if (missingUiFns.length) {
+      throw new Error(`GrowSimUI API unvollständig: ${missingUiFns.join(', ')}`);
+    }
+
+    renderEventSheet = uiApi.renderEventSheet;
+    closeSheet = uiApi.closeSheet;
+    dismissActiveEvent = uiApi.dismissActiveEvent;
+    openSheet = uiApi.openSheet;
+    ownership.eventSheetUi = 'ui_module';
+  }
+
+  window.__gsDomainOwnership = ownership;
 }
 
 async function boot() {
@@ -1491,7 +1551,7 @@ function onBoostAction() {
   runEventStateMachine(nowMs);
   updateVisibleOverlays();
 
-  addLog('action', '+30-Minuten-Boost angewendet', {
+  addLog('action', 'Ereignis-Boost angewendet (Event-Timer -30 Min, Pflanze leicht angestoßen)', {
     usedToday: state.boost.boostUsedToday,
     nextEventAtMs: state.events.scheduler.nextEventRealTimeMs
   });
@@ -1620,7 +1680,7 @@ function renderAll() {
 function renderHud() {
   const dead = isPlantDead();
   const phaseCard = getPhaseCardViewModel();
-  const boostText = `Werbeunterstützt · ${state.boost.boostUsedToday}/${state.boost.boostMaxPerDay} heute`;
+  const boostText = `Event -30 Min · kleiner Pflanzenimpuls · ${state.boost.boostUsedToday}/${state.boost.boostMaxPerDay} heute`;
 
   if (ui.phaseCardTitle && ui.phaseCardTitle.textContent !== phaseCard.title) {
     ui.phaseCardTitle.textContent = phaseCard.title;

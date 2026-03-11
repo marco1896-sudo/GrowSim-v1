@@ -1520,3 +1520,11 @@ async function createStorageAdapter() {
     return localStorageAdapter();
   }
 }
+
+
+window.GrowSimUI = Object.freeze({
+  renderEventSheet,
+  closeSheet,
+  dismissActiveEvent,
+  openSheet
+});
