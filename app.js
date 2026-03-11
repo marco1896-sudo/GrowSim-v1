@@ -47,6 +47,7 @@ const SIM_PLANT_ID = CONFIG.simulation.plantId;
 const MAX_HISTORY_LOG = CONFIG.maxHistoryLog;
 const PERSIST_THROTTLE_MS = CONFIG.persistThrottleMs;
 const MAX_ELAPSED_PER_TICK_MS = 5000;
+const MAX_OFFLINE_SIM_MS = 8 * 60 * 60 * 1000;
 const APP_BASE_PATH = resolveAppBasePath();
 const FREEZE_SIM_ON_DEATH = true; // Für Klarheit: Simulation pausiert nach Tod der Pflanze.
 

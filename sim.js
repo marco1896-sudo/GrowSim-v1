@@ -81,9 +81,17 @@ function syncSimulationFromElapsedTime(nowMs) {
   const previousTickMs = Number(state.simulation.lastTickRealTimeMs);
   const safePreviousTickMs = Number.isFinite(previousTickMs) ? previousTickMs : nowMs;
   const elapsedRealMs = Math.max(0, nowMs - safePreviousTickMs);
+  const elapsedOfflineSimMs = Math.min(elapsedRealMs, MAX_OFFLINE_SIM_MS);
   const wasDeadBeforeCatchUp = isPlantDead();
 
-  applySimulationDelta(elapsedRealMs, nowMs);
+  if (elapsedRealMs > MAX_OFFLINE_SIM_MS) {
+    addLog('system', 'Du warst lange weg. Es wurden maximal 8 Stunden simuliert.', {
+      offlineElapsedHours: round2(elapsedRealMs / (60 * 60 * 1000)),
+      simulatedHours: round2(MAX_OFFLINE_SIM_MS / (60 * 60 * 1000))
+    });
+  }
+
+  applySimulationDelta(elapsedOfflineSimMs, nowMs);
 
   if (!wasDeadBeforeCatchUp && isPlantDead() && shouldProtectOfflineNightDeath(safePreviousTickMs, nowMs)) {
     applyOfflineNightSurvivalClamp();
