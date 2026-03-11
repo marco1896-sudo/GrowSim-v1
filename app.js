@@ -37,6 +37,8 @@ const EVENT_ROLL_MAX_REAL_MS = CONFIG.timing.eventRollMaxRealMs;
 const EVENT_COOLDOWN_MS = CONFIG.timing.eventCooldownMs;
 const EVENT_RESOLUTION_MS = 10 * 60 * 1000;
 const BOOST_ADVANCE_MS = CONFIG.boostAdvanceMs;
+// Absichtlich limitierter Boost: Event-Timer um 30 Min vorziehen,
+// Pflanzenwerte nur leicht anstoßen (kein vollständiger 30-Minuten-Simulationssprung).
 const BOOST_PLANT_EFFECT_MS = 3 * 60 * 1000;
 const BOOST_GROWTH_PERCENT_DELTA = 0.02;
 const SIM_TIME_COMPRESSION = CONFIG.simulation.timeCompression;
@@ -1491,7 +1493,7 @@ function onBoostAction() {
   runEventStateMachine(nowMs);
   updateVisibleOverlays();
 
-  addLog('action', '+30-Minuten-Boost angewendet', {
+  addLog('action', 'Ereignis-Boost angewendet (Event-Timer -30 Min, Pflanze leicht angestoßen)', {
     usedToday: state.boost.boostUsedToday,
     nextEventAtMs: state.events.scheduler.nextEventRealTimeMs
   });
@@ -1620,7 +1622,7 @@ function renderAll() {
 function renderHud() {
   const dead = isPlantDead();
   const phaseCard = getPhaseCardViewModel();
-  const boostText = `Werbeunterstützt · ${state.boost.boostUsedToday}/${state.boost.boostMaxPerDay} heute`;
+  const boostText = `Event -30 Min · kleiner Pflanzenimpuls · ${state.boost.boostUsedToday}/${state.boost.boostMaxPerDay} heute`;
 
   if (ui.phaseCardTitle && ui.phaseCardTitle.textContent !== phaseCard.title) {
     ui.phaseCardTitle.textContent = phaseCard.title;
