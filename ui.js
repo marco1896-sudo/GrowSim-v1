@@ -881,7 +881,11 @@ function renderAnalysisTimeline() {
     } else if (row.kind === 'event') {
       const d = row.data || {};
       const note = d.learningNote ? `<details><summary>Lernhinweis</summary>${escapeHtml(String(d.learningNote))}</details>` : '';
-      node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · Ereignis (${escapeHtml(categoryLabel(String(d.category || 'generic')))})</div><strong>${escapeHtml(String(d.optionLabel || d.optionId || d.eventId || 'Ereignis'))}</strong><br>${formatDeltaSummary(d.effectsApplied || d.deltaSummary || {})}${note}`;
+      const analysis = d.analysis && typeof d.analysis === 'object' ? d.analysis : null;
+      const outcome = analysis
+        ? `<br><em>${escapeHtml(String(analysis.actionText || ''))}</em><br>${escapeHtml(String(analysis.causeText || ''))}<br>${escapeHtml(String(analysis.resultText || ''))}<br><strong>Nächster Fokus:</strong> ${escapeHtml(String(analysis.guidanceText || ''))}`
+        : '';
+      node.innerHTML = `<div class="gs-analysis-timeline-meta">${simStamp} · Ereignis (${escapeHtml(categoryLabel(String(d.category || 'generic')))})</div><strong>${escapeHtml(String(d.optionLabel || d.optionId || d.eventId || 'Ereignis'))}</strong><br>${formatDeltaSummary(d.effectsApplied || d.deltaSummary || {})}${outcome}${note}`;
     } else {
       const d = row.data || {};
       const typeLabel = String(d.type || 'system');
