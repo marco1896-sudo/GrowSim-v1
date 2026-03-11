@@ -142,31 +142,6 @@
         reason: 'condition:stable_growth',
         priority: 40
       }, phase, catalog, memory, { state });
-  function resolveNextEvent({ state, flags, memory }) {
-    const flagSet = new Set(Array.isArray(flags) ? flags : []);
-
-    if (flagSet.has('root_stress_pending')) {
-      return {
-        eventId: 'root_stress_followup',
-        reason: 'flag:root_stress_pending',
-        priority: 100
-      };
-    }
-
-    if (Number(state && state.water) > DEFAULT_THRESHOLDS.highWater) {
-      return {
-        eventId: 'drooping_leaves_warning',
-        reason: 'condition:high_water',
-        priority: 80
-      };
-    }
-
-    if (isStableGrowthCondition(state)) {
-      return {
-        eventId: 'stable_growth_reward',
-        reason: 'condition:stable_growth',
-        priority: 40
-      };
     }
 
     const lastDecision = memory && typeof memory.getLastDecision === 'function'
