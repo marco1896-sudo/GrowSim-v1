@@ -813,6 +813,10 @@ function isEventEligible(eventDef, cooldowns, nowMs) {
     return false;
   }
 
+  if (!isEventPhaseAllowed(eventDef)) {
+    return false;
+  }
+
   const blockedUntil = Number(cooldowns[eventDef.id] || 0);
   if (blockedUntil > nowMs) {
     return false;
@@ -828,6 +832,18 @@ function isEventEligible(eventDef, cooldowns, nowMs) {
   }
 
   return evaluateEventTriggers(eventDef.triggers || {});
+}
+
+function isEventPhaseAllowed(eventDef) {
+  const allowedPhases = Array.isArray(eventDef.allowedPhases)
+    ? eventDef.allowedPhases.map((phase) => String(phase))
+    : [];
+
+  if (!allowedPhases.length) {
+    return true;
+  }
+
+  return allowedPhases.includes(String(state.plant.phase || ''));
 }
 
 function evaluateEventTriggers(triggers) {
@@ -4231,6 +4247,9 @@ function normalizeEvent(rawEvent, sourceVersion = 'v1') {
     title: String(rawEvent.title),
     description: String(rawEvent.description),
     triggers: rawEvent.triggers && typeof rawEvent.triggers === 'object' ? rawEvent.triggers : {},
+    allowedPhases: Array.isArray(rawEvent.allowedPhases)
+      ? rawEvent.allowedPhases.map((phase) => String(phase)).filter(Boolean)
+      : [],
     weight: Math.max(0.01, Number(rawEvent.weight) || normalizeSeverity(rawEvent.severity) || 1),
     cooldownRealMinutes: clamp(Number(rawEvent.cooldownRealMinutes) || 120, 10, 24 * 60),
     learningNote: String(rawEvent.learningNote || ''),
