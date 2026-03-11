@@ -29,7 +29,8 @@ function tick() {
   const elapsedRealMs = Number.isFinite(rawElapsed) && rawElapsed > 0
     ? clamp(rawElapsed, 0, MAX_ELAPSED_PER_TICK_MS)
     : 0;
-  applySimulationDelta(elapsedRealMs, nowMs);
+  const effectiveNowMs = prevTickRealTimeMs + elapsedRealMs;
+  applySimulationDelta(elapsedRealMs, effectiveNowMs, nowMs);
 
   if (state.ui.openSheet !== prevOpenSheet) {
     renderSheets();
@@ -43,15 +44,30 @@ function tick() {
   schedulePersistState();
 }
 
-function applySimulationDelta(elapsedRealMs, nowMs) {
+function resolveEffectiveSimulationNowMs(candidateNowMs, elapsedRealMs) {
+  const rawCandidate = Number(candidateNowMs);
+  if (Number.isFinite(rawCandidate)) {
+    return rawCandidate;
+  }
+
+  const previousTickMs = Number(state.simulation.lastTickRealTimeMs);
+  const safePreviousTickMs = Number.isFinite(previousTickMs) ? previousTickMs : Date.now();
   const safeElapsedRealMs = Number.isFinite(elapsedRealMs) && elapsedRealMs > 0 ? elapsedRealMs : 0;
-  const plantTime = getPlantTimeFromElapsed(nowMs);
+  return safePreviousTickMs + safeElapsedRealMs;
+}
+
+function applySimulationDelta(elapsedRealMs, effectiveNowMs, wallNowMs = effectiveNowMs) {
+  const safeElapsedRealMs = Number.isFinite(elapsedRealMs) && elapsedRealMs > 0 ? elapsedRealMs : 0;
+  const safeEffectiveNowMs = resolveEffectiveSimulationNowMs(effectiveNowMs, safeElapsedRealMs);
+  const safeWallNowMs = Number.isFinite(Number(wallNowMs)) ? Number(wallNowMs) : safeEffectiveNowMs;
+
+  const plantTime = getPlantTimeFromElapsed(safeEffectiveNowMs);
   const previousSimTimeMs = Number(state.simulation.simTimeMs) || Number(state.simulation.simEpochMs) || plantTime.simTimeMs;
   const elapsedSimMs = Math.max(0, plantTime.simTimeMs - previousSimTimeMs);
 
   state.simulation.simTimeMs = plantTime.simTimeMs;
   state.simulation.isDaytime = isDaytimeAtSimTime(state.simulation.simTimeMs);
-  state.simulation.lastTickRealTimeMs = nowMs;
+  state.simulation.lastTickRealTimeMs = safeEffectiveNowMs;
 
   applyStatusDrift(safeElapsedRealMs);
   const criticalNow = Number(state.status.health) < 20;
@@ -61,11 +77,11 @@ function applySimulationDelta(elapsedRealMs, nowMs) {
   wasCriticalHealth = criticalNow;
   applyActiveActionEffects(elapsedSimMs);
   advanceGrowthTick(elapsedSimMs);
-  runEventStateMachine(nowMs);
-  resetBoostDaily(nowMs);
+  runEventStateMachine(safeEffectiveNowMs);
+  resetBoostDaily(safeWallNowMs);
   updateVisibleOverlays();
   syncCanonicalStateShape();
-  evaluateNotificationTriggers(nowMs);
+  evaluateNotificationTriggers(safeWallNowMs);
 }
 
 function syncSimulationFromElapsedTime(nowMs) {
@@ -81,7 +97,8 @@ function syncSimulationFromElapsedTime(nowMs) {
   const previousTickMs = Number(state.simulation.lastTickRealTimeMs);
   const safePreviousTickMs = Number.isFinite(previousTickMs) ? previousTickMs : nowMs;
   const elapsedRealMs = Math.max(0, nowMs - safePreviousTickMs);
-  const elapsedOfflineSimMs = Math.min(elapsedRealMs, MAX_OFFLINE_SIM_MS);
+  const effectiveElapsedRealMs = Math.min(elapsedRealMs, MAX_OFFLINE_SIM_MS);
+  const effectiveNowMs = safePreviousTickMs + effectiveElapsedRealMs;
   const wasDeadBeforeCatchUp = isPlantDead();
 
   if (elapsedRealMs > MAX_OFFLINE_SIM_MS) {
@@ -91,7 +108,7 @@ function syncSimulationFromElapsedTime(nowMs) {
     });
   }
 
-  applySimulationDelta(elapsedOfflineSimMs, nowMs);
+  applySimulationDelta(effectiveElapsedRealMs, effectiveNowMs, nowMs);
 
   if (!wasDeadBeforeCatchUp && isPlantDead() && shouldProtectOfflineNightDeath(safePreviousTickMs, nowMs)) {
     applyOfflineNightSurvivalClamp();
