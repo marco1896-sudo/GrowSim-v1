@@ -303,6 +303,7 @@ function wireDomainOwnership() {
     storage: 'legacy_app',
     notifications: 'legacy_app',
     eventSheetUi: 'legacy_app'
+    notifications: 'legacy_app'
   };
 
   const eventsApi = window.GrowSimEvents;
