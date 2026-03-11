@@ -298,8 +298,40 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function wireDomainOwnership() {
+  const ownership = {
+    events: 'legacy_app',
+    storage: 'legacy_app',
+    notifications: 'legacy_app'
+  };
+
   const eventsApi = window.GrowSimEvents;
   if (eventsApi && typeof eventsApi === 'object') {
+    const requiredEventFns = [
+      'runEventStateMachine',
+      'activateEvent',
+      'eligibleEventsForNow',
+      'isEventEligible',
+      'evaluateEventTriggers',
+      'evaluateSetupConstraints',
+      'evaluateTriggerCondition',
+      'resolveTriggerField',
+      'onEventOptionClick',
+      'enterEventCooldown',
+      'deterministicRoll',
+      'eventThreshold',
+      'shouldTriggerEvent',
+      'deterministicEventDelayMs',
+      'cooldownMs',
+      'computeEventDynamicWeight',
+      'selectEventDeterministically',
+      'scheduleNextEventRoll',
+      'registerServiceWorker'
+    ];
+    const missingEventFns = requiredEventFns.filter((fnName) => typeof eventsApi[fnName] !== 'function');
+    if (missingEventFns.length) {
+      throw new Error(`GrowSimEvents API unvollständig: ${missingEventFns.join(', ')}`);
+    }
+
     runEventStateMachine = eventsApi.runEventStateMachine;
     activateEvent = eventsApi.activateEvent;
     eligibleEventsForNow = eventsApi.eligibleEventsForNow;
@@ -319,6 +351,7 @@ function wireDomainOwnership() {
     selectEventDeterministically = eventsApi.selectEventDeterministically;
     scheduleNextEventRoll = eventsApi.scheduleNextEventRoll;
     registerServiceWorker = eventsApi.registerServiceWorker;
+    ownership.events = 'events_module';
   }
 
   const storageApi = window.GrowSimStorage;
@@ -339,6 +372,7 @@ function wireDomainOwnership() {
     ensureStateIntegrity = storageApi.ensureStateIntegrity;
     syncCanonicalStateShape = storageApi.syncCanonicalStateShape;
     syncLegacyMirrorsFromCanonical = storageApi.syncLegacyMirrorsFromCanonical;
+    ownership.storage = 'storage_module';
   }
 
   const notificationsApi = window.GrowSimNotifications;
@@ -358,7 +392,10 @@ function wireDomainOwnership() {
     dbGet = notificationsApi.dbGet;
     dbSet = notificationsApi.dbSet;
     dbDelete = notificationsApi.dbDelete;
+    ownership.notifications = 'notifications_module';
   }
+
+  window.__gsDomainOwnership = ownership;
 }
 
 async function boot() {
