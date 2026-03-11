@@ -227,7 +227,16 @@ const state = {
     resolvedOutcome: null,
     lastEventAtMs: 0,
     cooldownUntilMs: 0,
-    catalog: []
+    catalog: [],
+    foundation: {
+      flags: {},
+      memory: {
+        events: [],
+        decisions: [],
+        pendingChains: {}
+      },
+      analysis: []
+    }
   },
   history: { actions: [], events: [], system: [], systemLog: [] },
   debug: { enabled: false, showInternalTicks: false, forceDaytime: false },
@@ -4191,6 +4200,19 @@ async function loadEventCatalog() {
     }
   } catch (_error) {
     // handled by fallback below
+  }
+
+  try {
+    const foundation = await fetch('./data/events.foundation.json', { cache: 'default' });
+    if (foundation.ok) {
+      const payload = await foundation.json();
+      const events = Array.isArray(payload) ? payload : payload.events;
+      if (Array.isArray(events)) {
+        catalogs.push(...events.map((eventDef) => normalizeEvent(eventDef, 'foundation')).filter(Boolean));
+      }
+    }
+  } catch (_error) {
+    // optional foundation catalog
   }
 
   try {
