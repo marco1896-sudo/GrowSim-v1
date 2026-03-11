@@ -81,8 +81,74 @@ function syncSimulationFromElapsedTime(nowMs) {
   const previousTickMs = Number(state.simulation.lastTickRealTimeMs);
   const safePreviousTickMs = Number.isFinite(previousTickMs) ? previousTickMs : nowMs;
   const elapsedRealMs = Math.max(0, nowMs - safePreviousTickMs);
+  const wasDeadBeforeCatchUp = isPlantDead();
 
   applySimulationDelta(elapsedRealMs, nowMs);
+
+  if (!wasDeadBeforeCatchUp && isPlantDead() && shouldProtectOfflineNightDeath(safePreviousTickMs, nowMs)) {
+    applyOfflineNightSurvivalClamp();
+    syncCanonicalStateShape();
+  }
+}
+
+
+function isNightHourLocal(hour) {
+  return hour >= 22 || hour < 8;
+}
+
+function intervalOverlapsNightWindow(startMs, endMs) {
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    return false;
+  }
+
+  const start = new Date(startMs);
+  const end = new Date(endMs);
+  const dayStart = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
+
+  for (let cursor = dayStart - 24 * 60 * 60 * 1000; cursor <= endMs; cursor += 24 * 60 * 60 * 1000) {
+    const nightStart = cursor + (22 * 60 * 60 * 1000);
+    const nightEnd = cursor + (32 * 60 * 60 * 1000);
+    if (startMs < nightEnd && endMs > nightStart) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function shouldProtectOfflineNightDeath(previousTickMs, nowMs) {
+  if (!Number.isFinite(previousTickMs) || !Number.isFinite(nowMs) || nowMs <= previousTickMs) {
+    return false;
+  }
+
+  const nowHour = new Date(nowMs).getHours();
+  if (isNightHourLocal(nowHour)) {
+    return true;
+  }
+
+  return intervalOverlapsNightWindow(previousTickMs, nowMs);
+}
+
+function applyOfflineNightSurvivalClamp() {
+  state.status.health = Math.max(8, Number(state.status.health) || 0);
+  state.status.water = Math.max(6, Number(state.status.water) || 0);
+  state.status.nutrition = Math.max(6, Number(state.status.nutrition) || 0);
+  state.status.stress = Math.max(88, Number(state.status.stress) || 0);
+  state.status.risk = Math.max(92, Number(state.status.risk) || 0);
+
+  state.plant.isDead = false;
+  state.plant.phase = getStageTimeline()[clampInt(Number(state.plant.stageIndex) || 0, 0, Math.max(0, getStageTimeline().length - 1))]?.phase || 'seedling';
+  state.plant.stageKey = stageAssetKeyForIndex(state.plant.stageIndex);
+  state.ui.deathOverlayOpen = false;
+  state.ui.deathOverlayAcknowledged = false;
+
+  const meta = getCanonicalMeta(state);
+  meta.rescue.lastResult = 'Offline-Nacht: Pflanze knapp überlebt und ist kritisch.';
+  addLog('system', 'Offline-Nachtschutz aktiv: Todeszustand verhindert', {
+    health: round2(state.status.health),
+    stress: round2(state.status.stress),
+    risk: round2(state.status.risk)
+  });
 }
 
 function applyStatusDrift(elapsedMs) {
