@@ -34,6 +34,7 @@ function createMockRootState(overrides = {}) {
     flags: flagsApi.getActiveFlags(runtime.events),
     memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events), getLastEvents: (count) => memoryApi.getLastEvents(runtime.events, count) },
     catalog
+    memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events) }
   });
   assert(firstResolution.eventId === 'drooping_leaves_warning', 'Expected high-water to resolve drooping warning');
 
@@ -46,6 +47,7 @@ function createMockRootState(overrides = {}) {
     flags: flagsApi.getActiveFlags(runtime.events),
     memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events), getLastEvents: (count) => memoryApi.getLastEvents(runtime.events, count) },
     catalog
+    memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events) }
   });
   assert(followUpResolution.eventId === 'root_stress_followup', 'Expected root stress follow-up to be prioritized');
 
@@ -56,6 +58,7 @@ function createMockRootState(overrides = {}) {
     flags: flagsApi.getActiveFlags(runtime.events),
     memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events), getLastEvents: (count) => memoryApi.getLastEvents(runtime.events, count) },
     catalog
+    memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events) }
   });
   assert(stableResolution.eventId === 'stable_growth_reward', 'Expected stable conditions to resolve stable reward');
 

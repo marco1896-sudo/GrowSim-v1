@@ -236,6 +236,7 @@ const state = {
         pendingChains: {}
       },
       analysis: []
+      }
     }
   },
   history: { actions: [], events: [], system: [], systemLog: [] },
