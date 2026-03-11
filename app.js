@@ -35,6 +35,7 @@ const UI_TICK_INTERVAL_MS = CONFIG.timing.uiTickMs;
 const EVENT_ROLL_MIN_REAL_MS = CONFIG.timing.eventRollMinRealMs;
 const EVENT_ROLL_MAX_REAL_MS = CONFIG.timing.eventRollMaxRealMs;
 const EVENT_COOLDOWN_MS = CONFIG.timing.eventCooldownMs;
+const EVENT_RESOLUTION_MS = 10 * 60 * 1000;
 const BOOST_ADVANCE_MS = CONFIG.boostAdvanceMs;
 const BOOST_PLANT_EFFECT_MS = 6 * 60 * 1000;
 const BOOST_GROWTH_PERCENT_DELTA = 0.1;
@@ -219,6 +220,9 @@ const state = {
     activeCooldownRealMinutes: 120,
     activeCategory: 'generic',
     activeTags: [],
+    resolvingUntilMs: 0,
+    pendingOutcome: null,
+    resolvedOutcome: null,
     lastEventAtMs: 0,
     cooldownUntilMs: 0,
     catalog: []
@@ -667,8 +671,23 @@ function normalizeStageKey(rawStageKey) {
 }
 
 function runEventStateMachine(nowMs) {
-  if (state.events.machineState === 'resolved') {
-    enterEventCooldown(nowMs);
+  if (state.events.machineState === 'resolving') {
+    if (nowMs >= state.events.resolvingUntilMs) {
+      state.events.machineState = 'resolved';
+      addLog('system', 'Ereignisausgang ist bereit', {
+        eventId: state.events.activeEventId,
+        chosenOptionId: state.events.lastChoiceId,
+        resolvedAtMs: nowMs
+      });
+    } else if (state.events.scheduler.nextEventRealTimeMs <= nowMs) {
+      scheduleNextEventRoll(nowMs, 'resolving_event_pending');
+      schedulePushIfAllowed(false);
+    }
+  }
+
+  if (state.events.machineState === 'resolved' && !state.events.resolvedOutcome && state.events.pendingOutcome) {
+    state.events.resolvedOutcome = { ...state.events.pendingOutcome };
+    state.events.pendingOutcome = null;
   }
 
   if (state.events.machineState === 'cooldown') {
@@ -682,8 +701,9 @@ function runEventStateMachine(nowMs) {
     }
   }
 
-  if (state.events.machineState === 'activeEvent' && nowMs >= state.events.scheduler.nextEventRealTimeMs) {
-    scheduleNextEventRoll(nowMs, 'active_event_pending');
+  if ((state.events.machineState === 'activeEvent' || state.events.machineState === 'resolved')
+    && nowMs >= state.events.scheduler.nextEventRealTimeMs) {
+    scheduleNextEventRoll(nowMs, `${state.events.machineState}_event_pending`);
     schedulePushIfAllowed(false);
   }
 
@@ -708,14 +728,18 @@ function runEventStateMachine(nowMs) {
     });
 
     if (trigger) {
-      activateEvent(nowMs);
+      const activated = activateEvent(nowMs);
+      if (activated) {
+        schedulePushIfAllowed(false);
+        return;
+      }
     }
 
     scheduleNextEventRoll(nowMs, 'post_roll');
     schedulePushIfAllowed(false);
   }
 
-  if (state.events.machineState === 'activeEvent') {
+  if (state.events.machineState === 'activeEvent' || state.events.machineState === 'resolving' || state.events.machineState === 'resolved') {
     state.ui.openSheet = 'event';
   }
 }
@@ -773,7 +797,9 @@ function activateEvent(nowMs) {
   });
 
   notifyPlantNeedsCare('Deine Pflanze braucht Pflege.');
+  return true;
 }
+
 
 function eligibleEventsForNow(nowMs) {
   const cooldowns = state.events.scheduler.eventCooldowns || {};
@@ -940,7 +966,19 @@ function onEventOptionClick(optionId) {
 
   state.events.lastChoiceId = choice.id;
   state.events.scheduler.lastChoiceId = choice.id;
-  state.events.machineState = 'resolved';
+  state.events.machineState = 'resolving';
+  state.events.resolvingUntilMs = state.simulation.nowMs + EVENT_RESOLUTION_MS;
+
+  state.events.pendingOutcome = {
+    eventId: state.events.activeEventId,
+    eventTitle: state.events.activeEventTitle,
+    optionId: choice.id,
+    optionLabel: choice.label,
+    summary: classifyOutcome(deltaSummary),
+    learningNote: state.events.activeLearningNote || '',
+    resolvedAfterMs: EVENT_RESOLUTION_MS
+  };
+  state.events.resolvedOutcome = null;
 
   const triggerSnapshot = {
     simDay: Math.floor(simDayFloat()),
@@ -1050,6 +1088,9 @@ function enterEventCooldown(nowMs) {
   state.events.activeCooldownRealMinutes = 120;
   state.events.activeCategory = 'generic';
   state.events.activeTags = [];
+  state.events.resolvingUntilMs = 0;
+  state.events.pendingOutcome = null;
+  state.events.resolvedOutcome = null;
 
   if (activeEventId) {
     state.events.scheduler.eventCooldowns[activeEventId] = nowMs + perEventCooldownMs;
@@ -1387,8 +1428,17 @@ function onBoostAction() {
   applyStatusDrift(BOOST_PLANT_EFFECT_MS);
   applyGrowthPercentDelta(BOOST_GROWTH_PERCENT_DELTA);
 
-  state.events.scheduler.nextEventRealTimeMs = Math.max(nowMs, state.events.scheduler.nextEventRealTimeMs - BOOST_ADVANCE_MS);
-  state.events.cooldownUntilMs = Math.max(nowMs, state.events.cooldownUntilMs - BOOST_ADVANCE_MS);
+  if (state.events.machineState === 'idle' || state.events.machineState === 'cooldown') {
+    state.events.scheduler.nextEventRealTimeMs = Math.max(nowMs, state.events.scheduler.nextEventRealTimeMs - BOOST_ADVANCE_MS);
+  }
+
+  if (state.events.machineState === 'cooldown') {
+    state.events.cooldownUntilMs = Math.max(nowMs, state.events.cooldownUntilMs - BOOST_ADVANCE_MS);
+  }
+
+  if (state.events.machineState === 'resolving') {
+    state.events.resolvingUntilMs = Math.max(nowMs, state.events.resolvingUntilMs - BOOST_ADVANCE_MS);
+  }
 
   runEventStateMachine(nowMs);
   updateVisibleOverlays();
@@ -1566,8 +1616,15 @@ function renderHud() {
     ui.plantImage.dataset.stageName = state.plant.stageKey;
   }
 
-  const eventInMs = state.events.scheduler.nextEventRealTimeMs - state.simulation.nowMs;
-  ui.nextEventValue.textContent = formatCountdown(eventInMs);
+  const eventStatus = eventStatusDisplay();
+  ui.nextEventValue.textContent = eventStatus.value;
+  if (ui.nextEventValue && ui.nextEventValue.dataset.label !== eventStatus.label) {
+    const labelNode = ui.nextEventValue.closest('.info-tile')?.querySelector('.info-label');
+    if (labelNode) {
+      labelNode.textContent = eventStatus.label;
+    }
+    ui.nextEventValue.dataset.label = eventStatus.label;
+  }
   ui.growthImpulseValue.textContent = state.simulation.growthImpulse.toFixed(2);
   ui.simTimeValue.textContent = formatSimClock(state.simulation.simTimeMs);
 
@@ -1847,7 +1904,7 @@ function explainActionFailure(reason) {
 }
 
 function renderEventSheet() {
-  if (state.ui.openSheet !== 'event' && state.events.machineState !== 'activeEvent') {
+  if (state.ui.openSheet !== 'event' && !['activeEvent', 'resolving', 'resolved'].includes(state.events.machineState)) {
     return;
   }
 
@@ -1874,7 +1931,17 @@ function renderEventSheet() {
     return;
   }
 
-  if (state.events.machineState === 'cooldown') {
+  if (state.events.machineState === 'resolving') {
+    const leftMs = state.events.resolvingUntilMs - state.simulation.nowMs;
+    ui.eventTitle.textContent = state.events.activeEventTitle || 'Ereignis wird ausgewertet';
+    ui.eventText.textContent = 'Deine Entscheidung wird jetzt ausgewertet. Das Ergebnis erscheint nach Ablauf des Timers.';
+    ui.eventMeta.textContent = `Ergebnis in: ${formatCountdown(leftMs)}`;
+  } else if (state.events.machineState === 'resolved') {
+    const outcome = state.events.resolvedOutcome;
+    ui.eventTitle.textContent = outcome && outcome.eventTitle ? outcome.eventTitle : 'Ergebnis bereit';
+    ui.eventText.textContent = formatResolvedOutcome(outcome);
+    ui.eventMeta.textContent = 'Ergebnis bereit – schließe das Ereignis, um fortzufahren.';
+  } else if (state.events.machineState === 'cooldown') {
     const cooldownLeft = state.events.cooldownUntilMs - state.simulation.nowMs;
     ui.eventTitle.textContent = 'Abklingzeit aktiv';
     ui.eventText.textContent = 'Das Ereignissystem befindet sich in der Abklingzeit.';
@@ -2766,6 +2833,12 @@ function closeSheet() {
     dismissActiveEvent();
     return;
   }
+  if (state.events.machineState === 'resolved') {
+    enterEventCooldown(state.simulation.nowMs);
+    renderAll();
+    schedulePersistState(true);
+    return;
+  }
   state.ui.openSheet = null;
   state.ui.statDetailKey = null;
   renderSheets();
@@ -2782,7 +2855,18 @@ function dismissActiveEvent() {
   applyChoiceEffects(penalty);
   state.events.lastChoiceId = '__dismiss__';
   state.events.scheduler.lastChoiceId = '__dismiss__';
-  state.events.machineState = 'resolved';
+  state.events.machineState = 'resolving';
+  state.events.resolvingUntilMs = state.simulation.nowMs + EVENT_RESOLUTION_MS;
+  state.events.pendingOutcome = {
+    eventId,
+    eventTitle: state.events.activeEventTitle,
+    optionId: '__dismiss__',
+    optionLabel: 'Ignoriert',
+    summary: 'bad',
+    learningNote: 'Ignorierte Ereignisse erhöhen meist das Risiko.',
+    resolvedAfterMs: EVENT_RESOLUTION_MS
+  };
+  state.events.resolvedOutcome = null;
 
   addLog('choice', `Ereignis geschlossen ohne Auswahl: ${eventId}`, {
     choiceId: '__dismiss__',
@@ -2901,13 +2985,49 @@ function translateEventState(machineState) {
       return 'inaktiv';
     case 'activeEvent':
       return 'aktives Ereignis';
+    case 'resolving':
+      return 'Ergebnis läuft';
     case 'resolved':
-      return 'aufgelöst';
+      return 'Ergebnis bereit';
     case 'cooldown':
       return 'Abklingzeit';
     default:
       return machineState;
   }
+}
+
+
+function classifyOutcome(deltaSummary) {
+  const d = deltaSummary || {};
+  const score = (Number(d.health) || 0) + (Number(d.growth) || 0) - (Number(d.stress) || 0) - (Number(d.risk) || 0);
+  if (score >= 1) return 'good';
+  if (score <= -1) return 'bad';
+  return 'mixed';
+}
+
+function formatResolvedOutcome(outcome) {
+  if (!outcome) {
+    return 'Die Auswertung wurde abgeschlossen.';
+  }
+  const tone = outcome.summary === 'good'
+    ? 'Gute Entscheidung.'
+    : (outcome.summary === 'bad' ? 'Eher schlechte Entscheidung.' : 'Gemischtes Ergebnis.');
+  const choice = outcome.optionLabel ? `Gewählt: ${outcome.optionLabel}.` : '';
+  const note = outcome.learningNote ? ` ${outcome.learningNote}` : '';
+  return `${tone} ${choice}${note}`.trim();
+}
+
+function eventStatusDisplay() {
+  if (state.events.machineState === 'activeEvent') {
+    return { label: 'Ereignisstatus', value: 'Ereignis aktiv' };
+  }
+  if (state.events.machineState === 'resolving') {
+    return { label: 'Ergebnis in', value: formatCountdown(state.events.resolvingUntilMs - state.simulation.nowMs) };
+  }
+  if (state.events.machineState === 'resolved') {
+    return { label: 'Ereignisstatus', value: 'Ergebnis bereit' };
+  }
+  return { label: 'Nächstes Ereignis', value: formatCountdown(state.events.scheduler.nextEventRealTimeMs - state.simulation.nowMs) };
 }
 
 function formatCountdown(ms) {
@@ -3075,6 +3195,9 @@ function getCanonicalEvents(snapshot) {
   if (!Number.isFinite(s.events.activeCooldownRealMinutes)) s.events.activeCooldownRealMinutes = 120;
   if (typeof s.events.activeCategory !== 'string') s.events.activeCategory = 'generic';
   if (!Array.isArray(s.events.activeTags)) s.events.activeTags = [];
+  if (!Number.isFinite(s.events.resolvingUntilMs)) s.events.resolvingUntilMs = 0;
+  if (!s.events.pendingOutcome || typeof s.events.pendingOutcome !== 'object') s.events.pendingOutcome = null;
+  if (!s.events.resolvedOutcome || typeof s.events.resolvedOutcome !== 'object') s.events.resolvedOutcome = null;
   if (!Number.isFinite(s.events.lastEventAtMs)) s.events.lastEventAtMs = 0;
   if (!Number.isFinite(s.events.cooldownUntilMs)) s.events.cooldownUntilMs = 0;
   if (!Array.isArray(s.events.catalog)) s.events.catalog = [];
@@ -3622,7 +3745,7 @@ function ensureStateIntegrity(nowMs) {
     state.boost.dayStamp = dayStamp(nowMs);
   }
 
-  const machineStates = new Set(['idle', 'activeEvent', 'resolved', 'cooldown']);
+  const machineStates = new Set(['idle', 'activeEvent', 'resolving', 'resolved', 'cooldown']);
   if (!machineStates.has(state.events.machineState)) {
     state.events.machineState = 'idle';
   }
@@ -3806,7 +3929,7 @@ function syncCanonicalStateShape() {
     categoryCooldowns: events.scheduler.categoryCooldowns || {}
   };
 
-  events.active = events.machineState === 'activeEvent'
+  events.active = ['activeEvent', 'resolving', 'resolved'].includes(events.machineState)
     ? {
       id: events.activeEventId,
       title: events.activeEventTitle,
