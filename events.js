@@ -28,7 +28,6 @@ function resolveFoundationCandidateEvent() {
       const safeCount = Math.max(0, Number(count) || 0);
       return analysis.slice(Math.max(0, analysis.length - safeCount));
     }
-    getLastEvents: (count) => api.memory.getLastEvents(state.events, count)
   };
 
   return api.resolver.resolveNextEvent({
@@ -36,7 +35,6 @@ function resolveFoundationCandidateEvent() {
     flags: activeFlags,
     memory: memoryFacade,
     catalog: state.events.catalog
-    memory: memoryFacade
   });
 }
 
