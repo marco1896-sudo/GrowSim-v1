@@ -1571,15 +1571,20 @@ function renderAll() {
 
 function renderHud() {
   const dead = isPlantDead();
-  const dayNight = state.simulation.isDaytime ? 'Tag' : 'Nacht';
   const phaseCard = getPhaseCardViewModel();
   const boostText = `Werbeunterstützt · ${state.boost.boostUsedToday}/${state.boost.boostMaxPerDay} heute`;
 
   if (ui.phaseCardTitle && ui.phaseCardTitle.textContent !== phaseCard.title) {
     ui.phaseCardTitle.textContent = phaseCard.title;
   }
-  if (ui.phaseCardCycle && ui.phaseCardCycle.textContent !== dayNight) {
-    ui.phaseCardCycle.textContent = dayNight;
+  if (ui.phaseCardCycle && ui.phaseCardCycle.textContent !== phaseCard.cycleIcon) {
+    ui.phaseCardCycle.textContent = phaseCard.cycleIcon;
+  }
+  if (ui.phaseCardCycle) {
+    ui.phaseCardCycle.setAttribute('aria-label', state.simulation.isDaytime ? 'Tag' : 'Nacht');
+  }
+  if (ui.phaseCardAge && ui.phaseCardAge.textContent !== phaseCard.ageLabel) {
+    ui.phaseCardAge.textContent = phaseCard.ageLabel;
   }
   if (ui.phaseCardSubtitle && ui.phaseCardSubtitle.textContent !== phaseCard.subtitle) {
     ui.phaseCardSubtitle.textContent = phaseCard.subtitle;
@@ -1597,7 +1602,7 @@ function renderHud() {
     ui.phaseProgressMarker.classList.toggle('hidden', !phaseCard.nextLabel || phaseCard.progressPercent >= 100);
   }
   if (ui.phaseCard) {
-    ui.phaseCard.setAttribute('aria-label', `Phase ${phaseCard.title}. ${phaseCard.subtitle}.`);
+    ui.phaseCard.setAttribute('aria-label', `Phase ${phaseCard.title}. ${phaseCard.ageLabel}. ${phaseCard.subtitle}.`);
   }
 
   if (ui.boostUsageText.textContent !== boostText) {

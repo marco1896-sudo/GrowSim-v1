@@ -147,15 +147,20 @@ body::before {
 }
 
 .phase-card-cycle {
-  font-size: 0.64rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: rgba(206, 218, 241, 0.82);
+  font-size: 0.9rem;
+  line-height: 1;
+  color: rgba(206, 218, 241, 0.92);
+}
+
+.phase-card-age {
+  margin: 0.16rem 0 0;
+  font-size: 0.69rem;
+  line-height: 1.24;
+  color: rgba(198, 218, 190, 0.92);
 }
 
 .phase-card-subtitle {
-  margin: 0.18rem 0 0.45rem;
+  margin: 0.1rem 0 0.45rem;
   font-size: 0.7rem;
   line-height: 1.28;
   color: rgba(177, 196, 169, 0.96);

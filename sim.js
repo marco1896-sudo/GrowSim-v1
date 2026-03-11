@@ -423,36 +423,69 @@ function computeStageProgress(simDay, stageIndex) {
   return snapshot.progressInPhase;
 }
 
+function getDayNightIcon() {
+  return state.simulation.isDaytime ? '☀️' : '🌙';
+}
+
+function formatPlantAgeLabel(stage, simDay) {
+  const safeSimDay = clamp(Number(simDay) || 0, 0, TOTAL_LIFECYCLE_SIM_DAYS);
+  const plantDay = Math.max(1, Math.floor(safeSimDay) + 1);
+  const timeline = stage && Array.isArray(stage.timeline) ? stage.timeline : getStageTimeline();
+  const floweringStart = timeline.find((item) => item.phase === 'flowering');
+
+  if (!floweringStart || safeSimDay < floweringStart.simDayStart) {
+    return `Tag ${plantDay}`;
+  }
+
+  const bloomDay = Math.max(1, Math.floor(safeSimDay - floweringStart.simDayStart) + 1);
+  return `Blütetag ${bloomDay}`;
+}
+
+function formatPhaseProgressLabel(progressPercent, nextLabel) {
+  const targetLabel = nextLabel || 'Ernte';
+  return `${progressPercent}% → ${targetLabel}`;
+}
+
 function getPhaseCardViewModel() {
   const isDead = state.plant.phase === 'dead' || state.plant.isDead === true;
-  const stage = getCurrentStage(simDayFloat());
+  const simDay = simDayFloat();
+  const stage = getCurrentStage(simDay);
   const fallbackPhaseLabel = PHASE_LABEL_DE[state.plant.phase] || PHASE_LABEL_DE.seedling;
   const title = stage.current && stage.current.label ? stage.current.label : fallbackPhaseLabel;
   const progressPercent = clamp(Math.round(stage.progressInPhase * 100), 0, 100);
+  const ageLabel = formatPlantAgeLabel(stage, simDay);
+  const cycleIcon = getDayNightIcon();
+  const progressLabel = formatPhaseProgressLabel(progressPercent, stage.next ? stage.next.label : 'Ernte');
 
   if (isDead) {
     return {
       title,
+      ageLabel,
       subtitle: 'Pflanze eingegangen',
       progressPercent: 100,
-      nextLabel: null
+      nextLabel: null,
+      cycleIcon
     };
   }
 
   if (!stage.next) {
     return {
       title,
-      subtitle: progressPercent >= 100 ? 'Finish läuft' : `${progressPercent}% bis Ernte`,
+      ageLabel,
+      subtitle: progressLabel,
       progressPercent,
-      nextLabel: 'Ernte'
+      nextLabel: 'Ernte',
+      cycleIcon
     };
   }
 
   return {
     title,
-    subtitle: `${progressPercent}% bis ${stage.next.label}`,
+    ageLabel,
+    subtitle: progressLabel,
     progressPercent,
-    nextLabel: stage.next.label
+    nextLabel: stage.next.label,
+    cycleIcon
   };
 }
 
