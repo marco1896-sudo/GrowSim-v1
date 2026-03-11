@@ -227,7 +227,16 @@ const state = {
     resolvedOutcome: null,
     lastEventAtMs: 0,
     cooldownUntilMs: 0,
-    catalog: []
+    catalog: [],
+    foundation: {
+      flags: {},
+      memory: {
+        events: [],
+        decisions: [],
+        pendingChains: {}
+      },
+      analysis: []
+    }
   },
   history: { actions: [], events: [], system: [], systemLog: [] },
   debug: { enabled: false, showInternalTicks: false, forceDaytime: false },
@@ -4194,6 +4203,19 @@ async function loadEventCatalog() {
   }
 
   try {
+    const foundation = await fetch('./data/events.foundation.json', { cache: 'default' });
+    if (foundation.ok) {
+      const payload = await foundation.json();
+      const events = Array.isArray(payload) ? payload : payload.events;
+      if (Array.isArray(events)) {
+        catalogs.push(...events.map((eventDef) => normalizeEvent(eventDef, 'foundation')).filter(Boolean));
+      }
+    }
+  } catch (_error) {
+    // optional foundation catalog
+  }
+
+  try {
     const v2 = await fetch('./data/events.v2.json', { cache: 'default' });
     if (v2.ok) {
       const payload = await v2.json();
@@ -4328,6 +4350,8 @@ function normalizeEvent(rawEvent, sourceVersion = 'v1') {
     polarity: inferEventPolarity(rawEvent, category),
     environment: inferEnvironmentScope(rawEvent),
     tags: Array.isArray(rawEvent.tags) ? rawEvent.tags.map(String) : [],
+    tone: String(rawEvent.tone || ''),
+    isFollowUp: rawEvent.isFollowUp === true,
     options,
     sourceVersion
   };
