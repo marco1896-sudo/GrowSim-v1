@@ -181,6 +181,7 @@ function bindUi() {
   ui.notifTypeReminder.addEventListener('change', onNotificationTypeToggle);
   ui.deathResetBtn.addEventListener('click', onDeathResetClick);
   ui.deathAnalyzeBtn.addEventListener('click', onDeathAnalyzeClick);
+  ui.deathRescueBtn.addEventListener('click', onDeathRescueClick);
   ui.menuToggleBtn.addEventListener('click', onMenuToggleClick);
   ui.menuCloseBtn.addEventListener('click', closeMenu);
   ui.menuHeaderCloseBtn.addEventListener('click', closeMenu);
