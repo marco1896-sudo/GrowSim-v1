@@ -11,6 +11,12 @@ function assert(condition, message) {
   }
 }
 
+const catalog = [
+  { id: 'drooping_leaves_warning', allowedPhases: ['vegetative'], category: 'water', tone: 'warning', isFollowUp: false },
+  { id: 'root_stress_followup', allowedPhases: ['vegetative'], category: 'disease', tone: 'negative', isFollowUp: true },
+  { id: 'stable_growth_reward', allowedPhases: ['vegetative'], category: 'positive', tone: 'positive', isFollowUp: false }
+];
+
 function createMockRootState(overrides = {}) {
   return {
     status: { health: 80, stress: 20, water: 68, nutrition: 66, risk: 18, ...(overrides.status || {}) },
@@ -26,6 +32,8 @@ function createMockRootState(overrides = {}) {
   const firstResolution = resolveNextEvent({
     state: highWaterState,
     flags: flagsApi.getActiveFlags(runtime.events),
+    memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events), getLastEvents: (count) => memoryApi.getLastEvents(runtime.events, count) },
+    catalog
     memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events) }
   });
   assert(firstResolution.eventId === 'drooping_leaves_warning', 'Expected high-water to resolve drooping warning');
@@ -37,6 +45,8 @@ function createMockRootState(overrides = {}) {
   const followUpResolution = resolveNextEvent({
     state: highWaterState,
     flags: flagsApi.getActiveFlags(runtime.events),
+    memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events), getLastEvents: (count) => memoryApi.getLastEvents(runtime.events, count) },
+    catalog
     memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events) }
   });
   assert(followUpResolution.eventId === 'root_stress_followup', 'Expected root stress follow-up to be prioritized');
@@ -46,6 +56,8 @@ function createMockRootState(overrides = {}) {
   const stableResolution = resolveNextEvent({
     state: stableState,
     flags: flagsApi.getActiveFlags(runtime.events),
+    memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events), getLastEvents: (count) => memoryApi.getLastEvents(runtime.events, count) },
+    catalog
     memory: { getLastDecision: () => memoryApi.getLastDecision(runtime.events) }
   });
   assert(stableResolution.eventId === 'stable_growth_reward', 'Expected stable conditions to resolve stable reward');

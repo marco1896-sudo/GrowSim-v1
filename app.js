@@ -4351,6 +4351,8 @@ function normalizeEvent(rawEvent, sourceVersion = 'v1') {
     polarity: inferEventPolarity(rawEvent, category),
     environment: inferEnvironmentScope(rawEvent),
     tags: Array.isArray(rawEvent.tags) ? rawEvent.tags.map(String) : [],
+    tone: String(rawEvent.tone || ''),
+    isFollowUp: rawEvent.isFollowUp === true,
     options,
     sourceVersion
   };

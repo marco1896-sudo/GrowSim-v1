@@ -20,12 +20,22 @@ function resolveFoundationCandidateEvent() {
   const activeFlags = api.flags.getActiveFlags(state.events);
   const memoryFacade = {
     getLastDecision: () => api.memory.getLastDecision(state.events),
+    getLastEvents: (count) => api.memory.getLastEvents(state.events, count),
+    getRecentAnalysis: (count) => {
+      const analysis = state.events && state.events.foundation && Array.isArray(state.events.foundation.analysis)
+        ? state.events.foundation.analysis
+        : [];
+      const safeCount = Math.max(0, Number(count) || 0);
+      return analysis.slice(Math.max(0, analysis.length - safeCount));
+    }
     getLastEvents: (count) => api.memory.getLastEvents(state.events, count)
   };
 
   return api.resolver.resolveNextEvent({
     state: normalizedState,
     flags: activeFlags,
+    memory: memoryFacade,
+    catalog: state.events.catalog
     memory: memoryFacade
   });
 }
