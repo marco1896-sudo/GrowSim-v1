@@ -447,6 +447,9 @@ function enterEventCooldown(nowMs) {
   state.events.scheduler.categoryCooldowns[categoryKey] = nowMs + categoryCooldownMs;
 
   state.events.active = null;
+  if (state.ui.openSheet === 'event') {
+    state.ui.openSheet = null;
+  }
 
   addLog('system', 'Ereignis abgeschlossen, Abklingzeit gestartet', {
     cooldownUntilMs: state.events.cooldownUntilMs,
