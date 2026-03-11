@@ -116,6 +116,7 @@ function getCanonicalEvents(snapshot) {
   if (!Array.isArray(s.events.foundation.memory.events)) s.events.foundation.memory.events = [];
   if (!Array.isArray(s.events.foundation.memory.decisions)) s.events.foundation.memory.decisions = [];
   if (!s.events.foundation.memory.pendingChains || typeof s.events.foundation.memory.pendingChains !== 'object') s.events.foundation.memory.pendingChains = {};
+  if (!Array.isArray(s.events.foundation.analysis)) s.events.foundation.analysis = [];
 
   return s.events;
 }

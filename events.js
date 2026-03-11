@@ -5,6 +5,7 @@ function getEventFoundationApis() {
     plantState: (typeof window !== 'undefined' && window.GrowSimPlantState) ? window.GrowSimPlantState : null,
     flags: (typeof window !== 'undefined' && window.GrowSimEventFlags) ? window.GrowSimEventFlags : null,
     memory: (typeof window !== 'undefined' && window.GrowSimEventMemory) ? window.GrowSimEventMemory : null,
+    analysis: (typeof window !== 'undefined' && window.GrowSimEventAnalysis) ? window.GrowSimEventAnalysis : null,
     resolver: (typeof window !== 'undefined' && window.GrowSimEventResolver) ? window.GrowSimEventResolver : null
   };
 }
@@ -400,6 +401,28 @@ function onEventOptionClick(optionId) {
 
   applyFoundationFollowUps(choice, state.events.activeEventId);
 
+  const foundationApi = getEventFoundationApis();
+  let analysisEntry = null;
+  if (foundationApi.analysis && foundationApi.plantState && foundationApi.flags) {
+    analysisEntry = foundationApi.analysis.generateAndStoreAnalysis(state.events, {
+      eventId: state.events.activeEventId,
+      optionId: choice.id,
+      atRealTimeMs: Date.now(),
+      atSimTimeMs: state.simulation.simTimeMs,
+      tick: state.simulation.tickCount,
+      relatedFlags: foundationApi.flags.getActiveFlags(state.events),
+      normalizedState: foundationApi.plantState.buildNormalizedPlantState(state)
+    });
+  }
+
+  if (analysisEntry && foundationApi.memory) {
+    const lastDecision = foundationApi.memory.getLastDecision(state.events);
+    if (lastDecision && lastDecision.eventId === String(state.events.activeEventId) && lastDecision.optionId === String(choice.id)) {
+      lastDecision.analysisId = analysisEntry.analysisId;
+      lastDecision.analysisTone = analysisEntry.tone;
+    }
+  }
+
   const triggerSnapshot = {
     simDay: Math.floor(simDayFloat()),
     stageIndex: state.plant.stageIndex + 1,
@@ -426,6 +449,7 @@ function onEventOptionClick(optionId) {
     triggerSnapshot,
     effectsApplied: deltaSummary,
     sideEffectsTriggered: triggeredSideEffects,
+    analysis: analysisEntry,
     atSimTimeMs: state.simulation.simTimeMs,
     atRealTimeMs: Date.now()
   };
@@ -437,7 +461,16 @@ function onEventOptionClick(optionId) {
     effects: choice.effects || {},
     sideEffects: triggeredSideEffects,
     effectsApplied: deltaSummary,
-    followUps: choice.followUps || []
+    followUps: choice.followUps || [],
+    outcomeAnalysis: analysisEntry
+      ? {
+        tone: analysisEntry.tone,
+        actionText: analysisEntry.actionText,
+        causeText: analysisEntry.causeText,
+        resultText: analysisEntry.resultText,
+        guidanceText: analysisEntry.guidanceText
+      }
+      : null
   });
 
   runEventStateMachine(state.simulation.nowMs);

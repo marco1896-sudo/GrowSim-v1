@@ -234,6 +234,8 @@ const state = {
         events: [],
         decisions: [],
         pendingChains: {}
+      },
+      analysis: []
       }
     }
   },
