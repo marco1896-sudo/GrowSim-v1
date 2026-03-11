@@ -1,5 +1,62 @@
 'use strict';
 
+function getEventFoundationApis() {
+  return {
+    plantState: (typeof window !== 'undefined' && window.GrowSimPlantState) ? window.GrowSimPlantState : null,
+    flags: (typeof window !== 'undefined' && window.GrowSimEventFlags) ? window.GrowSimEventFlags : null,
+    memory: (typeof window !== 'undefined' && window.GrowSimEventMemory) ? window.GrowSimEventMemory : null,
+    resolver: (typeof window !== 'undefined' && window.GrowSimEventResolver) ? window.GrowSimEventResolver : null
+  };
+}
+
+function resolveFoundationCandidateEvent() {
+  const api = getEventFoundationApis();
+  if (!api.plantState || !api.flags || !api.memory || !api.resolver) {
+    return null;
+  }
+
+  const normalizedState = api.plantState.buildNormalizedPlantState(state);
+  const activeFlags = api.flags.getActiveFlags(state.events);
+  const memoryFacade = {
+    getLastDecision: () => api.memory.getLastDecision(state.events),
+    getLastEvents: (count) => api.memory.getLastEvents(state.events, count)
+  };
+
+  return api.resolver.resolveNextEvent({
+    state: normalizedState,
+    flags: activeFlags,
+    memory: memoryFacade
+  });
+}
+
+function applyFoundationFollowUps(choice, eventId) {
+  const api = getEventFoundationApis();
+  if (!api.flags || !api.memory) {
+    return;
+  }
+
+  api.memory.addDecision(state.events, eventId, choice.id, {
+    followUps: Array.isArray(choice.followUps) ? choice.followUps.slice() : []
+  });
+
+  const followUps = Array.isArray(choice.followUps) ? choice.followUps : [];
+  for (const followUp of followUps) {
+    const token = String(followUp || '');
+    if (token.startsWith('set_flag:')) {
+      api.flags.setFlag(state.events, token.slice('set_flag:'.length), true);
+      continue;
+    }
+    if (token.startsWith('clear_flag:')) {
+      api.flags.clearFlag(state.events, token.slice('clear_flag:'.length));
+      continue;
+    }
+    if (token.startsWith('set_chain:')) {
+      const chainId = token.slice('set_chain:'.length);
+      api.memory.setPendingChain(state.events, chainId, { eventId, optionId: choice.id, atRealTimeMs: Date.now() });
+    }
+  }
+}
+
 function runEventStateMachine(nowMs) {
   if (state.events.machineState === 'resolved') {
     enterEventCooldown(nowMs);
@@ -80,7 +137,12 @@ function activateEvent(nowMs) {
     return false;
   }
 
-  const eventDef = selectEventDeterministically(pool, nowMs);
+  const foundationCandidate = resolveFoundationCandidateEvent();
+  const forcedEvent = foundationCandidate && foundationCandidate.eventId
+    ? pool.find((eventDef) => eventDef && eventDef.id === foundationCandidate.eventId)
+    : null;
+
+  const eventDef = forcedEvent || selectEventDeterministically(pool, nowMs);
   if (!eventDef) {
     return false;
   }
@@ -114,8 +176,17 @@ function activateEvent(nowMs) {
   addLog('event_shown', `Ereignis ausgewählt: ${eventDef.id}`, {
     title: eventDef.title,
     severity: state.events.activeSeverity,
-    category: eventDef.category || 'generic'
+    category: eventDef.category || 'generic',
+    foundationReason: foundationCandidate && foundationCandidate.eventId === eventDef.id ? foundationCandidate.reason : null
   });
+
+  const foundationApi = getEventFoundationApis();
+  if (foundationApi.memory) {
+    foundationApi.memory.addEvent(state.events, eventDef.id, {
+      phase: state.plant.phase,
+      reason: foundationCandidate && foundationCandidate.eventId === eventDef.id ? foundationCandidate.reason : 'default_selection'
+    });
+  }
 
   notifyPlantNeedsCare('Deine Pflanze braucht Pflege.');
   return true;
@@ -326,6 +397,8 @@ function onEventOptionClick(optionId) {
   state.events.lastChoiceId = choice.id;
   state.events.scheduler.lastChoiceId = choice.id;
   state.events.machineState = 'resolved';
+
+  applyFoundationFollowUps(choice, state.events.activeEventId);
 
   const triggerSnapshot = {
     simDay: Math.floor(simDayFloat()),
@@ -1121,5 +1194,6 @@ window.GrowSimEvents = Object.freeze({
   computeEventDynamicWeight,
   selectEventDeterministically,
   scheduleNextEventRoll,
-  registerServiceWorker
+  registerServiceWorker,
+  resolveFoundationCandidateEvent
 });

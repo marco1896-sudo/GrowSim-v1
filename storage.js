@@ -110,6 +110,12 @@ function getCanonicalEvents(snapshot) {
   if (!Number.isFinite(s.events.lastEventAtMs)) s.events.lastEventAtMs = 0;
   if (!Number.isFinite(s.events.cooldownUntilMs)) s.events.cooldownUntilMs = 0;
   if (!Array.isArray(s.events.catalog)) s.events.catalog = [];
+  if (!s.events.foundation || typeof s.events.foundation !== 'object') s.events.foundation = {};
+  if (!s.events.foundation.flags || typeof s.events.foundation.flags !== 'object') s.events.foundation.flags = {};
+  if (!s.events.foundation.memory || typeof s.events.foundation.memory !== 'object') s.events.foundation.memory = {};
+  if (!Array.isArray(s.events.foundation.memory.events)) s.events.foundation.memory.events = [];
+  if (!Array.isArray(s.events.foundation.memory.decisions)) s.events.foundation.memory.decisions = [];
+  if (!s.events.foundation.memory.pendingChains || typeof s.events.foundation.memory.pendingChains !== 'object') s.events.foundation.memory.pendingChains = {};
 
   return s.events;
 }
