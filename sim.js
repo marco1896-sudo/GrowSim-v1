@@ -551,8 +551,8 @@ function normalizeStageKey(rawStageKey) {
 }
 
 function onBoostAction() {
-  const BOOST_PLANT_EFFECT_MS = 6 * 60 * 1000;
-  const BOOST_GROWTH_PERCENT_DELTA = 0.1;
+  const BOOST_PLANT_EFFECT_MS = 3 * 60 * 1000;
+  const BOOST_GROWTH_PERCENT_DELTA = 0.02;
 
   if (isPlantDead()) {
     addLog('action', 'Boost blockiert: Pflanze ist eingegangen', null);
