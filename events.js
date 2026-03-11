@@ -32,21 +32,27 @@ function runEventStateMachine(nowMs) {
     }
 
     const roll = deterministicRoll();
-    const trigger = shouldTriggerEvent(roll);
-
-    addLog('event_roll', trigger ? 'Ereigniswurf erfolgreich' : 'Ereigniswurf nicht erfolgreich', {
+    addLog('event_roll', 'Ereignisgrenze erreicht, Ereignis wird aktiviert', {
       roll,
       threshold: eventThreshold(),
       simHour: simHour(state.simulation.simTimeMs),
       at: nowMs
     });
 
-    if (trigger) {
-      activateEvent(nowMs);
+    const activated = activateEvent(nowMs);
+    if (activated) {
+      state.ui.openSheet = 'event';
+      schedulePushIfAllowed(false);
+      return;
     }
 
-    scheduleNextEventRoll(nowMs, 'post_roll');
+    addLog('event_roll', 'Ereignisgrenze bleibt aktiv: Kein Ereignis aktivierbar', {
+      at: nowMs,
+      phase: state.plant.phase
+    });
+    state.events.scheduler.nextEventRealTimeMs = nowMs;
     schedulePushIfAllowed(false);
+    return;
   }
 
   if (state.events.machineState === 'activeEvent') {
@@ -57,21 +63,26 @@ function runEventStateMachine(nowMs) {
 function activateEvent(nowMs) {
   const catalog = state.events.catalog;
   if (!Array.isArray(catalog) || !catalog.length) {
-    return;
+    return false;
   }
 
   const eligible = eligibleEventsForNow(nowMs);
-  if (!eligible.length) {
+  let pool = eligible;
+  if (!pool.length) {
+    pool = fallbackEventsForCurrentPhase(nowMs);
+  }
+
+  if (!pool.length) {
     addLog('event_roll', 'Keine passenden Ereignisse für aktuellen Zustand', {
       simDay: Math.floor(simDayFloat()),
       at: nowMs
     });
-    return;
+    return false;
   }
 
-  const eventDef = selectEventDeterministically(eligible, nowMs);
+  const eventDef = selectEventDeterministically(pool, nowMs);
   if (!eventDef) {
-    return;
+    return false;
   }
 
   const options = eventDef.options.slice(0, 3);
@@ -107,6 +118,7 @@ function activateEvent(nowMs) {
   });
 
   notifyPlantNeedsCare('Deine Pflanze braucht Pflege.');
+  return true;
 }
 
 function eligibleEventsForNow(nowMs) {
@@ -114,6 +126,29 @@ function eligibleEventsForNow(nowMs) {
   return state.events.catalog
     .filter((eventDef) => isEventEligible(eventDef, cooldowns, nowMs))
     .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+}
+
+
+function fallbackEventsForCurrentPhase(nowMs) {
+  const phase = String(state.plant.phase || '');
+  const fallback = state.events.catalog.filter((eventDef) => {
+    if (!eventDef || !eventDef.id || !isEventPhaseAllowed(eventDef)) {
+      return false;
+    }
+    const cooldowns = state.events.scheduler.eventCooldowns || {};
+    const blockedUntil = Number(cooldowns[eventDef.id] || 0);
+    return blockedUntil <= nowMs;
+  });
+
+  if (fallback.length) {
+    addLog('event_roll', 'Fallback-Ereignispool genutzt (Phase-only)', {
+      phase,
+      candidateCount: fallback.length,
+      at: nowMs
+    });
+  }
+
+  return fallback.sort((a, b) => String(a.id).localeCompare(String(b.id)));
 }
 
 function isEventEligible(eventDef, cooldowns, nowMs) {
