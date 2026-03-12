@@ -9,7 +9,8 @@
       vitality: 65,
       stressMax: 35,
       pestPressureMax: 35
-    }
+    },
+    repeatWindow: 3
   });
 
   function isStableGrowthCondition(state) {
@@ -42,41 +43,91 @@
     return Array.isArray(recent) ? recent : [];
   }
 
-  function getRecentAnalysisEntries(memory, count = 3) {
-    if (!memory || typeof memory.getRecentAnalysis !== 'function') return [];
-    const recent = memory.getRecentAnalysis(count);
-    return Array.isArray(recent) ? recent : [];
+  function getEventTone(eventDef) {
+    const tone = String((eventDef && eventDef.tone) || 'neutral').toLowerCase();
+    return ['positive', 'neutral', 'negative'].includes(tone) ? tone : 'neutral';
   }
 
-  function isEventNegative(eventDef) {
-    const tone = String((eventDef && eventDef.tone) || '').toLowerCase();
-    const category = String((eventDef && eventDef.category) || 'generic').toLowerCase();
-    if (tone === 'positive' || category === 'positive') return false;
-    return true;
+  function isNegativeTone(eventDef) {
+    return getEventTone(eventDef) === 'negative';
   }
 
-  function countRecentNegativePressure(memory, catalog) {
-    const recentAnalysis = getRecentAnalysisEntries(memory, 3);
-    if (recentAnalysis.length) {
-      return recentAnalysis.filter((entry) => {
-        const tone = String((entry && entry.tone) || '').toLowerCase();
-        return tone === 'negative' || tone === 'warning';
-      }).length;
+  function areLastEventsNegative(memory, catalog, count = 2) {
+    const recent = getRecentEvents(memory, count);
+    if (recent.length < count) return false;
+
+    return recent.every((entry) => {
+      const eventDef = findCatalogEvent(catalog, entry && entry.eventId);
+      return isNegativeTone(eventDef);
+    });
+  }
+
+  function hasRepeatInWindow(memory, eventId, windowSize = DEFAULT_THRESHOLDS.repeatWindow) {
+    if (!eventId) return false;
+    const recent = getRecentEvents(memory, windowSize);
+    const normalizedId = String(eventId);
+    return recent.some((entry) => entry && String(entry.eventId) === normalizedId);
+  }
+
+  function getMostRecentPendingChain(memory) {
+    if (!memory || typeof memory.getPendingChains !== 'function') return null;
+    const pending = memory.getPendingChains();
+    if (!pending || typeof pending !== 'object') return null;
+
+    return Object.values(pending)
+      .filter((entry) => entry && typeof entry === 'object' && entry.targetEventId)
+      .sort((a, b) => Number(b.createdAtRealTimeMs || 0) - Number(a.createdAtRealTimeMs || 0))[0] || null;
+  }
+
+  function applyPhaseGuard(candidates, context) {
+    const { phase, catalog } = context;
+    return candidates.filter((candidate) => {
+      if (candidate.followUpForced === true) return true;
+      const eventDef = findCatalogEvent(catalog, candidate.eventId);
+      return Boolean(eventDef && isPhaseAllowed(eventDef, phase));
+    });
+  }
+
+  function applyRepeatGuard(candidates, context) {
+    const { memory, repeatWindow } = context;
+    return candidates.filter((candidate) => {
+      if (candidate.followUpForced === true) return true;
+      if (candidate.isFollowUp === true) return true;
+      return !hasRepeatInWindow(memory, candidate.eventId, repeatWindow);
+    });
+  }
+
+  function applyFrustrationGuard(candidates, context) {
+    const { memory, catalog } = context;
+    const hasNegativeStreak = areLastEventsNegative(memory, catalog, 2);
+    if (!hasNegativeStreak) {
+      return candidates;
     }
 
-    const recentEvents = getRecentEvents(memory, 3);
-    return recentEvents.filter((entry) => {
-      const eventDef = findCatalogEvent(catalog, entry && entry.eventId);
-      return isEventNegative(eventDef);
-    }).length;
+    return candidates.filter((candidate) => {
+      if (candidate.followUpForced === true) return true;
+      if (candidate.isFollowUp === true) return true;
+      if (candidate.allowNegativeStreakOverride === true) return true;
+
+      const eventDef = findCatalogEvent(catalog, candidate.eventId);
+      return !isNegativeTone(eventDef);
+    });
   }
 
-  function isImmediateRepeat(memory, eventId) {
-    const recent = getRecentEvents(memory, 1);
-    return Boolean(recent.length && recent[0] && recent[0].eventId === String(eventId));
+  function applyGuardPipeline(candidates, context) {
+    const original = Array.isArray(candidates) ? candidates.slice() : [];
+    if (!original.length) {
+      return [];
+    }
+
+    let filtered = applyPhaseGuard(original, context);
+    filtered = applyRepeatGuard(filtered, context);
+    filtered = applyFrustrationGuard(filtered, context);
+
+    return filtered.length ? filtered : original;
   }
 
-  function finalizeCandidate(candidate, phase, catalog, memory, options = {}) {
+  function finalizeCandidate(candidate, phase, catalog) {
     if (!candidate || !candidate.eventId) {
       return {
         eventId: null,
@@ -89,42 +140,10 @@
     if (!eventDef) {
       return { eventId: null, reason: 'missing_catalog_event', priority: 0 };
     }
-
-    if (!isPhaseAllowed(eventDef, phase)) {
-      return { eventId: null, reason: `phase_blocked:${candidate.eventId}`, priority: 0 };
-    }
-
-    const followUpForced = options.followUpForced === true || eventDef.isFollowUp === true;
-    if (!followUpForced && isImmediateRepeat(memory, candidate.eventId)) {
-      return { eventId: null, reason: `anti_repeat_blocked:${candidate.eventId}`, priority: 0 };
-    }
-
-    const negativePressure = countRecentNegativePressure(memory, catalog);
-    const stableRewardDef = findCatalogEvent(catalog, 'stable_growth_reward');
-    const stableEligible = stableRewardDef
-      && isPhaseAllowed(stableRewardDef, phase)
-      && isStableGrowthCondition(options.state || {});
-
-    if (!followUpForced && negativePressure >= 2 && isEventNegative(eventDef) && stableEligible && candidate.eventId !== 'stable_growth_reward') {
-      return {
-        eventId: 'stable_growth_reward',
-        reason: `anti_frustration_stable_override:${candidate.eventId}`,
-        priority: Math.max(1, Number(candidate.priority) || 0)
-      };
-    }
-
-    return candidate;
-  }
-
-
-  function getMostRecentPendingChain(memory) {
-    if (!memory || typeof memory.getPendingChains !== 'function') return null;
-    const pending = memory.getPendingChains();
-    if (!pending || typeof pending !== 'object') return null;
-
-    return Object.values(pending)
-      .filter((entry) => entry && typeof entry === 'object' && entry.targetEventId)
-      .sort((a, b) => Number(b.createdAtRealTimeMs || 0) - Number(a.createdAtRealTimeMs || 0))[0] || null;
+    return {
+      ...candidate,
+      tone: getEventTone(eventDef)
+    };
   }
 
   function resolveNextEvent({ state, flags, memory, catalog }) {
@@ -133,38 +152,57 @@
 
     const pendingChain = getMostRecentPendingChain(memory);
     if (pendingChain && pendingChain.targetEventId) {
-      const pendingCandidate = finalizeCandidate({
+      return finalizeCandidate({
         eventId: String(pendingChain.targetEventId),
         reason: `pending_chain:${String(pendingChain.chainId || pendingChain.targetEventId)}`,
-        priority: 95
-      }, phase, catalog, memory, { followUpForced: true, state });
-      if (pendingCandidate && pendingCandidate.eventId) {
-        return pendingCandidate;
-      }
+        priority: 95,
+        followUpForced: true,
+        isFollowUp: true
+      }, phase, catalog);
     }
 
     if (flagSet.has('root_stress_pending')) {
       return finalizeCandidate({
         eventId: 'root_stress_followup',
         reason: 'flag:root_stress_pending',
-        priority: 100
-      }, phase, catalog, memory, { followUpForced: true, state });
+        priority: 100,
+        followUpForced: true,
+        isFollowUp: true
+      }, phase, catalog);
     }
 
+    const candidates = [];
     if (Number(state && state.water) > DEFAULT_THRESHOLDS.highWater) {
-      return finalizeCandidate({
+      candidates.push({
         eventId: 'drooping_leaves_warning',
         reason: 'condition:high_water',
-        priority: 80
-      }, phase, catalog, memory, { state });
+        priority: 80,
+        isFollowUp: false
+      });
     }
 
     if (isStableGrowthCondition(state)) {
-      return finalizeCandidate({
+      candidates.push({
         eventId: 'stable_growth_reward',
         reason: 'condition:stable_growth',
-        priority: 40
-      }, phase, catalog, memory, { state });
+        priority: 40,
+        isFollowUp: false
+      });
+    }
+
+    const guarded = applyGuardPipeline(candidates, {
+      phase,
+      catalog,
+      memory,
+      repeatWindow: DEFAULT_THRESHOLDS.repeatWindow
+    });
+
+    if (guarded.length) {
+      const selected = guarded
+        .slice()
+        .sort((a, b) => Number(b.priority || 0) - Number(a.priority || 0))[0];
+
+      return finalizeCandidate(selected, phase, catalog);
     }
 
     const lastDecision = memory && typeof memory.getLastDecision === 'function'
@@ -182,7 +220,8 @@
     DEFAULT_THRESHOLDS,
     isStableGrowthCondition,
     isPhaseAllowed,
-    resolveNextEvent
+    resolveNextEvent,
+    applyGuardPipeline
   });
 
   globalScope.GrowSimEventResolver = api;
