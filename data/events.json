@@ -1,0 +1,1078 @@
+{
+  "events": [
+    {
+      "id": "soil_compaction",
+      "title": "Bodenverdichtung erkannt",
+      "description": "Die obere Schicht ist nach wiederholtem Giessen verkrustet; die Wurzelbelueftung ist reduziert.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "struktur",
+        "belueftung"
+      ],
+      "choices": [
+        {
+          "id": "loosen_top_layer",
+          "label": "Obere 2 cm vorsichtig auflockern",
+          "effects": {
+            "health": 4,
+            "stress": -5,
+            "risk": -4,
+            "growth": 2
+          }
+        },
+        {
+          "id": "full_flush",
+          "label": "Spuelen und auf bessere Drainage hoffen",
+          "effects": {
+            "water": 10,
+            "stress": 4,
+            "risk": 5
+          }
+        },
+        {
+          "id": "ignore_compaction",
+          "label": "Vorerst nichts unternehmen",
+          "effects": {
+            "stress": 5,
+            "risk": 6,
+            "health": -3
+          }
+        }
+      ],
+      "allowedPhases": [
+        "seedling",
+        "vegetative"
+      ],
+      "pool": "recovery",
+      "tone": "neutral",
+      "weight": 0.95,
+      "triggers": {
+        "stage": {
+          "min": 2,
+          "max": 6
+        }
+      }
+    },
+    {
+      "id": "fungus_gnat_wave",
+      "title": "Trauermuecken am Topf",
+      "description": "Adulte Muecken kreisen ueber feuchter Erde und deuten auf Larvendruck hin.",
+      "severity": 4,
+      "tags": [
+        "boden",
+        "schaedlinge"
+      ],
+      "choices": [
+        {
+          "id": "dry_back_cycle",
+          "label": "Trocknungsphase und Gelbtafeln einsetzen",
+          "effects": {
+            "water": -7,
+            "risk": -8,
+            "stress": -2,
+            "health": 2
+          }
+        },
+        {
+          "id": "overwater_panic",
+          "label": "Aus Panik uebergiessen",
+          "effects": {
+            "water": 12,
+            "risk": 7,
+            "stress": 3
+          }
+        },
+        {
+          "id": "biological_treatment",
+          "label": "Nematoden zur biologischen Kontrolle einsetzen",
+          "effects": {
+            "risk": -10,
+            "health": 3,
+            "nutrition": -2
+          },
+          "followUp": "Population in 48h erneut pruefen"
+        }
+      ],
+      "allowedPhases": [
+        "seedling",
+        "vegetative",
+        "flowering"
+      ],
+      "category": "pest",
+      "pool": "recovery",
+      "tone": "neutral",
+      "weight": 0.95,
+      "triggers": {
+        "stage": {
+          "min": 2,
+          "max": 7
+        }
+      }
+    },
+    {
+      "id": "nitrogen_lockout",
+      "title": "Anzeichen fuer Stickstoff-Blockade",
+      "description": "Untere Blaetter vergilben trotz Duengung; pH-Drift kann die Aufnahme blockieren.",
+      "severity": 4,
+      "tags": [
+        "boden",
+        "naehrstoffe",
+        "ph"
+      ],
+      "choices": [
+        {
+          "id": "ph_corrected_feed",
+          "label": "pH korrigieren und leicht nachduengen",
+          "effects": {
+            "nutrition": 9,
+            "health": 5,
+            "growth": 3,
+            "risk": -3
+          }
+        },
+        {
+          "id": "strong_feed",
+          "label": "Duengerkonzentration erhoehen",
+          "effects": {
+            "nutrition": 12,
+            "stress": 6,
+            "risk": 5
+          }
+        },
+        {
+          "id": "plain_water_only",
+          "label": "In diesem Zyklus nur Wasser geben",
+          "effects": {
+            "nutrition": -4,
+            "stress": -2,
+            "growth": -2
+          }
+        }
+      ],
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ],
+      "category": "nutrition",
+      "pool": "warning",
+      "tone": "negative",
+      "triggers": {
+        "stage": {
+          "min": 3,
+          "max": 8
+        }
+      }
+    },
+    {
+      "id": "magnesium_deficit",
+      "title": "Interkostale Chlorose sichtbar",
+      "description": "Im mittleren Kronenbereich zeigt sich ein Magnesiummangel-Muster an aelteren Blaettern.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "naehrstoffe",
+        "magnesium"
+      ],
+      "choices": [
+        {
+          "id": "epsom_foliar",
+          "label": "Milden Mg-Blattspray anwenden",
+          "effects": {
+            "health": 4,
+            "stress": -3,
+            "risk": -2
+          }
+        },
+        {
+          "id": "add_calmag_soil",
+          "label": "Ausgewogenes CalMag in die Naehrloesung geben",
+          "effects": {
+            "nutrition": 6,
+            "health": 3,
+            "growth": 2
+          }
+        },
+        {
+          "id": "delay_action",
+          "label": "Abwarten und beobachten",
+          "effects": {
+            "health": -3,
+            "stress": 4,
+            "risk": 3
+          }
+        }
+      ],
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ],
+      "category": "nutrition",
+      "pool": "warning",
+      "tone": "negative",
+      "triggers": {
+        "stage": {
+          "min": 4,
+          "max": 9
+        }
+      }
+    },
+    {
+      "id": "salt_buildup",
+      "weight": 0.95,
+      "title": "Salzkruste am Topfrand",
+      "description": "Durch Verdunstung haben sich Naehrsalze am Rand des Behaelters abgesetzt.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "ec",
+        "naehrstoffe"
+      ],
+      "choices": [
+        {
+          "id": "gentle_flush",
+          "label": "Mit pH-ausgeglichenem Wasser spuelen",
+          "effects": {
+            "risk": -5,
+            "stress": -3,
+            "nutrition": -3,
+            "health": 3
+          }
+        },
+        {
+          "id": "topdress_compost",
+          "label": "Mit Kompost und Mulch topdressen",
+          "effects": {
+            "nutrition": 6,
+            "water": 4,
+            "risk": -2
+          }
+        },
+        {
+          "id": "ignore_salt",
+          "label": "Bis zum naechsten Zyklus ignorieren",
+          "effects": {
+            "risk": 5,
+            "stress": 3,
+            "health": -2
+          }
+        }
+      ],
+      "allowedPhases": [
+        "vegetative",
+        "flowering",
+        "harvest"
+      ],
+      "category": "nutrition",
+      "pool": "recovery",
+      "tone": "neutral",
+      "triggers": {
+        "stage": {
+          "min": 4,
+          "max": 10
+        }
+      }
+    },
+    {
+      "id": "soil_too_wet",
+      "title": "Wurzelzone bleibt zu lange nass",
+      "description": "Das Topfgewicht bleibt nach 48h hoch; Sauerstoff in der Wurzelzone nimmt ab.",
+      "severity": 4,
+      "tags": [
+        "boden",
+        "giessen",
+        "wurzel"
+      ],
+      "choices": [
+        {
+          "id": "increase_airflow",
+          "label": "Luftstrom erhoehen und Giessen pausieren",
+          "effects": {
+            "water": -10,
+            "risk": -7,
+            "stress": -3,
+            "health": 2
+          }
+        },
+        {
+          "id": "transplant_aerated_mix",
+          "label": "In luftigere Erde umtopfen",
+          "effects": {
+            "stress": 4,
+            "health": 5,
+            "risk": -8,
+            "growth": 2
+          }
+        },
+        {
+          "id": "water_again",
+          "label": "Weiter nach Plan giessen",
+          "effects": {
+            "water": 10,
+            "risk": 9,
+            "health": -4
+          }
+        }
+      ],
+      "allowedPhases": [
+        "seedling",
+        "vegetative"
+      ],
+      "category": "water",
+      "pool": "warning",
+      "tone": "negative",
+      "triggers": {
+        "stage": {
+          "min": 1,
+          "max": 5
+        }
+      }
+    },
+    {
+      "id": "dry_pocket",
+      "title": "Hydrophobe Trockenstelle",
+      "description": "Ein Teil des Substrats stoesst Wasser ab, Wurzeln werden ungleichmaessig versorgt.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "giessen"
+      ],
+      "choices": [
+        {
+          "id": "slow_even_water",
+          "label": "Langsam in zwei Durchgaengen rehydrieren",
+          "effects": {
+            "water": 8,
+            "stress": -4,
+            "health": 3
+          }
+        },
+        {
+          "id": "wetting_agent",
+          "label": "Mildes Netzmittel einsetzen",
+          "effects": {
+            "water": 6,
+            "risk": -3,
+            "growth": 2
+          }
+        },
+        {
+          "id": "force_heavy_watering",
+          "label": "Mit starkem Top-Giessen erzwingen",
+          "effects": {
+            "water": 12,
+            "risk": 4,
+            "stress": 3
+          }
+        }
+      ],
+      "allowedPhases": [
+        "seedling",
+        "vegetative"
+      ],
+      "category": "water",
+      "pool": "warning",
+      "tone": "negative",
+      "triggers": {
+        "stage": {
+          "min": 1,
+          "max": 6
+        }
+      }
+    },
+    {
+      "id": "ph_drift_high",
+      "weight": 0.95,
+      "title": "Boden-pH driftet nach oben",
+      "description": "Der Drain zeigt alkalische Drift; die Aufnahme von Mikronaehrstoffen wird schlechter.",
+      "severity": 4,
+      "tags": [
+        "boden",
+        "ph"
+      ],
+      "choices": [
+        {
+          "id": "acidify_feed",
+          "label": "pH der Naehrloesung nach unten korrigieren",
+          "effects": {
+            "nutrition": 7,
+            "health": 4,
+            "risk": -4
+          }
+        },
+        {
+          "id": "flush_and_reset",
+          "label": "Medium spuelen und Programm neu starten",
+          "effects": {
+            "water": 6,
+            "nutrition": -5,
+            "stress": 2,
+            "risk": -3
+          }
+        },
+        {
+          "id": "no_action_ph",
+          "label": "Routine unveraendert lassen",
+          "effects": {
+            "health": -4,
+            "growth": -3,
+            "risk": 5
+          }
+        }
+      ],
+      "allowedPhases": [
+        "vegetative",
+        "flowering",
+        "harvest"
+      ],
+      "category": "nutrition",
+      "pool": "recovery",
+      "tone": "neutral",
+      "triggers": {
+        "stage": {
+          "min": 3,
+          "max": 10
+        }
+      }
+    },
+    {
+      "id": "topsoil_mold",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "disease",
+      "weight": 0.92,
+      "title": "Schimmel auf der Oberflaeche",
+      "description": "Weisser Flaum auf der Oberflaeche durch hohe Feuchte und wenig Luftbewegung.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "schimmel",
+        "luftfeuchte"
+      ],
+      "choices": [
+        {
+          "id": "scrape_and_dry",
+          "label": "Oberste Schicht entfernen und abtrocknen lassen",
+          "effects": {
+            "risk": -7,
+            "stress": -2,
+            "water": -3
+          }
+        },
+        {
+          "id": "add_mulch",
+          "label": "Atmungsaktiven Mulch aufbringen",
+          "effects": {
+            "water": 3,
+            "risk": -4,
+            "health": 2
+          }
+        },
+        {
+          "id": "ignore_mold",
+          "label": "Vorerst ignorieren",
+          "effects": {
+            "risk": 6,
+            "health": -3,
+            "stress": 2
+          }
+        }
+      ],
+      "allowedPhases": [
+        "seedling",
+        "vegetative"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 2,
+          "max": 6
+        }
+      }
+    },
+    {
+      "id": "root_bound_warning",
+      "title": "Wurzeln kreisen im Container",
+      "description": "An den Drainageloechern sind dichte Wurzelspitzen sichtbar; Rootbound-Stress beginnt.",
+      "severity": 4,
+      "tags": [
+        "boden",
+        "wurzel",
+        "container"
+      ],
+      "choices": [
+        {
+          "id": "up_pot_now",
+          "label": "Jetzt in groesseren Topf umsetzen",
+          "effects": {
+            "stress": 5,
+            "health": 6,
+            "growth": 5,
+            "risk": -4
+          }
+        },
+        {
+          "id": "root_prune_light",
+          "label": "Wurzeln leicht beschneiden und Erde erneuern",
+          "effects": {
+            "stress": 7,
+            "growth": 3,
+            "health": 2
+          }
+        },
+        {
+          "id": "delay_transplant",
+          "label": "Umtopfen um eine Woche verschieben",
+          "effects": {
+            "stress": 6,
+            "growth": -3,
+            "health": -4,
+            "risk": 4
+          }
+        }
+      ],
+      "allowedPhases": [
+        "vegetative"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 3,
+          "max": 6
+        }
+      }
+    },
+    {
+      "id": "calcium_spotting",
+      "title": "Flecken an neuen Triebspitzen",
+      "description": "Der Calciumtransport wirkt in schnell wachsendem Gewebe eingeschraenkt.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "naehrstoffe",
+        "calcium"
+      ],
+      "choices": [
+        {
+          "id": "add_calcium",
+          "label": "Niedrig dosiertes Calcium ergaenzen",
+          "effects": {
+            "health": 4,
+            "growth": 2,
+            "risk": -2
+          }
+        },
+        {
+          "id": "stabilize_watering",
+          "label": "Feuchteschwankungen stabilisieren",
+          "effects": {
+            "water": 4,
+            "stress": -3,
+            "health": 3
+          }
+        },
+        {
+          "id": "high_ec_fix",
+          "label": "High-EC-Schnellfix einsetzen",
+          "effects": {
+            "nutrition": 9,
+            "stress": 4,
+            "risk": 5
+          }
+        }
+      ],
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 3,
+          "max": 8
+        }
+      }
+    },
+    {
+      "id": "thrips_early",
+      "title": "Fruehe Thrips-Anzeichen",
+      "description": "Silbrige Streifen auf Blaettern deuten auf fruehen Thrips-Druck hin.",
+      "severity": 4,
+      "tags": [
+        "boden",
+        "schaedlinge",
+        "thripse"
+      ],
+      "choices": [
+        {
+          "id": "ipm_rotation",
+          "label": "IPM-Rotation starten",
+          "effects": {
+            "risk": -9,
+            "stress": -2,
+            "health": 2
+          }
+        },
+        {
+          "id": "single_spray",
+          "label": "Nur eine einmalige Spruehung",
+          "effects": {
+            "risk": -3,
+            "stress": 1
+          }
+        },
+        {
+          "id": "postpone_treatment",
+          "label": "Behandlung verschieben",
+          "effects": {
+            "risk": 8,
+            "health": -4,
+            "stress": 4
+          }
+        }
+      ],
+      "allowedPhases": [
+        "seedling",
+        "vegetative",
+        "flowering"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 2,
+          "max": 7
+        }
+      }
+    },
+    {
+      "id": "mite_hotspot",
+      "title": "Milben-Hotspot am Kronenrand",
+      "description": "Ein trockener Randbereich hat guenstige Bedingungen fuer Milben geschaffen.",
+      "severity": 4,
+      "tags": [
+        "boden",
+        "schaedlinge",
+        "milben"
+      ],
+      "choices": [
+        {
+          "id": "raise_humidity_control",
+          "label": "Luftfeuchte erhoehen und behandeln",
+          "effects": {
+            "risk": -8,
+            "stress": -3,
+            "water": 3
+          }
+        },
+        {
+          "id": "predatory_mites",
+          "label": "Raubmilben ausbringen",
+          "effects": {
+            "risk": -10,
+            "nutrition": -2,
+            "health": 2
+          },
+          "followUp": "Ansiedlung der Nuetzlinge beobachten"
+        },
+        {
+          "id": "ignore_mites",
+          "label": "Leichte Anzeichen ignorieren",
+          "effects": {
+            "risk": 9,
+            "health": -5,
+            "stress": 5
+          }
+        }
+      ],
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 4,
+          "max": 9
+        }
+      }
+    },
+    {
+      "id": "cold_root_zone",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "environment",
+      "weight": 0.9,
+      "title": "Kalte Wurzelzone in der Nacht",
+      "description": "Die Topftemperatur ist nachts gefallen und bremst die Naehrstoffaufnahme.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "temperatur"
+      ],
+      "choices": [
+        {
+          "id": "insulate_pot",
+          "label": "Topf isolieren und Zuluft anwaermen",
+          "effects": {
+            "stress": -4,
+            "health": 3,
+            "growth": 2
+          }
+        },
+        {
+          "id": "increase_feed_strength",
+          "label": "Stattdessen Duengerstaerke erhoehen",
+          "effects": {
+            "nutrition": 6,
+            "risk": 3,
+            "stress": 2
+          }
+        },
+        {
+          "id": "wait_for_weather",
+          "label": "Auf waermere Naechte warten",
+          "effects": {
+            "growth": -3,
+            "health": -2,
+            "stress": 3
+          }
+        }
+      ],
+      "allowedPhases": [
+        "seedling",
+        "vegetative",
+        "flowering"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 2,
+          "max": 8
+        }
+      }
+    },
+    {
+      "id": "hot_dry_day",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "environment",
+      "weight": 0.92,
+      "title": "Heisser, trockener Tag",
+      "description": "Bei Hitze und niedriger Luftfeuchte fiel die Bodenfeuchte sehr schnell ab.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "klima",
+        "wasser"
+      ],
+      "choices": [
+        {
+          "id": "split_watering",
+          "label": "Giessen auf den Tag aufteilen",
+          "effects": {
+            "water": 10,
+            "stress": -5,
+            "risk": -2
+          }
+        },
+        {
+          "id": "single_heavy_watering",
+          "label": "Einmalig stark giessen",
+          "effects": {
+            "water": 12,
+            "risk": 4,
+            "stress": 2
+          }
+        },
+        {
+          "id": "mulch_surface",
+          "label": "Oberflaeche mulchen gegen Verdunstung",
+          "effects": {
+            "water": 6,
+            "growth": 2,
+            "risk": -3
+          }
+        }
+      ],
+      "allowedPhases": [
+        "seedling",
+        "vegetative",
+        "flowering"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 2,
+          "max": 9
+        }
+      }
+    },
+    {
+      "id": "overfeeding_warning",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "nutrition",
+      "weight": 0.9,
+      "title": "Warnung vor Blattspitzenbrand",
+      "description": "Frueher Spitzenbrand deutet auf zu hohe Naehrstoffkonzentration hin.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "naehrstoffe",
+        "brand"
+      ],
+      "choices": [
+        {
+          "id": "reduce_ec",
+          "label": "EC fuer zwei Duengegaenge senken",
+          "effects": {
+            "nutrition": -6,
+            "health": 4,
+            "stress": -3,
+            "risk": -4
+          }
+        },
+        {
+          "id": "flush_medium",
+          "label": "Medium sofort spuelen",
+          "effects": {
+            "water": 8,
+            "nutrition": -8,
+            "risk": -2,
+            "stress": 1
+          }
+        },
+        {
+          "id": "keep_schedule",
+          "label": "Aktuellen Plan beibehalten",
+          "effects": {
+            "health": -4,
+            "risk": 5,
+            "stress": 4
+          }
+        }
+      ],
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 4,
+          "max": 9
+        }
+      }
+    },
+    {
+      "id": "beneficial_fungi_colonized",
+      "pool": "rare",
+      "tone": "positive",
+      "category": "positive",
+      "weight": 1.05,
+      "title": "Mykorrhiza erfolgreich etabliert",
+      "description": "Die Wurzelprobe zeigt eine starke Aktivitaet nuetzlicher Pilze in der Rhizosphaere.",
+      "severity": 2,
+      "tags": [
+        "boden",
+        "biologie",
+        "wurzel"
+      ],
+      "choices": [
+        {
+          "id": "maintain_program",
+          "label": "Aktuelles Regime beibehalten",
+          "effects": {
+            "growth": 4,
+            "health": 3,
+            "risk": -3
+          }
+        },
+        {
+          "id": "add_extra_biology",
+          "label": "Zusatz-Booster fuer Bodenbiologie geben",
+          "effects": {
+            "nutrition": 3,
+            "risk": -2,
+            "stress": -1
+          }
+        },
+        {
+          "id": "disrupt_with_flush",
+          "label": "Aggressiv spuelen",
+          "effects": {
+            "water": 7,
+            "growth": -3,
+            "risk": 2
+          }
+        }
+      ],
+      "allowedPhases": [
+        "seedling",
+        "vegetative",
+        "flowering"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 2,
+          "max": 8
+        }
+      }
+    },
+    {
+      "id": "watering_gap",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "water",
+      "weight": 0.9,
+      "title": "Unerwartete Giessluecke",
+      "description": "Die geplante Bewaesserung verzog sich, das Medium trocknete staerker aus als erwartet.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "giessen",
+        "planung"
+      ],
+      "choices": [
+        {
+          "id": "recover_gradually",
+          "label": "Feuchte schrittweise wiederherstellen",
+          "effects": {
+            "water": 9,
+            "stress": -4,
+            "health": 2
+          }
+        },
+        {
+          "id": "instant_full_rewater",
+          "label": "Sofort komplett nachgiessen",
+          "effects": {
+            "water": 13,
+            "stress": 2,
+            "risk": 3
+          }
+        },
+        {
+          "id": "skip_until_tomorrow",
+          "label": "Bis morgen aussetzen",
+          "effects": {
+            "water": -7,
+            "health": -3,
+            "stress": 5
+          }
+        }
+      ],
+      "allowedPhases": [
+        "seedling",
+        "vegetative",
+        "flowering"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 1,
+          "max": 8
+        }
+      }
+    },
+    {
+      "id": "soil_life_decline",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "nutrition",
+      "weight": 0.95,
+      "title": "Rueckgang des Bodenlebens",
+      "description": "Geruch und Struktur deuten auf eine geringere mikrobielle Aktivitaet hin.",
+      "severity": 3,
+      "tags": [
+        "boden",
+        "biologie",
+        "gesundheit"
+      ],
+      "choices": [
+        {
+          "id": "add_compost_extract",
+          "label": "Kompostextrakt anwenden",
+          "effects": {
+            "nutrition": 5,
+            "health": 3,
+            "growth": 2
+          }
+        },
+        {
+          "id": "topdress_worm_castings",
+          "label": "Wurmhumus aufstreuen",
+          "effects": {
+            "nutrition": 7,
+            "water": 2,
+            "risk": -2
+          }
+        },
+        {
+          "id": "continue_synthetic_only",
+          "label": "Weiter nur mineralisch duengen",
+          "effects": {
+            "growth": 1,
+            "risk": 4,
+            "health": -2
+          }
+        }
+      ],
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 3,
+          "max": 9
+        }
+      }
+    },
+    {
+      "id": "late_flower_humidity",
+      "pool": "warning",
+      "tone": "negative",
+      "category": "disease",
+      "weight": 0.6,
+      "title": "Luftfeuchte-Druck in spaeter Bluete",
+      "description": "Dichte Krone und feuchtes Medium erhoehen das Schimmelrisiko in der spaeten Phase.",
+      "severity": 4,
+      "tags": [
+        "boden",
+        "bluete",
+        "schimmel"
+      ],
+      "choices": [
+        {
+          "id": "defoliate_lightly",
+          "label": "Leicht entlauben und Feuchte reduzieren",
+          "effects": {
+            "risk": -9,
+            "stress": 2,
+            "health": 3
+          }
+        },
+        {
+          "id": "dehumidify_and_hold_feed",
+          "label": "Entfeuchten und starke Duengung pausieren",
+          "effects": {
+            "risk": -7,
+            "nutrition": -3,
+            "stress": -1
+          }
+        },
+        {
+          "id": "ignore_humidity",
+          "label": "In diesem Zyklus ignorieren",
+          "effects": {
+            "risk": 10,
+            "health": -5,
+            "stress": 4
+          }
+        }
+      ],
+      "allowedPhases": [
+        "flowering",
+        "harvest"
+      ],
+      "triggers": {
+        "stage": {
+          "min": 10,
+          "max": 12
+        }
+      }
+    }
+  ]
+}

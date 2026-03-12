@@ -1,0 +1,893 @@
+{
+  "schemaVersion": 2,
+  "events": [
+    {
+      "id": "v2_water_dry_pot",
+      "category": "water",
+      "title": "Topf trocken",
+      "description": "Die obere Substratschicht ist staubig und die Pflanze zeigt leicht hängende Blätter.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.water",
+            "op": "<=",
+            "value": 30
+          },
+          {
+            "field": "simulation.isDaytime",
+            "op": "==",
+            "value": true
+          },
+          {
+            "field": "status.stress",
+            "op": ">=",
+            "value": 25
+          }
+        ],
+        "stage": {
+          "min": 3,
+          "max": 9
+        }
+      },
+      "weight": 0.9,
+      "cooldownRealMinutes": 260,
+      "options": [
+        {
+          "id": "water_slow",
+          "label": "Langsam in zwei Intervallen gießen",
+          "effects": {
+            "water": 14,
+            "stress": -3,
+            "risk": -1
+          }
+        },
+        {
+          "id": "water_fast",
+          "label": "Schnell nachgießen",
+          "effects": {
+            "water": 20,
+            "stress": -1,
+            "risk": 3
+          }
+        },
+        {
+          "id": "wait_cycle",
+          "label": "Noch einen Zyklus warten",
+          "effects": {
+            "health": -2,
+            "stress": 3,
+            "risk": 2
+          }
+        }
+      ],
+      "learningNote": "Trockene Töpfe früh erkennen und langsam nachwässern verhindert Stressspitzen.",
+      "allowedPhases": [
+        "vegetative",
+        "flowering",
+        "harvest"
+      ]
+    },
+    {
+      "id": "v2_water_overwater_warning",
+      "category": "water",
+      "title": "Staunässe-Verdacht",
+      "description": "Das Substrat wirkt schwer und schlecht belüftet, die Wurzelzone bleibt zu lange nass.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.water",
+            "op": ">=",
+            "value": 82
+          },
+          {
+            "field": "status.risk",
+            "op": ">=",
+            "value": 35
+          }
+        ],
+        "stage": {
+          "min": 3,
+          "max": 11
+        }
+      },
+      "weight": 1.1,
+      "cooldownRealMinutes": 200,
+      "options": [
+        {
+          "id": "aerate_top",
+          "label": "Obere Schicht lockern und Luftstrom erhöhen",
+          "effects": {
+            "water": -8,
+            "risk": -4,
+            "stress": -2
+          }
+        },
+        {
+          "id": "ignore_moist",
+          "label": "Ignorieren und normal weitermachen",
+          "effects": {
+            "health": -3,
+            "risk": 5,
+            "stress": 2
+          }
+        }
+      ],
+      "learningNote": "Zu viel Wasser ohne Sauerstoff hemmt Wurzeln und erhöht Krankheitsrisiken.",
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ]
+    },
+    {
+      "id": "v2_nutrition_n_deficit",
+      "category": "nutrition",
+      "title": "Stickstoffmangel-Anzeichen",
+      "description": "Untere Blätter verblassen. Das Wachstum wirkt träger als erwartet.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.nutrition",
+            "op": "<=",
+            "value": 38
+          },
+          {
+            "field": "status.health",
+            "op": "<=",
+            "value": 72
+          }
+        ],
+        "stage": {
+          "min": 3,
+          "max": 8
+        }
+      },
+      "weight": 1.3,
+      "cooldownRealMinutes": 180,
+      "options": [
+        {
+          "id": "micro_feed",
+          "label": "Leichte Nährstoffgabe",
+          "effects": {
+            "nutrition": 10,
+            "growth": 1.1,
+            "risk": 1
+          }
+        },
+        {
+          "id": "strong_feed",
+          "label": "Starke Korrekturdüngung",
+          "effects": {
+            "nutrition": 16,
+            "growth": 1.6,
+            "stress": 3,
+            "risk": 3
+          }
+        },
+        {
+          "id": "observe_only",
+          "label": "Nur beobachten",
+          "effects": {
+            "health": -2,
+            "growth": -0.8,
+            "stress": 2
+          }
+        }
+      ],
+      "learningNote": "Mangel früh mit kleinen, kontrollierten Gaben beheben statt überreagieren.",
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ]
+    },
+    {
+      "id": "v2_nutrition_lockout",
+      "category": "nutrition",
+      "title": "Nährstoff-Lockout Hinweis",
+      "description": "Trotz Düngung reagiert die Pflanze kaum. Aufnahme scheint blockiert.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.nutrition",
+            "op": ">=",
+            "value": 78
+          },
+          {
+            "field": "status.stress",
+            "op": ">=",
+            "value": 52
+          }
+        ],
+        "stage": {
+          "min": 5,
+          "max": 11
+        }
+      },
+      "weight": 0.9,
+      "cooldownRealMinutes": 220,
+      "options": [
+        {
+          "id": "light_flush",
+          "label": "Leicht spülen und neu aufbauen",
+          "effects": {
+            "water": 10,
+            "nutrition": -8,
+            "stress": -1,
+            "risk": -2
+          }
+        },
+        {
+          "id": "push_feed",
+          "label": "Noch mehr düngen",
+          "effects": {
+            "nutrition": 6,
+            "health": -3,
+            "stress": 4,
+            "risk": 5
+          }
+        }
+      ],
+      "learningNote": "Hohe Nährstoffwerte bedeuten nicht automatisch hohe Aufnahme. Balance ist entscheidend.",
+      "allowedPhases": [
+        "vegetative",
+        "flowering",
+        "harvest"
+      ]
+    },
+    {
+      "id": "v2_pest_mites_spotted",
+      "category": "pest",
+      "title": "Feine Punkte auf Blattunterseite",
+      "description": "Erste Hinweise auf Spinnmilben wurden entdeckt.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.risk",
+            "op": ">=",
+            "value": 45
+          },
+          {
+            "field": "status.stress",
+            "op": ">=",
+            "value": 35
+          }
+        ],
+        "stage": {
+          "min": 4,
+          "max": 11
+        },
+        "setup": {
+          "modeIn": [
+            "indoor",
+            "greenhouse"
+          ]
+        }
+      },
+      "weight": 1.0,
+      "cooldownRealMinutes": 210,
+      "options": [
+        {
+          "id": "spot_treat",
+          "label": "Gezielt behandeln und isolieren",
+          "effects": {
+            "risk": -8,
+            "stress": 1,
+            "health": 1
+          }
+        },
+        {
+          "id": "raise_fans",
+          "label": "Nur Luftbewegung erhöhen",
+          "effects": {
+            "risk": -3,
+            "water": -2
+          }
+        },
+        {
+          "id": "do_nothing",
+          "label": "Abwarten",
+          "effects": {
+            "risk": 7,
+            "health": -3,
+            "stress": 3
+          }
+        }
+      ],
+      "learningNote": "Frühes Eingreifen bei Schädlingen ist viel effizienter als späte Notfallmaßnahmen.",
+      "allowedPhases": [
+        "vegetative",
+        "flowering",
+        "harvest"
+      ]
+    },
+    {
+      "id": "v2_pest_thrips_wave",
+      "pool": "warning",
+      "tone": "negative",
+      "category": "pest",
+      "title": "Silbrige Fraßspuren",
+      "description": "Mehrere Blätter zeigen lineare Silberschäden durch Thripse.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.risk",
+            "op": ">=",
+            "value": 55
+          }
+        ],
+        "any": [
+          {
+            "field": "status.health",
+            "op": "<=",
+            "value": 68
+          },
+          {
+            "field": "status.stress",
+            "op": ">=",
+            "value": 48
+          }
+        ],
+        "stage": {
+          "min": 5,
+          "max": 12
+        }
+      },
+      "weight": 0.6,
+      "cooldownRealMinutes": 240,
+      "options": [
+        {
+          "id": "integrated_control",
+          "label": "Nützlinge + Blattkontrolle kombinieren",
+          "effects": {
+            "risk": -9,
+            "stress": -1,
+            "health": 1
+          }
+        },
+        {
+          "id": "hard_spray",
+          "label": "Starker Sprayeinsatz",
+          "effects": {
+            "risk": -6,
+            "stress": 4,
+            "health": -2
+          }
+        }
+      ],
+      "learningNote": "Integrierte Kontrolle reduziert Rückschläge besser als harte Einmalmaßnahmen.",
+      "allowedPhases": [
+        "vegetative",
+        "flowering",
+        "harvest"
+      ]
+    },
+    {
+      "id": "v2_environment_heat_spike",
+      "category": "environment",
+      "title": "Hitze-Spitze im Zelt",
+      "description": "Die Temperatur ist kurzfristig deutlich über Soll gestiegen.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.stress",
+            "op": ">=",
+            "value": 40
+          },
+          {
+            "field": "simulation.isDaytime",
+            "op": "==",
+            "value": true
+          }
+        ],
+        "setup": {
+          "lightIn": [
+            "high"
+          ]
+        },
+        "stage": {
+          "min": 3,
+          "max": 10
+        }
+      },
+      "weight": 1.05,
+      "cooldownRealMinutes": 170,
+      "options": [
+        {
+          "id": "climate_adjust",
+          "label": "Lichtdimmung + Klima nachregeln",
+          "effects": {
+            "stress": -4,
+            "risk": -3,
+            "growth": -0.3
+          }
+        },
+        {
+          "id": "power_through",
+          "label": "Unverändert weiterlaufen lassen",
+          "effects": {
+            "growth": 0.4,
+            "health": -3,
+            "stress": 3
+          }
+        }
+      ],
+      "learningNote": "Kurze Ertragseinbußen durch Klimaanpassung sind oft besser als Hitzestress-Folgen.",
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ]
+    },
+    {
+      "id": "v2_environment_cold_night",
+      "category": "environment",
+      "title": "Kühle Nachtphase",
+      "description": "Der Temperaturabfall in der Dunkelphase war stärker als geplant.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.health",
+            "op": "<=",
+            "value": 75
+          },
+          {
+            "field": "status.stress",
+            "op": ">=",
+            "value": 30
+          }
+        ],
+        "setup": {
+          "modeIn": [
+            "outdoor",
+            "greenhouse"
+          ]
+        },
+        "stage": {
+          "min": 2,
+          "max": 9
+        }
+      },
+      "weight": 1.05,
+      "pool": "rare",
+      "tone": "neutral",
+      "cooldownRealMinutes": 210,
+      "options": [
+        {
+          "id": "insulate",
+          "label": "Temperatur stabilisieren",
+          "effects": {
+            "stress": -3,
+            "risk": -2,
+            "water": -1
+          }
+        },
+        {
+          "id": "accept_variation",
+          "label": "Schwankung akzeptieren",
+          "effects": {
+            "stress": 2,
+            "growth": -0.6
+          }
+        }
+      ],
+      "learningNote": "Konstante Nachtbedingungen helfen besonders jungen und gestressten Pflanzen.",
+      "allowedPhases": [
+        "seedling",
+        "vegetative",
+        "flowering"
+      ]
+    },
+    {
+      "id": "v2_disease_mold_pocket",
+      "category": "disease",
+      "title": "Feuchte Zone im Blattdach",
+      "description": "Ein dichter Bereich zeigt erhöhte Feuchte und erste Schimmelgefahr.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.risk",
+            "op": ">=",
+            "value": 52
+          },
+          {
+            "field": "status.water",
+            "op": ">=",
+            "value": 68
+          }
+        ],
+        "stage": {
+          "min": 7,
+          "max": 12
+        }
+      },
+      "weight": 1.2,
+      "cooldownRealMinutes": 260,
+      "options": [
+        {
+          "id": "defol_light",
+          "label": "Leicht auslichten + Luftstrom",
+          "effects": {
+            "risk": -7,
+            "stress": 2,
+            "health": 1
+          }
+        },
+        {
+          "id": "ignore_pocket",
+          "label": "Keine sofortige Aktion",
+          "effects": {
+            "risk": 8,
+            "health": -4,
+            "stress": 3
+          }
+        }
+      ],
+      "learningNote": "Dichte, feuchte Zonen in der Blütephase früh entschärfen, bevor Schimmel sichtbar wird.",
+      "allowedPhases": [
+        "flowering",
+        "harvest"
+      ]
+    },
+    {
+      "id": "v2_disease_root_warning",
+      "category": "disease",
+      "title": "Wurzelzone riecht muffig",
+      "description": "Der Geruch deutet auf Sauerstoffmangel und beginnende Wurzelprobleme hin.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.water",
+            "op": ">=",
+            "value": 78
+          },
+          {
+            "field": "status.health",
+            "op": "<=",
+            "value": 70
+          }
+        ],
+        "any": [
+          {
+            "field": "status.risk",
+            "op": ">=",
+            "value": 40
+          },
+          {
+            "field": "status.stress",
+            "op": ">=",
+            "value": 45
+          }
+        ],
+        "stage": {
+          "min": 3,
+          "max": 10
+        }
+      },
+      "weight": 1.0,
+      "cooldownRealMinutes": 240,
+      "options": [
+        {
+          "id": "dryback_protocol",
+          "label": "Trocknungsfenster + Sauerstoff verbessern",
+          "effects": {
+            "water": -10,
+            "risk": -5,
+            "health": 1
+          }
+        },
+        {
+          "id": "continue_schedule",
+          "label": "Beim alten Gießschema bleiben",
+          "effects": {
+            "health": -4,
+            "risk": 6,
+            "stress": 3
+          }
+        },
+        {
+          "id": "rescue_flush",
+          "label": "Notfall-Spülung",
+          "effects": {
+            "water": 6,
+            "nutrition": -6,
+            "risk": -1,
+            "stress": 2
+          }
+        }
+      ],
+      "learningNote": "Wurzelgesundheit hängt stark von Bewässerungsrhythmus und Sauerstoffverfügbarkeit ab.",
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ]
+    },
+    {
+      "id": "v2_outdoor_storm_front",
+      "pool": "rare",
+      "tone": "neutral",
+      "category": "environment",
+      "title": "Sturmfront zieht durch",
+      "description": "Starke Böen und wechselhafte Feuchte setzen Triebe und Blattwerk unter Stress.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.risk",
+            "op": ">=",
+            "value": 35
+          }
+        ],
+        "stage": {
+          "min": 5,
+          "max": 11
+        },
+        "setup": {
+          "modeIn": [
+            "outdoor",
+            "greenhouse"
+          ]
+        }
+      },
+      "weight": 0.9,
+      "cooldownRealMinutes": 260,
+      "options": [
+        {
+          "id": "stake_support",
+          "label": "Triebe stützen und exponierte Stellen sichern",
+          "effects": {
+            "stress": -2,
+            "risk": -4,
+            "health": 1
+          }
+        },
+        {
+          "id": "minimal_response",
+          "label": "Nur beobachten und auf Beruhigung hoffen",
+          "effects": {
+            "stress": 2,
+            "risk": 3
+          }
+        },
+        {
+          "id": "late_reaction",
+          "label": "Erst nach dem Sturm reagieren",
+          "effects": {
+            "health": -3,
+            "stress": 3,
+            "risk": 4
+          }
+        }
+      ],
+      "learningNote": "Windstress kann Triebe schwächen. Frühe, einfache Schutzmaßnahmen reduzieren Folgeschäden.",
+      "polarity": "negative",
+      "allowedPhases": [
+        "vegetative",
+        "flowering",
+        "harvest"
+      ]
+    },
+    {
+      "id": "v2_outdoor_rain_series",
+      "category": "disease",
+      "title": "Mehrere Tage Regen",
+      "description": "Anhaltende Nässe erhöht den Druck auf dichte Bereiche und verlängert Trocknungszeiten.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.water",
+            "op": ">=",
+            "value": 62
+          },
+          {
+            "field": "status.risk",
+            "op": ">=",
+            "value": 42
+          }
+        ],
+        "stage": {
+          "min": 7,
+          "max": 12
+        },
+        "setup": {
+          "modeIn": [
+            "outdoor",
+            "greenhouse"
+          ]
+        }
+      },
+      "weight": 1.15,
+      "cooldownRealMinutes": 320,
+      "options": [
+        {
+          "id": "canopy_airflow",
+          "label": "Luftfluss verbessern und kritische Zonen kontrollieren",
+          "effects": {
+            "risk": -8,
+            "stress": 1
+          }
+        },
+        {
+          "id": "wait_dry_window",
+          "label": "Auf trockenes Fenster warten",
+          "effects": {
+            "risk": 5,
+            "health": -2,
+            "stress": 2
+          }
+        }
+      ],
+      "learningNote": "Lange Nässephasen begünstigen Schimmelrisiko, besonders in dichten Blütebereichen.",
+      "polarity": "negative",
+      "allowedPhases": [
+        "flowering",
+        "harvest"
+      ]
+    },
+    {
+      "id": "v2_positive_ideal_mild_days",
+      "category": "positive",
+      "title": "Ideale milde Tage",
+      "description": "Mehrere Tage stabile, moderate Bedingungen entlasten die Pflanze spürbar.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.stress",
+            "op": "<=",
+            "value": 55
+          },
+          {
+            "field": "status.risk",
+            "op": "<=",
+            "value": 58
+          }
+        ],
+        "stage": {
+          "min": 3,
+          "max": 11
+        }
+      },
+      "weight": 1.05,
+      "pool": "rare",
+      "tone": "positive",
+      "cooldownRealMinutes": 280,
+      "options": [
+        {
+          "id": "maintain_routine",
+          "label": "Routine konstant halten",
+          "effects": {
+            "health": 3,
+            "stress": -3,
+            "growth": 0.9
+          }
+        },
+        {
+          "id": "small_training_window",
+          "label": "Leichtes Training im stabilen Fenster",
+          "effects": {
+            "growth": 1.3,
+            "stress": 1,
+            "risk": -1
+          }
+        }
+      ],
+      "learningNote": "Stabile Phasen sind gute Zeitfenster für kleine, kontrollierte Maßnahmen.",
+      "polarity": "positive",
+      "allowedPhases": [
+        "vegetative",
+        "flowering",
+        "harvest"
+      ]
+    },
+    {
+      "id": "v2_positive_outdoor_sun_window",
+      "pool": "rare",
+      "tone": "positive",
+      "category": "positive",
+      "title": "Stabiles Sonnenfenster",
+      "description": "Mehrere klare Outdoor-Tage verbessern Energieeintrag und Regeneration.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.health",
+            "op": ">=",
+            "value": 50
+          },
+          {
+            "field": "status.stress",
+            "op": "<=",
+            "value": 60
+          }
+        ],
+        "stage": {
+          "min": 4,
+          "max": 10
+        },
+        "setup": {
+          "modeIn": [
+            "outdoor",
+            "greenhouse"
+          ]
+        }
+      },
+      "weight": 1.08,
+      "cooldownRealMinutes": 300,
+      "options": [
+        {
+          "id": "use_window_gently",
+          "label": "Stabil weiterpflegen und Bonus mitnehmen",
+          "effects": {
+            "growth": 1.6,
+            "health": 2,
+            "risk": -1
+          }
+        },
+        {
+          "id": "push_too_hard",
+          "label": "Fenster aggressiv ausreizen",
+          "effects": {
+            "growth": 1.9,
+            "stress": 3,
+            "risk": 2
+          }
+        }
+      ],
+      "learningNote": "Gute Wetterfenster helfen, sollten aber nicht mit überharten Eingriffen überzogen werden.",
+      "polarity": "positive",
+      "allowedPhases": [
+        "vegetative",
+        "flowering"
+      ]
+    },
+    {
+      "id": "v2_special_weather_shift",
+      "category": "environment",
+      "title": "Plötzlicher Wetterumschwung",
+      "description": "Das Mikroklima kippt kurzfristig von mild zu wechselhaft.",
+      "triggers": {
+        "all": [
+          {
+            "field": "status.stress",
+            "op": ">=",
+            "value": 30
+          }
+        ],
+        "stage": {
+          "min": 4,
+          "max": 11
+        },
+        "setup": {
+          "modeIn": [
+            "outdoor",
+            "greenhouse"
+          ]
+        }
+      },
+      "weight": 0.95,
+      "pool": "rare",
+      "tone": "neutral",
+      "cooldownRealMinutes": 360,
+      "options": [
+        {
+          "id": "adaptive_adjust",
+          "label": "Pflege kurzfristig anpassen",
+          "effects": {
+            "stress": -2,
+            "risk": -2
+          }
+        },
+        {
+          "id": "hold_course",
+          "label": "Unverändert bleiben",
+          "effects": {
+            "stress": 2,
+            "risk": 2
+          }
+        }
+      ],
+      "learningNote": "Kurzfristige Anpassung bei Wetterwechseln kann Stressspitzen dämpfen.",
+      "polarity": "neutral",
+      "allowedPhases": [
+        "vegetative",
+        "flowering",
+        "harvest"
+      ]
+    }
+  ]
+}
