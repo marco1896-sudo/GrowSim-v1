@@ -15,8 +15,6 @@
         "causal",
         "water"
       ],
-      "allowedPhases": ["seedling", "vegetative", "flowering"],
-      "tags": ["foundation", "causal", "water"],
       "options": [
         {
           "id": "reduce_watering_now",
@@ -26,7 +24,6 @@
             "stress": -3,
             "risk": -2
           }
-          "effects": { "water": -8, "stress": -3, "risk": -2 }
         },
         {
           "id": "ignore_signals",
@@ -40,12 +37,8 @@
           ]
         }
       ],
-      "tone": "warning",
+      "tone": "negative",
       "isFollowUp": false
-          "effects": { "stress": 5, "risk": 6 },
-          "followUps": ["set_flag:root_stress_pending"]
-        }
-      ]
     },
     {
       "id": "root_stress_followup",
@@ -62,8 +55,6 @@
         "followup",
         "root"
       ],
-      "allowedPhases": ["seedling", "vegetative", "flowering"],
-      "tags": ["foundation", "followup", "root"],
       "options": [
         {
           "id": "recover_root_zone",
@@ -81,10 +72,6 @@
       ],
       "tone": "negative",
       "isFollowUp": true
-          "effects": { "stress": -6, "risk": -5, "health": 2 },
-          "followUps": ["clear_flag:root_stress_pending", "set_flag:recovery_window"]
-        }
-      ]
     },
     {
       "id": "stable_growth_reward",
@@ -102,8 +89,6 @@
         "reward",
         "stable"
       ],
-      "allowedPhases": ["seedling", "vegetative", "flowering", "harvest"],
-      "tags": ["foundation", "reward", "stable"],
       "options": [
         {
           "id": "keep_current_plan",
@@ -119,10 +104,6 @@
       ],
       "tone": "positive",
       "isFollowUp": false
-          "effects": { "health": 3, "growth": 1 },
-          "followUps": ["set_flag:mastery_streak"]
-        }
-      ]
     }
   ]
 }
