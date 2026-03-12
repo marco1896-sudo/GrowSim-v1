@@ -41,7 +41,6 @@
       "isFollowUp": false,
       "weight": 5,
       "pool": "warning"
-      "weight": 5
     },
     {
       "id": "root_stress_followup",
@@ -77,7 +76,6 @@
       "isFollowUp": true,
       "weight": 1,
       "pool": "recovery"
-      "weight": 1
     },
     {
       "id": "stable_growth_reward",
@@ -112,7 +110,6 @@
       "isFollowUp": false,
       "weight": 1,
       "pool": "reward"
-      "weight": 1
     }
   ]
 }
