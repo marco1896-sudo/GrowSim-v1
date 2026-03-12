@@ -39,6 +39,8 @@
       ],
       "tone": "negative",
       "isFollowUp": false,
+      "weight": 5,
+      "pool": "warning"
       "weight": 5
     },
     {
@@ -73,6 +75,8 @@
       ],
       "tone": "negative",
       "isFollowUp": true,
+      "weight": 1,
+      "pool": "recovery"
       "weight": 1
     },
     {
@@ -106,6 +110,8 @@
       ],
       "tone": "positive",
       "isFollowUp": false,
+      "weight": 1,
+      "pool": "reward"
       "weight": 1
     }
   ]

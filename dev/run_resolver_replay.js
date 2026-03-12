@@ -241,6 +241,13 @@ function runReplay({ ticks, seed, phase, catalogFiles }) {
       afterFrustrationGuard: (resolution.trace.afterFrustrationGuard || []).map((entry) => entry.eventId),
       pendingChainOverride: Boolean(resolution.trace.pendingChainOverride),
       pendingChainId: resolution.trace.pendingChainId || null,
+      availablePools: Array.isArray(resolution.trace.availablePools) ? resolution.trace.availablePools : [],
+      selectedPool: resolution.trace.selectedPool || null,
+      poolWeights: resolution.trace.poolWeights || {},
+      poolRoll: resolution.trace.poolRoll === null || resolution.trace.poolRoll === undefined
+        ? null
+        : Number(Number(resolution.trace.poolRoll).toFixed(6)),
+      poolReason: resolution.trace.poolReason || null,
       weights: resolution.trace.weights || {},
       weightedRoll: resolution.trace.weightedRoll === null || resolution.trace.weightedRoll === undefined
         ? null

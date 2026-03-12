@@ -51,6 +51,7 @@ If a plain array is used, each object must still follow the event object schema 
   },
 
   "weight": 1.2, // optional, defaults to 1
+  "pool": "warning", // optional, resolver infers when omitted
   "cooldownRealMinutes": 180,
 
   "options": [
@@ -105,6 +106,7 @@ Per event:
 - `learningNote`
 
 - `weight` is optional. If omitted or invalid, resolver uses default weight `1`.
+- `pool` is optional. If omitted, resolver infers pool from follow-up/category/tone/tags.
 
 Per option:
 - `id`

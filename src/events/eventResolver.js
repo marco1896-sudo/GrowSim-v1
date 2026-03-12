@@ -174,6 +174,119 @@
     return rawWeight;
   }
 
+
+
+  function inferCandidatePool(candidate, catalog) {
+    const eventDef = findCatalogEvent(catalog, candidate && candidate.eventId) || {};
+    const explicitPool = String(eventDef.pool || '').trim().toLowerCase();
+    if (explicitPool) {
+      return explicitPool;
+    }
+
+    const tags = Array.isArray(eventDef.tags) ? eventDef.tags.map((tag) => String(tag).toLowerCase()) : [];
+    const tone = getEventTone(eventDef);
+    const category = String(eventDef.category || '').toLowerCase();
+
+    if (tags.includes('rare')) return 'rare';
+    if (eventDef.isFollowUp === true || (candidate && candidate.isFollowUp === true)) return 'recovery';
+    if (tags.includes('reward') || tone === 'positive' || category === 'positive') return 'reward';
+    if (tone === 'negative' || ['disease', 'pest', 'water', 'nutrition', 'environment'].includes(category)) return 'warning';
+    return 'stress';
+  }
+
+  function groupCandidatesByPool(candidates, catalog) {
+    const groups = {};
+    const list = Array.isArray(candidates) ? candidates : [];
+    for (const candidate of list) {
+      const pool = inferCandidatePool(candidate, catalog);
+      if (!groups[pool]) {
+        groups[pool] = [];
+      }
+      groups[pool].push(candidate);
+    }
+    return groups;
+  }
+
+  function getPoolPreferenceMultiplier(poolName, context) {
+    const pool = String(poolName || '').toLowerCase();
+    if (pool === 'rare') {
+      return 0.35;
+    }
+
+    const negativeHeavy = areLastEventsNegative(context && context.memory, context && context.catalog, 2);
+    if (negativeHeavy && (pool === 'recovery' || pool === 'reward')) {
+      return 2.5;
+    }
+
+    return 1;
+  }
+
+  function selectWeightedPool(poolGroups, catalog, memory, randomFn) {
+    const names = Object.keys(poolGroups || {});
+    if (!names.length) {
+      return {
+        selectedPool: null,
+        selectedCandidates: [],
+        availablePools: [],
+        poolWeights: {},
+        poolRoll: null,
+        poolReason: 'no_pools'
+      };
+    }
+
+    const weightedPools = names.map((poolName) => {
+      const candidates = Array.isArray(poolGroups[poolName]) ? poolGroups[poolName] : [];
+      const eventWeightSum = candidates.reduce((sum, candidate) => sum + getCandidateWeight(candidate, catalog), 0);
+      const multiplier = getPoolPreferenceMultiplier(poolName, { memory, catalog });
+      return {
+        poolName,
+        candidates,
+        weight: eventWeightSum * multiplier,
+        multiplier
+      };
+    }).filter((entry) => entry.weight > 0);
+
+    if (!weightedPools.length) {
+      return {
+        selectedPool: names.sort()[0],
+        selectedCandidates: poolGroups[names.sort()[0]] || [],
+        availablePools: names.slice().sort(),
+        poolWeights: {},
+        poolRoll: null,
+        poolReason: 'zero_weight_fallback'
+      };
+    }
+
+    const normalizedRandomFn = typeof randomFn === 'function' ? randomFn : (() => 0);
+    const totalWeight = weightedPools.reduce((sum, row) => sum + row.weight, 0);
+    const rollUnit = Math.max(0, Math.min(1 - Number.EPSILON, Number(normalizedRandomFn()) || 0));
+    const poolRoll = rollUnit * totalWeight;
+
+    let cursor = poolRoll;
+    let selected = weightedPools[weightedPools.length - 1];
+    for (const row of weightedPools) {
+      cursor -= row.weight;
+      if (cursor < 0) {
+        selected = row;
+        break;
+      }
+    }
+
+    const poolWeights = weightedPools.reduce((acc, row) => {
+      acc[row.poolName] = Number(row.weight);
+      return acc;
+    }, {});
+
+    return {
+      selectedPool: selected.poolName,
+      selectedCandidates: selected.candidates,
+      availablePools: weightedPools.map((entry) => entry.poolName),
+      poolWeights,
+      poolRoll,
+      poolReason: selected.multiplier > 1 ? 'negative_heavy_prefers_recovery_reward' : 'weighted_pool_selection'
+    };
+  }
+
   function selectWeightedCandidate(candidates, catalog, randomFn) {
     const list = Array.isArray(candidates) ? candidates : [];
     if (!list.length) {
@@ -240,6 +353,11 @@
           afterPhaseGuard: [],
           afterRepeatGuard: [],
           afterFrustrationGuard: [],
+          availablePools: [],
+          selectedPool: null,
+          poolWeights: {},
+          poolRoll: null,
+          poolReason: 'pending_chain_override',
           weights: {},
           weightedRoll: null
         }
@@ -263,6 +381,11 @@
           afterPhaseGuard: [],
           afterRepeatGuard: [],
           afterFrustrationGuard: [],
+          availablePools: [],
+          selectedPool: null,
+          poolWeights: {},
+          poolRoll: null,
+          poolReason: 'forced_flag_override',
           weights: {},
           weightedRoll: null
         }
@@ -297,6 +420,9 @@
     const guarded = pipelineTrace.final;
 
     if (guarded.length) {
+      const poolGroups = groupCandidatesByPool(guarded, catalog);
+      const poolSelection = selectWeightedPool(poolGroups, catalog, memory, random);
+      const weightedSelection = selectWeightedCandidate(poolSelection.selectedCandidates, catalog, random);
       const weightedSelection = selectWeightedCandidate(guarded, catalog, random);
       const selected = weightedSelection.selected;
 
@@ -309,6 +435,11 @@
           afterRepeatGuard: pipelineTrace.afterRepeatGuard,
           afterFrustrationGuard: pipelineTrace.afterFrustrationGuard,
           fellBackToOriginal: pipelineTrace.fellBackToOriginal,
+          availablePools: poolSelection.availablePools,
+          selectedPool: poolSelection.selectedPool,
+          poolWeights: poolSelection.poolWeights,
+          poolRoll: poolSelection.poolRoll,
+          poolReason: poolSelection.poolReason,
           weights: weightedSelection.weights,
           weightedRoll: Number(weightedSelection.weightedRoll)
         }
@@ -332,6 +463,11 @@
         afterRepeatGuard: pipelineTrace.afterRepeatGuard,
         afterFrustrationGuard: pipelineTrace.afterFrustrationGuard,
         fellBackToOriginal: pipelineTrace.fellBackToOriginal,
+        availablePools: [],
+        selectedPool: null,
+        poolWeights: {},
+        poolRoll: null,
+        poolReason: 'no_candidates',
         weights: {},
         weightedRoll: null
       }
@@ -351,6 +487,10 @@
     applyGuardPipeline,
     traceGuardPipeline,
     getCandidateWeight,
+    inferCandidatePool,
+    groupCandidatesByPool,
+    getPoolPreferenceMultiplier,
+    selectWeightedPool,
     selectWeightedCandidate
   });
 
