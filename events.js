@@ -384,6 +384,13 @@ function activateEvent(nowMs) {
     foundationApi.memory.addEvent(state.events, eventDef.id, {
       phase: state.plant.phase,
       reason: foundationCandidate && foundationCandidate.eventId === eventDef.id ? foundationCandidate.reason : 'default_selection'
+  });
+
+  const foundationApi = getEventFoundationApis();
+  if (foundationApi.memory) {
+    foundationApi.memory.addEvent(state.events, eventDef.id, {
+      phase: state.plant.phase,
+      reason: foundationCandidate && foundationCandidate.eventId === eventDef.id ? foundationCandidate.reason : 'default_selection'
     foundationReason: foundationCandidate && foundationCandidate.eventId === eventDef.id ? foundationCandidate.reason : null,
     consumedPendingChainId: consumedPendingChain ? consumedPendingChain.chainId : null
   });
