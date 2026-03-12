@@ -297,6 +297,12 @@
       };
     }
 
+    if (isStableGrowthCondition(state)) {
+      return finalizeCandidate({
+        eventId: 'stable_growth_reward',
+        reason: 'condition:stable_growth',
+        priority: 40
+      }, phase, catalog, memory, { state });
     const normalizedRandomFn = typeof randomFn === 'function' ? randomFn : (() => 0);
     const weighted = list.map((candidate) => ({
       candidate,

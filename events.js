@@ -38,6 +38,7 @@ function resolveFoundationCandidateEvent() {
     state: normalizedState,
     flags: activeFlags,
     memory: memoryFacade,
+    catalog: state.events.catalog
     catalog: state.events.catalog,
     random: selectionRandom
   });
