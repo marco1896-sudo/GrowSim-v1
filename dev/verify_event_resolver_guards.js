@@ -66,3 +66,4 @@ function createMemory({ recentEvents = [], recentAnalysis = [], lastDecision = n
 
   console.log('event-resolver-guards verification passed');
 })();
+require('./verify_resolver_guards.js');

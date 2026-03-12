@@ -19,6 +19,35 @@ function localStorageAdapter() {
   };
 }
 
+
+function normalizePendingChainsForStorage(store) {
+  if (!store || typeof store !== 'object') {
+    return {};
+  }
+
+  const entries = Object.entries(store)
+    .filter(([chainId, record]) => chainId && record && typeof record === 'object')
+    .map(([chainId, record]) => {
+      const createdAtRealTimeMs = Number(record.createdAtRealTimeMs ?? record.atRealTimeMs ?? Date.now());
+      const expiresAtRealTimeMs = record.expiresAtRealTimeMs == null ? null : Number(record.expiresAtRealTimeMs);
+      return {
+        chainId: String(chainId),
+        targetEventId: record.targetEventId ? String(record.targetEventId) : String(chainId),
+        sourceEventId: record.sourceEventId ? String(record.sourceEventId) : (record.eventId ? String(record.eventId) : null),
+        sourceOptionId: record.sourceOptionId ? String(record.sourceOptionId) : (record.optionId ? String(record.optionId) : null),
+        sourceFlagId: record.sourceFlagId ? String(record.sourceFlagId) : null,
+        createdAtRealTimeMs: Number.isFinite(createdAtRealTimeMs) ? createdAtRealTimeMs : Date.now(),
+        expiresAtRealTimeMs: Number.isFinite(expiresAtRealTimeMs) ? expiresAtRealTimeMs : null,
+        meta: record.meta && typeof record.meta === 'object' ? { ...record.meta } : {}
+      };
+    })
+    .filter((record) => record.expiresAtRealTimeMs == null || record.expiresAtRealTimeMs > Date.now())
+    .sort((a, b) => Number(a.createdAtRealTimeMs || 0) - Number(b.createdAtRealTimeMs || 0));
+
+  const trimmed = entries.slice(Math.max(0, entries.length - 12));
+  return Object.fromEntries(trimmed.map((record) => [record.chainId, record]));
+}
+
 function getCanonicalSimulation(snapshot) {
   const s = snapshot || state;
   if (!s.simulation || typeof s.simulation !== 'object') {
@@ -116,6 +145,7 @@ function getCanonicalEvents(snapshot) {
   if (!Array.isArray(s.events.foundation.memory.events)) s.events.foundation.memory.events = [];
   if (!Array.isArray(s.events.foundation.memory.decisions)) s.events.foundation.memory.decisions = [];
   if (!s.events.foundation.memory.pendingChains || typeof s.events.foundation.memory.pendingChains !== 'object') s.events.foundation.memory.pendingChains = {};
+  s.events.foundation.memory.pendingChains = normalizePendingChainsForStorage(s.events.foundation.memory.pendingChains);
   if (!Array.isArray(s.events.foundation.analysis)) s.events.foundation.analysis = [];
 
   return s.events;
