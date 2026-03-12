@@ -116,9 +116,32 @@
     return candidate;
   }
 
+
+  function getMostRecentPendingChain(memory) {
+    if (!memory || typeof memory.getPendingChains !== 'function') return null;
+    const pending = memory.getPendingChains();
+    if (!pending || typeof pending !== 'object') return null;
+
+    return Object.values(pending)
+      .filter((entry) => entry && typeof entry === 'object' && entry.targetEventId)
+      .sort((a, b) => Number(b.createdAtRealTimeMs || 0) - Number(a.createdAtRealTimeMs || 0))[0] || null;
+  }
+
   function resolveNextEvent({ state, flags, memory, catalog }) {
     const flagSet = new Set(Array.isArray(flags) ? flags : []);
     const phase = String((state && state.phase) || 'seedling');
+
+    const pendingChain = getMostRecentPendingChain(memory);
+    if (pendingChain && pendingChain.targetEventId) {
+      const pendingCandidate = finalizeCandidate({
+        eventId: String(pendingChain.targetEventId),
+        reason: `pending_chain:${String(pendingChain.chainId || pendingChain.targetEventId)}`,
+        priority: 95
+      }, phase, catalog, memory, { followUpForced: true, state });
+      if (pendingCandidate && pendingCandidate.eventId) {
+        return pendingCandidate;
+      }
+    }
 
     if (flagSet.has('root_stress_pending')) {
       return finalizeCandidate({

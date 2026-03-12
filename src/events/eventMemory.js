@@ -1,6 +1,53 @@
 'use strict';
 
 (function initEventMemory(globalScope) {
+  const MAX_PENDING_CHAINS = 12;
+
+  function normalizePendingChain(chainId, record) {
+    if (!chainId || !record || typeof record !== 'object') {
+      return null;
+    }
+
+    const targetEventId = record.targetEventId ? String(record.targetEventId) : String(chainId);
+    const createdAtRealTimeMs = Number(record.createdAtRealTimeMs ?? record.atRealTimeMs ?? Date.now());
+    const expiresAtRealTimeMs = record.expiresAtRealTimeMs == null
+      ? null
+      : Number(record.expiresAtRealTimeMs);
+
+    const normalized = {
+      chainId: String(chainId),
+      targetEventId,
+      sourceEventId: record.sourceEventId ? String(record.sourceEventId) : null,
+      sourceOptionId: record.sourceOptionId ? String(record.sourceOptionId) : null,
+      sourceFlagId: record.sourceFlagId ? String(record.sourceFlagId) : null,
+      createdAtRealTimeMs: Number.isFinite(createdAtRealTimeMs) ? createdAtRealTimeMs : Date.now(),
+      expiresAtRealTimeMs: Number.isFinite(expiresAtRealTimeMs) ? expiresAtRealTimeMs : null,
+      meta: record.meta && typeof record.meta === 'object' ? { ...record.meta } : {}
+    };
+
+    return normalized;
+  }
+
+  function normalizePendingChainsStore(store) {
+    if (!store || typeof store !== 'object') {
+      return {};
+    }
+
+    const normalized = {};
+    const now = Date.now();
+    const entries = Object.entries(store)
+      .map(([chainId, record]) => normalizePendingChain(chainId, record))
+      .filter(Boolean)
+      .filter((record) => record.expiresAtRealTimeMs == null || record.expiresAtRealTimeMs > now)
+      .sort((a, b) => a.createdAtRealTimeMs - b.createdAtRealTimeMs);
+
+    const trimmed = entries.slice(Math.max(0, entries.length - MAX_PENDING_CHAINS));
+    for (const record of trimmed) {
+      normalized[record.chainId] = record;
+    }
+    return normalized;
+  }
+
   function ensureMemory(eventsState) {
     const events = eventsState && typeof eventsState === 'object' ? eventsState : {};
     if (!events.foundation || typeof events.foundation !== 'object') {
@@ -14,6 +61,7 @@
     if (!Array.isArray(memory.events)) memory.events = [];
     if (!Array.isArray(memory.decisions)) memory.decisions = [];
     if (!memory.pendingChains || typeof memory.pendingChains !== 'object') memory.pendingChains = {};
+    memory.pendingChains = normalizePendingChainsStore(memory.pendingChains);
 
     return memory;
   }
@@ -50,7 +98,10 @@
   function setPendingChain(eventsState, chainId, data) {
     if (!chainId) return;
     const memory = ensureMemory(eventsState);
-    memory.pendingChains[String(chainId)] = data;
+    const normalized = normalizePendingChain(chainId, data || {});
+    if (!normalized) return;
+    memory.pendingChains[String(chainId)] = normalized;
+    memory.pendingChains = normalizePendingChainsStore(memory.pendingChains);
   }
 
   function getPendingChain(eventsState, chainId) {
@@ -67,6 +118,23 @@
     delete memory.pendingChains[String(chainId)];
   }
 
+  function getPendingChains(eventsState) {
+    const memory = ensureMemory(eventsState);
+    return { ...memory.pendingChains };
+  }
+
+  function consumePendingChain(eventsState, chainId) {
+    const chain = getPendingChain(eventsState, chainId);
+    if (!chain) return null;
+    clearPendingChain(eventsState, chainId);
+    return chain;
+  }
+
+  function clearAllPendingChains(eventsState) {
+    const memory = ensureMemory(eventsState);
+    memory.pendingChains = {};
+  }
+
   const api = Object.freeze({
     ensureMemory,
     addEvent,
@@ -75,7 +143,11 @@
     getLastDecision,
     setPendingChain,
     getPendingChain,
-    clearPendingChain
+    getPendingChains,
+    consumePendingChain,
+    clearPendingChain,
+    clearAllPendingChains,
+    normalizePendingChainsStore
   });
 
   globalScope.GrowSimEventMemory = api;
