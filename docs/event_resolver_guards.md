@@ -61,3 +61,33 @@ This verifies:
 3. frustration filtering on negative streaks
 4. forced pending-chain bypass
 5. fallback behavior when guard filtering empties candidates
+
+## Resolver Guard Pipeline
+
+Runtime execution order for non-forced candidates is:
+
+`candidateEvents -> phaseGuard -> repeatGuard -> frustrationGuard -> selection`
+
+### Execution integration points
+
+- Resolver guard filtering is executed in `src/events/eventResolver.js` (`applyGuardPipeline` inside `resolveNextEvent`).
+- Runtime activation calls resolver integration before deterministic pick in:
+  - `events.js` (`resolveFoundationCandidateEvent` + `activateEvent`)
+  - `app.js` legacy runtime path (`resolveFoundationCandidateEvent` + `activateEvent`)
+
+### Bypass rules
+
+- Pending-chain follow-ups bypass guards via resolver pending-chain precedence (`followUpForced: true`).
+- `root_stress_pending` flag follow-up override also remains forced and bypasses guards.
+- Follow-up candidates (`isFollowUp: true`) bypass repeat/frustration filtering as implemented in guard logic.
+
+### Fallback rules
+
+- If guard filtering removes all candidates, resolver falls back to the original candidate list for that tick.
+- This avoids no-event deadlocks while still applying guard filtering whenever at least one guarded candidate remains.
+
+### Pending-chain interaction
+
+- Pending-chain precedence remains unchanged: pending chain selection happens before normal candidate generation.
+- Consumed pending chains are removed during activation after the selected event is applied.
+- Follow-up tokens continue to set/clear foundation flags and chains, preserving causal chain behavior.
