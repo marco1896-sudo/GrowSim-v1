@@ -310,6 +310,8 @@ function wireDomainOwnership() {
   const ownership = {
     events: 'legacy_app',
     storage: 'legacy_app',
+    notifications: 'legacy_app',
+    eventSheetUi: 'legacy_app'
     notifications: 'legacy_app'
   };
 
@@ -402,6 +404,26 @@ function wireDomainOwnership() {
     dbSet = notificationsApi.dbSet;
     dbDelete = notificationsApi.dbDelete;
     ownership.notifications = 'notifications_module';
+  }
+
+  const uiApi = window.GrowSimUI;
+  if (uiApi && typeof uiApi === 'object') {
+    const requiredUiEventSheetFns = [
+      'renderEventSheet',
+      'closeSheet',
+      'dismissActiveEvent',
+      'openSheet'
+    ];
+    const missingUiFns = requiredUiEventSheetFns.filter((fnName) => typeof uiApi[fnName] !== 'function');
+    if (missingUiFns.length) {
+      throw new Error(`GrowSimUI API unvollständig: ${missingUiFns.join(', ')}`);
+    }
+
+    renderEventSheet = uiApi.renderEventSheet;
+    closeSheet = uiApi.closeSheet;
+    dismissActiveEvent = uiApi.dismissActiveEvent;
+    openSheet = uiApi.openSheet;
+    ownership.eventSheetUi = 'ui_module';
   }
 
   window.__gsDomainOwnership = ownership;
