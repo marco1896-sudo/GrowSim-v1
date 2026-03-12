@@ -63,7 +63,8 @@
       "learningNote": "Trockene Töpfe früh erkennen und langsam nachwässern verhindert Stressspitzen.",
       "allowedPhases": [
         "vegetative",
-        "flowering"
+        "flowering",
+        "harvest"
       ]
     },
     {
@@ -114,8 +115,7 @@
       "learningNote": "Zu viel Wasser ohne Sauerstoff hemmt Wurzeln und erhöht Krankheitsrisiken.",
       "allowedPhases": [
         "vegetative",
-        "flowering",
-        "harvest"
+        "flowering"
       ]
     },
     {
@@ -301,6 +301,8 @@
     },
     {
       "id": "v2_pest_thrips_wave",
+      "pool": "warning",
+      "tone": "negative",
       "category": "pest",
       "title": "Silbrige Fraßspuren",
       "description": "Mehrere Blätter zeigen lineare Silberschäden durch Thripse.",
@@ -329,7 +331,7 @@
           "max": 12
         }
       },
-      "weight": 0.95,
+      "weight": 0.6,
       "cooldownRealMinutes": 240,
       "options": [
         {
@@ -443,7 +445,9 @@
           "max": 9
         }
       },
-      "weight": 0.85,
+      "weight": 1.05,
+      "pool": "rare",
+      "tone": "neutral",
       "cooldownRealMinutes": 210,
       "options": [
         {
@@ -597,6 +601,8 @@
     },
     {
       "id": "v2_outdoor_storm_front",
+      "pool": "rare",
+      "tone": "neutral",
       "category": "environment",
       "title": "Sturmfront zieht durch",
       "description": "Starke Böen und wechselhafte Feuchte setzen Triebe und Blattwerk unter Stress.",
@@ -619,7 +625,7 @@
           ]
         }
       },
-      "weight": 0.95,
+      "weight": 0.9,
       "cooldownRealMinutes": 260,
       "options": [
         {
@@ -686,7 +692,7 @@
           ]
         }
       },
-      "weight": 1.05,
+      "weight": 1.15,
       "cooldownRealMinutes": 320,
       "options": [
         {
@@ -738,6 +744,8 @@
         }
       },
       "weight": 1.05,
+      "pool": "rare",
+      "tone": "positive",
       "cooldownRealMinutes": 280,
       "options": [
         {
@@ -769,6 +777,8 @@
     },
     {
       "id": "v2_positive_outdoor_sun_window",
+      "pool": "rare",
+      "tone": "positive",
       "category": "positive",
       "title": "Stabiles Sonnenfenster",
       "description": "Mehrere klare Outdoor-Tage verbessern Energieeintrag und Regeneration.",
@@ -796,7 +806,7 @@
           ]
         }
       },
-      "weight": 0.95,
+      "weight": 1.08,
       "cooldownRealMinutes": 300,
       "options": [
         {
@@ -849,7 +859,9 @@
           ]
         }
       },
-      "weight": 0.62,
+      "weight": 0.95,
+      "pool": "rare",
+      "tone": "neutral",
       "cooldownRealMinutes": 360,
       "options": [
         {
