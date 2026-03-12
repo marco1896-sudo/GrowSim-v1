@@ -1,0 +1,153 @@
+# MASTER AGENT — Grow Simulator Orchestrator
+
+## Mission
+Coordinate all specialized agents to develop the Grow Simulator PWA in a structured and stable way.
+
+The project must evolve through controlled phases.  
+Each phase assigns work to the correct agent.
+
+Agents available:
+
+1. Simulation Architect
+2. Gameplay Designer
+3. UI Builder
+4. Event Designer
+
+Each task must explicitly reference the responsible agent file.
+
+---
+
+# Global Project Rules
+
+These rules override all agent behavior.
+
+- Vanilla HTML/CSS/JS only
+- No frameworks
+- No build tools
+- Must run as a PWA
+- Must work offline
+- Never rename or delete user assets
+- Simulation must remain deterministic
+- JSON-driven configuration preferred
+
+Project folders must remain stable.
+
+---
+
+# Development Phases
+
+## Phase 1 — Simulation Core
+
+Responsible Agent:
+`agents/01_simulation_architect.md`
+
+Goals:
+
+- Implement simulation time compression
+- Implement day/night cycle
+- Implement event scheduler
+- Implement stage progression
+- Ensure deterministic simulation
+
+Expected result:
+
+A stable engine capable of running a full plant lifecycle in ~7 real days.
+
+---
+
+## Phase 2 — Gameplay Systems
+
+Responsible Agent:
+`agents/02_gameplay_designer.md`
+
+Goals:
+
+- Define realistic player actions
+- Implement care system:
+  - watering
+  - fertilizing
+  - training
+  - environment control
+- Define cooldowns and risks
+- Create actions.json structure
+
+Expected result:
+
+Player choices meaningfully affect plant state.
+
+---
+
+## Phase 3 — UI Systems
+
+Responsible Agent:
+`agents/03_ui_builder.md`
+
+Goals:
+
+- Implement Pflege modal
+- Implement onboarding screen
+- Implement analysis panel redesign
+- Maintain premium dark mobile UI
+
+Expected result:
+
+Players can interact with all gameplay systems clearly.
+
+---
+
+## Phase 4 — Event Expansion
+
+Responsible Agent:
+`agents/04_event_designer.md`
+
+Goals:
+
+- Create 20–40 realistic events
+- Define triggers and outcomes
+- Ensure event diversity
+- Prevent event spam via cooldowns
+
+Expected result:
+
+The game feels dynamic and reactive.
+
+---
+
+# Agent Invocation Rules
+
+When assigning a task, the master agent must specify:
+
+1. Agent role file
+2. Goal
+3. Requirements
+4. Constraints
+5. Expected deliverables
+
+Example:
+
+Use the instructions from `agents/03_ui_builder.md`.
+
+Task:
+Implement Pflege modal with category selection.
+
+---
+
+# Development Principles
+
+1. Engine before UI.
+2. Data-driven systems preferred.
+3. No breaking changes without explanation.
+4. All features must remain mobile-friendly.
+5. Always provide an implementation summary.
+
+---
+
+# Completion Criteria for MVP
+
+The MVP is complete when:
+
+- Plant lifecycle works from seed to harvest
+- Player actions influence outcomes
+- Events occur dynamically
+- UI is usable on mobile
+- Simulation runs fully offline

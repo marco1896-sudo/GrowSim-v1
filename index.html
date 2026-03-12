@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d111a">
+  <title>Grow-Simulator</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app-hud" class="app-hud">
+    <header class="top-row">
+      <article id="phaseCard" class="phase-card" aria-live="polite">
+        <div class="phase-card-head">
+          <strong id="phaseCardTitle" class="phase-card-title">Keimling</strong>
+          <span id="phaseCardCycle" class="phase-card-cycle" aria-label="Tageszyklus">☀️</span>
+        </div>
+        <p id="phaseCardAge" class="phase-card-age">Tag 1</p>
+        <p id="phaseCardSubtitle" class="phase-card-subtitle">0% → Vegetationsphase</p>
+        <div class="phase-progress" role="progressbar" aria-label="Fortschritt in aktueller Phase" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span id="phaseProgressFill" class="phase-progress-fill"></span>
+          <span id="phaseProgressMarker" class="phase-progress-marker" aria-hidden="true"></span>
+        </div>
+      </article>
+      <div class="top-row-actions">
+        <span class="pill pro-pill">Pro</span>
+        <button id="menuToggleBtn" class="menu-toggle-btn" type="button" aria-label="Menü öffnen" aria-haspopup="dialog" aria-expanded="false">☰</button>
+      </div>
+    </header>
+
+    <main class="hud-main">
+      <section class="hero-card">
+        <div class="hero-glow" aria-hidden="true"></div>
+
+        <article id="healthRing" class="ring ring-main ring-left" style="--value:85; --ring-color:var(--color-health);">
+          <div class="ring-inner">
+            <span class="ring-label">Gesundheit</span>
+            <strong id="healthValue">85</strong>
+          </div>
+        </article>
+
+        <div class="hero-stack">
+          <canvas id="plantImage" class="plant-image" width="2048" height="2048" role="img" aria-label="Pflanzenstadium"></canvas>
+          <img id="overlayBurn" class="overlay-image hidden" src="assets/overlays/overlay_burn.png" alt="">
+          <img id="overlayDefMg" class="overlay-image hidden" src="assets/overlays/overlay_def_mg.png" alt="">
+          <img id="overlayDefN" class="overlay-image hidden" src="assets/overlays/overlay_def_n.png" alt="">
+          <img id="overlayMoldWarning" class="overlay-image hidden" src="assets/overlays/overlay_mold_warning.png" alt="">
+          <img id="overlayPestMites" class="overlay-image hidden" src="assets/overlays/overlay_pest_mites.png" alt="">
+          <img id="overlayPestThrips" class="overlay-image hidden" src="assets/overlays/overlay_pest_thrips.png" alt="">
+        </div>
+
+        <article id="stressRing" class="ring ring-main ring-right" style="--value:15; --ring-color:var(--color-stress);">
+          <div class="ring-inner">
+            <span class="ring-label">Stress</span>
+            <strong id="stressValue">15</strong>
+          </div>
+        </article>
+      </section>
+
+      <section class="info-bar">
+        <article class="info-tile">
+          <span class="info-label">Nächstes Ereignis</span>
+          <strong id="nextEventValue">--:--</strong>
+        </article>
+        <article class="info-tile">
+          <span class="info-label">Wachstumsimpuls</span>
+          <strong id="growthImpulseValue">0.00</strong>
+        </article>
+        <article class="info-tile">
+          <span class="info-label">Simulationszeit</span>
+          <strong id="simTimeValue">--:--:--</strong>
+        </article>
+      </section>
+
+      <section class="mini-rings">
+        <article id="waterRing" class="ring ring-mini" role="button" tabindex="0" aria-label="Wasser Details öffnen" style="--value:70; --ring-color:var(--color-water);">
+          <div class="ring-inner">
+            <span class="mini-icon" aria-hidden="true">W</span>
+            <span class="ring-label">Wasser</span>
+            <strong id="waterValue">70</strong>
+          </div>
+        </article>
+        <article id="nutritionRing" class="ring ring-mini" role="button" tabindex="0" aria-label="Nährstoffe Details öffnen" style="--value:65; --ring-color:var(--color-nutrition);">
+          <div class="ring-inner">
+            <span class="mini-icon" aria-hidden="true">N</span>
+            <span class="ring-label">Nährstoffe</span>
+            <strong id="nutritionValue">65</strong>
+          </div>
+        </article>
+        <article id="growthRing" class="ring ring-mini" role="button" tabindex="0" aria-label="Wachstum Details öffnen" style="--value:10; --ring-color:var(--color-growth);">
+          <div class="ring-inner">
+            <span class="mini-icon" aria-hidden="true">G</span>
+            <span class="ring-label">Wachstum</span>
+            <strong id="growthValue">10</strong>
+          </div>
+        </article>
+        <article id="riskRing" class="ring ring-mini" role="button" tabindex="0" aria-label="Risiko Details öffnen" style="--value:20; --ring-color:var(--color-risk);">
+          <div class="ring-inner">
+            <span class="mini-icon" aria-hidden="true">R</span>
+            <span class="ring-label">Risiko</span>
+            <strong id="riskValue">20</strong>
+          </div>
+        </article>
+      </section>
+
+      <section class="action-panel">
+        <button id="careActionBtn" class="action-btn action-primary" type="button">Pflege</button>
+        <button id="analyzeActionBtn" class="action-btn action-secondary" type="button">Analyse</button>
+        <button id="boostActionBtn" class="action-btn action-tertiary" type="button">
+          <span class="boost-title">Ereignis-Boost (-30 Min Eventzeit)</span>
+          <span id="boostUsageText" class="boost-sub">Werbeunterstützt &middot; 0/6 heute</span>
+        </button>
+      </section>
+
+      <section class="locked-card">
+        <div>
+          <strong>Erweiterte Diagnose verfügbar</strong>
+          <p>Schalte mit Pro frei oder sieh eine Anzeige.</p>
+        </div>
+        <button id="openDiagnosisBtn" class="pill pro-pill" type="button">Pro</button>
+      </section>
+    </main>
+  </div>
+
+  <div id="sheetBackdrop" class="sheet-backdrop hidden" aria-hidden="true"></div>
+
+  <section id="careSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Pflege</h2>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
+    </header>
+    <div class="sheet-content">
+      <p class="sheet-note">Kategorie wählen, Intensität antippen, Aktion direkt ausführen.</p>
+      <div id="careCategoryList" class="care-category-list" role="tablist" aria-label="Pflegekategorien"></div>
+      <div id="careActionList" class="care-action-list" aria-live="polite"></div>
+      <p id="careFeedback" class="care-feedback sheet-note" aria-live="polite">Bereit.</p>
+    </div>
+  </section>
+
+  <section id="eventSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Ereignis</h2>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
+    </header>
+    <div class="sheet-content">
+      <p id="eventStateBadge" class="sheet-badge">Status: inaktiv</p>
+      <h3 id="eventTitle">Kein aktives Ereignis</h3>
+      <p id="eventText">Ereignisdetails erscheinen hier, sobald ein Ereignis aktiv ist.</p>
+      <p id="eventMeta" class="sheet-note">Abklingzeit: bereit</p>
+      <div id="eventOptionList" class="event-option-list"></div>
+    </div>
+  </section>
+
+  <section id="dashboardSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Analyse</h2>
+      <div class="sheet-header-actions">
+        <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
+      </div>
+    </header>
+    <div class="sheet-content analysis-content">
+      <div class="gs-analysis-tabs" role="tablist" aria-label="Analyse-Tabs">
+        <button id="analysisTabOverview" class="gs-analysis-tab is-active" data-analysis-tab="overview" type="button">Übersicht</button>
+        <button id="analysisTabDiagnosis" class="gs-analysis-tab" data-analysis-tab="diagnosis" type="button">Diagnose</button>
+        <button id="analysisTabTimeline" class="gs-analysis-tab" data-analysis-tab="timeline" type="button">Verlauf</button>
+      </div>
+
+      <section id="analysisPanelOverview" class="gs-analysis-panel gs-analysis-overview" aria-live="polite"></section>
+      <section id="analysisPanelDiagnosis" class="gs-analysis-panel gs-analysis-diagnosis hidden" aria-live="polite"></section>
+      <section id="analysisPanelTimeline" class="gs-analysis-panel gs-analysis-timeline hidden" aria-live="polite"></section>
+    </div>
+  </section>
+
+  <section id="diagnosisSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2>Diagnose</h2>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
+    </header>
+    <div class="sheet-content">
+      <p>Dieses MVP enthält ein gesperrtes Platzhaltermodul für Diagnose.</p>
+      <ul class="diagnosis-list">
+        <li>Wahrscheinlichkeits-Heatmap für Pathogene (Pro)</li>
+        <li>Zerlegung der Nährstofftrends (Pro)</li>
+        <li>Vorhersage für Wurzelstress (Pro)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="statDetailSheet" class="bottom-sheet hidden" aria-hidden="true">
+    <header class="sheet-header">
+      <h2 id="statDetailTitle">Statistik</h2>
+      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
+    </header>
+    <div class="sheet-content stat-detail-content">
+      <p id="statDetailValue" class="stat-detail-value">0</p>
+      <p id="statDetailStatus" class="sheet-badge">Status: -</p>
+      <p id="statDetailExplanation" class="sheet-note">-</p>
+      <p id="statDetailRecommendation" class="stat-detail-recommendation">-</p>
+      <button id="statDetailPrimaryBtn" class="action-btn action-primary" type="button">Aktion</button>
+    </div>
+  </section>
+
+  <section id="landing" class="landing-overlay hidden" aria-hidden="true">
+    <div class="landing-card">
+      <h2>Einrichtung</h2>
+      <p class="sheet-note">Einmalige Grundeinstellungen für diesen Durchlauf.</p>
+      <label>Modus<select id="setupMode"><option value="indoor">Indoor</option><option value="outdoor">Outdoor</option><option value="greenhouse">Gewächshaus</option></select></label>
+      <label>Licht<select id="setupLight"><option value="low">Niedrig</option><option value="medium" selected>Mittel</option><option value="high">Hoch</option></select></label>
+      <label>Substrat<select id="setupMedium"><option value="soil" selected>Erde</option><option value="coco">Kokos</option><option value="hydro">Hydroponik</option></select></label>
+      <label>Topfgröße<select id="setupPotSize"><option value="small">Klein</option><option value="medium" selected>Mittel</option><option value="large">Groß</option></select></label>
+      <label>Genetik<select id="setupGenetics"><option value="auto" selected>Autoflower</option><option value="photo">Photoperiodisch</option></select></label>
+      <button id="startRunBtn" class="action-btn action-primary" type="button">Durchlauf starten</button>
+    </div>
+  </section>
+
+  <section id="deathOverlay" class="landing-overlay hidden" aria-hidden="true">
+    <div class="landing-card death-card">
+      <h2>Pflanze ist eingegangen</h2>
+      <p class="sheet-note">Kurzursache</p>
+      <ol id="deathDriverList" class="death-list"></ol>
+      <p class="sheet-note">Letzte Aktionen / Events</p>
+      <ol id="deathHistoryList" class="death-list"></ol>
+      <div class="death-actions">
+        <button id="deathRescueBtn" class="action-btn action-primary" type="button">Rettungsaktion nutzen</button>
+        <span id="deathRescueSubtext" class="sheet-note">1× pro Run</span>
+        <span id="deathRescueFeedback" class="sheet-note"></span>
+        <button id="deathResetBtn" class="action-btn action-secondary" type="button">Neuen Run starten</button>
+        <button id="deathAnalyzeBtn" class="action-btn action-ghost" type="button">Analyse ansehen</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="menuBackdrop" class="menu-backdrop hidden" aria-hidden="true"></div>
+  <section id="gameMenu" class="game-menu hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+    <header class="game-menu-header">
+      <h2 id="menuTitle">MENÜ</h2>
+      <button id="menuHeaderCloseBtn" class="sheet-close" type="button" aria-label="Menü schließen">X</button>
+    </header>
+    <div class="game-menu-content">
+      <section class="game-menu-section">
+        <h3>SPIEL</h3>
+        <button id="menuNewRunBtn" class="menu-entry" type="button"><span>🌱 Neuer Run</span><small>Starte einen neuen Durchgang.</small></button>
+        <button id="menuRescueBtn" class="menu-entry" type="button"><span>❤️ Rettungsaktion</span><small id="menuRescueSubtext">Einmalige Notfall-Rettung.</small></button>
+        <button id="menuStatsBtn" class="menu-entry" type="button"><span>📊 Run-Statistik</span><small>Öffnet die aktuelle Pflanzenanalyse.</small></button>
+      </section>
+
+      <section class="game-menu-section">
+        <h3>EINSTELLUNGEN</h3>
+        <button id="menuPushBtn" class="menu-entry" type="button" aria-pressed="false"><span>🔔 Push-Benachrichtigungen</span><small id="menuPushStatus">Deaktiviert</small></button>
+        <button id="menuLanguageBtn" class="menu-entry" type="button"><span>🌐 Sprache</span><small>Platzhalter</small></button>
+      </section>
+
+      <section class="game-menu-section">
+        <h3>SUPPORT</h3>
+        <button id="menuSupportBtn" class="menu-entry" type="button"><span>❤️ Projekt unterstützen</span><small>Platzhalter</small></button>
+        <button id="menuAboutBtn" class="menu-entry" type="button"><span>ℹ️ Über das Spiel</span><small>Infos und Team</small></button>
+      </section>
+
+      <div class="menu-quick-actions">
+        <button id="menuAchievementsBtn" class="ghost-btn" type="button">🏆 Achievements</button>
+        <button id="menuLeaderboardBtn" class="ghost-btn" type="button">📈 Rangliste</button>
+      </div>
+
+      <button id="menuCloseBtn" class="action-btn action-primary" type="button">Schließen</button>
+    </div>
+  </section>
+
+  <section id="menuDialog" class="menu-dialog hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="menuDialogTitle">
+    <div class="menu-dialog-card">
+      <h3 id="menuDialogTitle">Hinweis</h3>
+      <p id="menuDialogText" class="sheet-note">Text</p>
+      <div class="menu-dialog-actions">
+        <button id="menuDialogCancelBtn" class="ghost-btn" type="button">Abbrechen</button>
+        <button id="menuDialogConfirmBtn" class="action-btn action-primary" type="button">OK</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="hidden" aria-hidden="true">
+    <button id="analysisResetBtn" type="button"></button>
+    <button id="pushToggleBtn" type="button"></button>
+    <span id="pushToggleStatus"></span>
+    <span id="pushToggleFeedback"></span>
+    <input id="notifTypeEvents" type="checkbox">
+    <input id="notifTypeCritical" type="checkbox">
+    <input id="notifTypeReminder" type="checkbox">
+
+  </div>
+
+  <script src="sim.js" defer></script>
+  <script src="src/simulation/plantState.js" defer></script>
+  <script src="src/events/eventFlags.js" defer></script>
+  <script src="src/events/eventMemory.js" defer></script>
+  <script src="src/events/eventAnalysis.js" defer></script>
+  <script src="src/events/eventResolver.js" defer></script>
+  <script src="events.js" defer></script>
+  <script src="ui.js" defer></script>
+  <script src="storage.js" defer></script>
+  <script src="notifications.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

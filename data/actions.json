@@ -1,0 +1,372 @@
+{
+  "schemaVersion": 1,
+  "description": "Player care action catalog for deterministic Grow Simulator gameplay.",
+  "stateVariables": [
+    "water",
+    "nutrition",
+    "health",
+    "stress",
+    "risk",
+    "growth"
+  ],
+  "schema": {
+    "action": {
+      "id": "string (unique)",
+      "category": "watering|fertilizing|training|environment",
+      "intensity": "low|medium|high",
+      "label": "string",
+      "uxCopy": {
+        "short": "string",
+        "success": "string",
+        "warning": "string"
+      },
+      "trigger": {
+        "timeWindow": "daytime_only|anytime",
+        "requiresNoActiveCooldown": true,
+        "minStageIndex": "number (0-11)"
+      },
+      "prerequisites": {
+        "min": {
+          "water": "number",
+          "nutrition": "number",
+          "health": "number"
+        },
+        "max": {
+          "water": "number",
+          "nutrition": "number",
+          "stress": "number",
+          "risk": "number"
+        }
+      },
+      "effects": {
+        "immediate": {
+          "water": "delta",
+          "nutrition": "delta",
+          "health": "delta",
+          "stress": "delta",
+          "risk": "delta",
+          "growth": "delta"
+        },
+        "durationSimMinutes": "number",
+        "overTime": {
+          "waterPerHour": "delta",
+          "nutritionPerHour": "delta",
+          "healthPerHour": "delta",
+          "stressPerHour": "delta",
+          "riskPerHour": "delta",
+          "growthPerHour": "delta"
+        }
+      },
+      "cooldownRealMinutes": "number",
+      "sideEffects": [
+        {
+          "id": "string",
+          "when": "condition expression",
+          "chance": "0.0-1.0 deterministic roll",
+          "deltas": {
+            "water": "delta",
+            "nutrition": "delta",
+            "health": "delta",
+            "stress": "delta",
+            "risk": "delta",
+            "growth": "delta"
+          },
+          "note": "string"
+        }
+      ],
+      "riskNotes": "string"
+    }
+  },
+  "actions": [
+    {
+      "id": "watering_low_mist",
+      "category": "watering",
+      "intensity": "low",
+      "label": "Leichter Sprühnebel",
+      "uxCopy": {
+        "short": "Kurz befeuchten",
+        "success": "Substrat leicht angefeuchtet.",
+        "warning": "Bei bereits nasser Erde kaum Nutzen."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 0 },
+      "prerequisites": { "min": { "health": 0 }, "max": { "water": 95, "risk": 90 } },
+      "effects": {
+        "immediate": { "water": 8, "nutrition": 0, "health": 1, "stress": -1, "risk": 0, "growth": 0.4 },
+        "durationSimMinutes": 90,
+        "overTime": { "waterPerHour": -1, "healthPerHour": 0.1, "stressPerHour": -0.1 }
+      },
+      "cooldownRealMinutes": 18,
+      "sideEffects": [
+        { "id": "mist_leaf_wet", "when": "risk >= 70", "chance": 0.2, "deltas": { "risk": 2, "stress": 1 }, "note": "Feuchte Blattoberflaechen beguenstigen Pilzrisiko." }
+      ],
+      "riskNotes": "Sicherste Wasseraktion, aber nur moderater Effekt."
+    },
+    {
+      "id": "watering_medium_deep",
+      "category": "watering",
+      "intensity": "medium",
+      "label": "Tiefes Gießen",
+      "uxCopy": {
+        "short": "Tief giessen",
+        "success": "Wurzelzone gut versorgt.",
+        "warning": "Nicht bei bereits hoher Feuchte einsetzen."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 1 },
+      "prerequisites": { "min": { "health": 10 }, "max": { "water": 88, "risk": 85 } },
+      "effects": {
+        "immediate": { "water": 18, "nutrition": 1, "health": 2, "stress": -2, "risk": 1, "growth": 1.0 },
+        "durationSimMinutes": 180,
+        "overTime": { "waterPerHour": -2.5, "healthPerHour": 0.2, "growthPerHour": 0.15 }
+      },
+      "cooldownRealMinutes": 40,
+      "sideEffects": [
+        { "id": "deep_overwater", "when": "water >= 82", "chance": 0.35, "deltas": { "risk": 6, "stress": 3, "health": -1 }, "note": "Staunaesse bei zu haeufigem tiefen Giessen." }
+      ],
+      "riskNotes": "Starker Standard, aber Timing ist entscheidend."
+    },
+    {
+      "id": "watering_high_flush",
+      "category": "watering",
+      "intensity": "high",
+      "label": "Spülung",
+      "uxCopy": {
+        "short": "Spuelen",
+        "success": "Substrat gespült.",
+        "warning": "Kann Naehrstoffe auswaschen und Stress erzeugen."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 4 },
+      "prerequisites": { "min": { "health": 20 }, "max": { "risk": 90 } },
+      "effects": {
+        "immediate": { "water": 28, "nutrition": -8, "health": 1, "stress": 3, "risk": 3, "growth": 0.2 },
+        "durationSimMinutes": 240,
+        "overTime": { "waterPerHour": -4, "nutritionPerHour": -0.5, "stressPerHour": 0.3 }
+      },
+      "cooldownRealMinutes": 90,
+      "sideEffects": [
+        { "id": "flush_lockout", "when": "nutrition <= 35", "chance": 0.45, "deltas": { "nutrition": -4, "health": -2, "stress": 2 }, "note": "Ueber-Flush fuehrt zu Defiziten." }
+      ],
+      "riskNotes": "Rescue-Tool, nicht fuer Routinepflege."
+    },
+
+    {
+      "id": "fertilizing_low_microfeed",
+      "category": "fertilizing",
+      "intensity": "low",
+      "label": "Mikrodüngung",
+      "uxCopy": {
+        "short": "Leicht duengen",
+        "success": "Leichte Naehrstoffgabe erfolgt.",
+        "warning": "Bei Trockenheit sinkt Aufnahmeeffizienz."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 1 },
+      "prerequisites": { "min": { "water": 25 }, "max": { "nutrition": 92, "risk": 88 } },
+      "effects": {
+        "immediate": { "water": -1, "nutrition": 8, "health": 1, "stress": 0, "risk": 1, "growth": 0.6 },
+        "durationSimMinutes": 180,
+        "overTime": { "nutritionPerHour": -1.2, "growthPerHour": 0.2 }
+      },
+      "cooldownRealMinutes": 45,
+      "sideEffects": [
+        { "id": "micro_salt", "when": "nutrition >= 85", "chance": 0.25, "deltas": { "stress": 2, "risk": 3 }, "note": "Salzaufbau bei zu engem Duengeintervall." }
+      ],
+      "riskNotes": "Sanfte, gut kontrollierbare Naehrstoffzufuhr."
+    },
+    {
+      "id": "fertilizing_medium_balanced",
+      "category": "fertilizing",
+      "intensity": "medium",
+      "label": "Ausgewogene Düngung",
+      "uxCopy": {
+        "short": "Ausgewogen duengen",
+        "success": "Naehrstoffprofil ausgeglichen.",
+        "warning": "Erhoeht Risiko bei hohem Stress."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 2 },
+      "prerequisites": { "min": { "water": 35, "health": 20 }, "max": { "nutrition": 88, "stress": 78 } },
+      "effects": {
+        "immediate": { "water": -2, "nutrition": 14, "health": 2, "stress": 1, "risk": 2, "growth": 1.4 },
+        "durationSimMinutes": 240,
+        "overTime": { "nutritionPerHour": -1.8, "growthPerHour": 0.3 }
+      },
+      "cooldownRealMinutes": 80,
+      "sideEffects": [
+        { "id": "balanced_burn", "when": "stress >= 60", "chance": 0.3, "deltas": { "health": -2, "stress": 3, "risk": 3 }, "note": "Gestresste Pflanzen reagieren empfindlicher auf Duenger." }
+      ],
+      "riskNotes": "Bestes Wachstum im Mittel, aber nicht auf Stressspitzen."
+    },
+    {
+      "id": "fertilizing_high_boost",
+      "category": "fertilizing",
+      "intensity": "high",
+      "label": "Blüte-Boost",
+      "uxCopy": {
+        "short": "Starkduenger",
+        "success": "Wachstumsbooster aktiv.",
+        "warning": "Hohe Verbrennungsgefahr bei Fehlzeitpunkt."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 6 },
+      "prerequisites": { "min": { "water": 45, "health": 40 }, "max": { "nutrition": 80, "stress": 65, "risk": 75 } },
+      "effects": {
+        "immediate": { "water": -4, "nutrition": 20, "health": 1, "stress": 3, "risk": 5, "growth": 2.3 },
+        "durationSimMinutes": 300,
+        "overTime": { "nutritionPerHour": -2.5, "stressPerHour": 0.4, "growthPerHour": 0.45 }
+      },
+      "cooldownRealMinutes": 150,
+      "sideEffects": [
+        { "id": "boost_nute_burn", "when": "water <= 40 OR stress >= 55", "chance": 0.5, "deltas": { "health": -5, "stress": 6, "risk": 6, "growth": -0.4 }, "note": "Naehrstoffverbrennung bei zu trockener oder gestresster Pflanze." }
+      ],
+      "riskNotes": "Hoechster Wachstumsschub, aber nur fuer stabile Pflanzen."
+    },
+
+    {
+      "id": "training_low_leaf_tuck",
+      "category": "training",
+      "intensity": "low",
+      "label": "Blätter anordnen",
+      "uxCopy": {
+        "short": "Blaetter ordnen",
+        "success": "Lichtverteilung verbessert.",
+        "warning": "Effekt klein bei sehr frueher Phase."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 2 },
+      "prerequisites": { "min": { "health": 20 }, "max": { "stress": 85 } },
+      "effects": {
+        "immediate": { "water": 0, "nutrition": 0, "health": 1, "stress": 1, "risk": -1, "growth": 0.8 },
+        "durationSimMinutes": 210,
+        "overTime": { "growthPerHour": 0.22, "stressPerHour": -0.05 }
+      },
+      "cooldownRealMinutes": 55,
+      "sideEffects": [
+        { "id": "tuck_microtear", "when": "stress >= 70", "chance": 0.2, "deltas": { "health": -1, "stress": 1 }, "note": "Kleine Gewebeschaeden bei bereits hoher Belastung." }
+      ],
+      "riskNotes": "Sichere Trainingsbasis mit leichtem Boost."
+    },
+    {
+      "id": "training_medium_lst",
+      "category": "training",
+      "intensity": "medium",
+      "label": "LST-Biegen",
+      "uxCopy": {
+        "short": "LST anwenden",
+        "success": "Canopy geoeffnet, Seitentriebe aktiviert.",
+        "warning": "Erhoeht kurzfristig Stress."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 3 },
+      "prerequisites": { "min": { "health": 35 }, "max": { "stress": 70, "risk": 80 } },
+      "effects": {
+        "immediate": { "water": 0, "nutrition": -1, "health": 0, "stress": 4, "risk": 1, "growth": 1.8 },
+        "durationSimMinutes": 360,
+        "overTime": { "stressPerHour": -0.3, "growthPerHour": 0.5 }
+      },
+      "cooldownRealMinutes": 120,
+      "sideEffects": [
+        { "id": "lst_snap", "when": "health <= 45 OR stress >= 65", "chance": 0.28, "deltas": { "health": -4, "stress": 5, "risk": 4, "growth": -0.6 }, "note": "Triebschaden bei unguenstiger Pflanzenverfassung." }
+      ],
+      "riskNotes": "Sehr effizient, aber nur in stabilen Fenstern."
+    },
+    {
+      "id": "training_high_defoliation",
+      "category": "training",
+      "intensity": "high",
+      "label": "Starke Entlaubung",
+      "uxCopy": {
+        "short": "Stark entlauben",
+        "success": "Licht und Luftzirkulation stark verbessert.",
+        "warning": "Kann Wachstum kurzfristig bremsen."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 7 },
+      "prerequisites": { "min": { "health": 55 }, "max": { "stress": 58, "risk": 70 } },
+      "effects": {
+        "immediate": { "water": 0, "nutrition": -2, "health": -1, "stress": 8, "risk": 2, "growth": 2.1 },
+        "durationSimMinutes": 420,
+        "overTime": { "stressPerHour": -0.45, "growthPerHour": 0.62 }
+      },
+      "cooldownRealMinutes": 180,
+      "sideEffects": [
+        { "id": "defol_shock", "when": "stress >= 50", "chance": 0.4, "deltas": { "health": -5, "stress": 7, "growth": -1.1, "risk": 5 }, "note": "Uebertraining kann Schock verursachen." }
+      ],
+      "riskNotes": "Hoher Ertragseffekt mit deutlichem Schockrisiko."
+    },
+
+    {
+      "id": "environment_low_airflow",
+      "category": "environment",
+      "intensity": "low",
+      "label": "Luftstrom-Feinschliff",
+      "uxCopy": {
+        "short": "Luftstrom optimieren",
+        "success": "Mikroklima leicht verbessert.",
+        "warning": "Kaum Effekt bei bereits optimalem Klima."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 0 },
+      "prerequisites": { "min": { "health": 0 }, "max": { "risk": 100 } },
+      "effects": {
+        "immediate": { "water": -1, "nutrition": 0, "health": 1, "stress": -2, "risk": -4, "growth": 0.5 },
+        "durationSimMinutes": 240,
+        "overTime": { "stressPerHour": -0.2, "riskPerHour": -0.3 }
+      },
+      "cooldownRealMinutes": 35,
+      "sideEffects": [
+        { "id": "airflow_dry", "when": "water <= 25", "chance": 0.22, "deltas": { "water": -3, "stress": 2 }, "note": "Zu viel Luftbewegung trocknet Substrat schneller aus." }
+      ],
+      "riskNotes": "Gute Default-Aktion zur Risikokontrolle."
+    },
+    {
+      "id": "environment_medium_climate",
+      "category": "environment",
+      "intensity": "medium",
+      "label": "Klima-Korrektur",
+      "uxCopy": {
+        "short": "Klima korrigieren",
+        "success": "Temperatur und Feuchte stabilisiert.",
+        "warning": "Braucht anschliessend Wasserkontrolle."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 2 },
+      "prerequisites": { "min": { "health": 15 }, "max": { "risk": 95 } },
+      "effects": {
+        "immediate": { "water": -3, "nutrition": 0, "health": 2, "stress": -4, "risk": -7, "growth": 1.0 },
+        "durationSimMinutes": 300,
+        "overTime": { "riskPerHour": -0.45, "stressPerHour": -0.25, "waterPerHour": -0.4 }
+      },
+      "cooldownRealMinutes": 75,
+      "sideEffects": [
+        { "id": "climate_swings", "when": "stress >= 65", "chance": 0.2, "deltas": { "stress": 2, "risk": 1 }, "note": "Instabile Pflanzen reagieren empfindlich auf Umstellungen." }
+      ],
+      "riskNotes": "Starker Defensiv-Move mit moderatem Wasserverbrauch."
+    },
+    {
+      "id": "environment_high_reset",
+      "category": "environment",
+      "intensity": "high",
+      "label": "Vollständiger Klima-Reset",
+      "uxCopy": {
+        "short": "Umgebung resetten",
+        "success": "Systemparameter komplett neu eingeregelt.",
+        "warning": "Kurzfristiger Umstellungsschock moeglich."
+      },
+      "trigger": { "timeWindow": "daytime_only", "requiresNoActiveCooldown": true, "minStageIndex": 4 },
+      "prerequisites": { "min": { "health": 25 }, "max": { "risk": 100 } },
+      "effects": {
+        "immediate": { "water": -4, "nutrition": -1, "health": 2, "stress": -6, "risk": -11, "growth": 1.5 },
+        "durationSimMinutes": 360,
+        "overTime": { "riskPerHour": -0.6, "stressPerHour": -0.3, "growthPerHour": 0.2 }
+      },
+      "cooldownRealMinutes": 140,
+      "sideEffects": [
+        { "id": "reset_shock", "when": "health <= 35", "chance": 0.32, "deltas": { "health": -3, "stress": 4, "growth": -0.3 }, "note": "Empfindliche Pflanzen koennen kurzzeitig einbrechen." }
+      ],
+      "riskNotes": "Bester Anti-Risk-Eingriff, aber teuer im Tempo."
+    }
+  ],
+  "balancingNotes": {
+    "designTargets": [
+      "Low intensity = safe, frequent, small gains",
+      "Medium intensity = default efficiency band",
+      "High intensity = strong upside with clear punish window",
+      "Actions are daytime-only for readability and pacing"
+    ],
+    "antiSpam": "Cooldowns scale with intensity and expected impact.",
+    "recoveryModel": "Environment and low/medium watering/fertilizing provide comeback lines after mistakes.",
+    "masterPath": "Perfect ending requires sustained low stress + high health; high-intensity spam increases failure risk."
+  }
+}

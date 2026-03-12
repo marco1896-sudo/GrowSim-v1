@@ -1,0 +1,115 @@
+{
+  "events": [
+    {
+      "id": "drooping_leaves_warning",
+      "title": "Blätter hängen sichtbar",
+      "description": "Die Blätter wirken schwer und leicht schlaff. Zu viel Wasser könnte die Wurzeln stressen.",
+      "category": "water",
+      "allowedPhases": [
+        "seedling",
+        "vegetative",
+        "flowering"
+      ],
+      "tags": [
+        "foundation",
+        "causal",
+        "water"
+      ],
+      "options": [
+        {
+          "id": "reduce_watering_now",
+          "label": "Gießmenge reduzieren und Drainage prüfen",
+          "effects": {
+            "water": -8,
+            "stress": -3,
+            "risk": -2
+          }
+        },
+        {
+          "id": "ignore_signals",
+          "label": "Ignorieren und wie bisher gießen",
+          "effects": {
+            "stress": 5,
+            "risk": 6
+          },
+          "followUps": [
+            "set_flag:root_stress_pending"
+          ]
+        }
+      ],
+      "tone": "negative",
+      "isFollowUp": false,
+      "weight": 5,
+      "pool": "warning"
+    },
+    {
+      "id": "root_stress_followup",
+      "title": "Folge: Wurzelstress erkannt",
+      "description": "Die anhaltende Nässe hat Wurzelstress ausgelöst. Jetzt ist ein Gegensteuern nötig.",
+      "category": "disease",
+      "allowedPhases": [
+        "seedling",
+        "vegetative",
+        "flowering"
+      ],
+      "tags": [
+        "foundation",
+        "followup",
+        "root"
+      ],
+      "options": [
+        {
+          "id": "recover_root_zone",
+          "label": "Substrat lockern und Bewässerungspause einlegen",
+          "effects": {
+            "stress": -6,
+            "risk": -5,
+            "health": 2
+          },
+          "followUps": [
+            "clear_flag:root_stress_pending",
+            "set_flag:recovery_window"
+          ]
+        }
+      ],
+      "tone": "negative",
+      "isFollowUp": true,
+      "weight": 1,
+      "pool": "recovery"
+    },
+    {
+      "id": "stable_growth_reward",
+      "title": "Stabile Entwicklung",
+      "description": "Die Bedingungen sind seit mehreren Zyklen stabil. Deine Pflege zahlt sich aus.",
+      "category": "positive",
+      "allowedPhases": [
+        "seedling",
+        "vegetative",
+        "flowering",
+        "harvest"
+      ],
+      "tags": [
+        "foundation",
+        "reward",
+        "stable"
+      ],
+      "options": [
+        {
+          "id": "keep_current_plan",
+          "label": "Plan beibehalten",
+          "effects": {
+            "health": 3,
+            "growth": 1
+          },
+          "followUps": [
+            "set_flag:mastery_streak"
+          ]
+        }
+      ],
+      "tone": "positive",
+      "isFollowUp": false,
+      "weight": 1,
+      "pool": "reward"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+# Agent: Simulation Architect (Grow Simulator)
+
+See shared baseline rules: `agents/_SHARED_RULES.md.txt`.
+
+## Allowed to Modify
+- `/engine/**` (if present)
+- `/data/**` (simulation/stage/rules schemas)
+- `app.js` (simulation wiring only, when implementation is explicitly requested)
+- `sw.js` / `manifest.webmanifest` only if strictly required for correctness
+
+## Responsibilities
+1. Time model and lifecycle simulation (compression, day/night, 56 sim-day flow)
+2. Deterministic progression and scheduler foundations (seed + plantId + sim time)
+3. Stage and quality progression rules (health/stress gating)
+4. Runtime migration/default safety for simulation-related state
+
+## Deliverables
+- Summary of changes
+- Files changed
+- Schema notes (new/updated/deprecated fields)
+- Acceptance checklist
+- Risks / next step
+
+## Acceptance Criteria
+- [ ] Simulation loop stable after reload
+- [ ] Stage progression deterministic and reproducible
+- [ ] Day/night and event scheduling constraints respected
+- [ ] Quality tiers affect end-path access correctly
+
+## Schema Compliance Checklist (Mandatory)
+Reference: `data/STATE_SCHEMA.md.txt`
+- [ ] `state.simulation` reflects canonical time model
+- [ ] `state.plant` reflects canonical lifecycle/stage fields
+- [ ] Legacy usage (if any) documented with migration intent

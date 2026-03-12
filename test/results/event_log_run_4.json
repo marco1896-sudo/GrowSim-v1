@@ -1,0 +1,595 @@
+[
+  {
+    "day": 6.71,
+    "stage": 3,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 15.23,
+    "resulting_status_change": {
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 8.85,
+    "stage": 3,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 26.5,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 9.25,
+    "stage": 3,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 28.77,
+    "resulting_status_change": {
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 11.43,
+    "stage": 4,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 36.18,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 12.67,
+    "stage": 4,
+    "event_id": "v2_pest_mites_spotted",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 46.97,
+    "resulting_status_change": {
+      "stress": 1,
+      "risk": -8
+    }
+  },
+  {
+    "day": 13.37,
+    "stage": 4,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 42.65,
+    "resulting_status_change": {
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 13.64,
+    "stage": 4,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 38.86,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 14.69,
+    "stage": 4,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 41.17,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 15.64,
+    "stage": 5,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 39.05,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 16.4,
+    "stage": 5,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 41.57,
+    "resulting_status_change": {
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 17.3,
+    "stage": 5,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 44.9,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -3,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 17.76,
+    "stage": 5,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 40.82,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 19.54,
+    "stage": 5,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 42.17,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.05,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 20.56,
+    "stage": 6,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 43.08,
+    "resulting_status_change": {
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 20.88,
+    "stage": 6,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 41.81,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 21.76,
+    "stage": 6,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 39.57,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -1.7,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 23.29,
+    "stage": 6,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 45.73,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 24.49,
+    "stage": 6,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 42.55,
+    "resulting_status_change": {
+      "stress": -3
+    }
+  },
+  {
+    "day": 25.57,
+    "stage": 7,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 43.82,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -0.05
+    }
+  },
+  {
+    "day": 26.69,
+    "stage": 7,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 45.2,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.41,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 27.58,
+    "stage": 7,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 44.65,
+    "resulting_status_change": {
+      "stress": -3
+    }
+  },
+  {
+    "day": 28.75,
+    "stage": 7,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 45.13,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -0.73
+    }
+  },
+  {
+    "day": 29.66,
+    "stage": 7,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 43.75,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.23,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 30.41,
+    "stage": 8,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 44.08,
+    "resulting_status_change": {
+      "stress": -3
+    }
+  },
+  {
+    "day": 31.53,
+    "stage": 8,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 43.7,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -0.05
+    }
+  },
+  {
+    "day": 32.57,
+    "stage": 8,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 43.75,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.05,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 33.7,
+    "stage": 8,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 46.33,
+    "resulting_status_change": {
+      "stress": -3
+    }
+  },
+  {
+    "day": 34.88,
+    "stage": 8,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 48,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -0.05
+    }
+  },
+  {
+    "day": 35.33,
+    "stage": 8,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 45.67,
+    "resulting_status_change": {
+      "stress": -4,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 36.28,
+    "stage": 9,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 49.95,
+    "resulting_status_change": {
+      "stress": -3
+    }
+  },
+  {
+    "day": 37.31,
+    "stage": 9,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 51.43,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 37.86,
+    "stage": 9,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 46.05,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.05,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 38.87,
+    "stage": 9,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 47.22,
+    "resulting_status_change": {
+      "stress": -3
+    }
+  },
+  {
+    "day": 39.59,
+    "stage": 9,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 46.22,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -0.05
+    }
+  },
+  {
+    "day": 40.3,
+    "stage": 9,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 49.53,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -1.69,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 41.39,
+    "stage": 9,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 47.72,
+    "resulting_status_change": {
+      "stress": -3
+    }
+  },
+  {
+    "day": 42.73,
+    "stage": 10,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 49.56,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.64,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 44.63,
+    "stage": 10,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 51.98,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.05,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 44.88,
+    "stage": 10,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 50.87,
+    "resulting_status_change": {
+      "stress": -3
+    }
+  },
+  {
+    "day": 46.5,
+    "stage": 10,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 51.99,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.05,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 48.82,
+    "stage": 11,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 60.36,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -1.77,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 50.6,
+    "stage": 11,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 61.17,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.14,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 52.4,
+    "stage": 11,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 65.66,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.07,
+      "growth": -0.3
+    }
+  },
+  {
+    "day": 54.69,
+    "stage": 12,
+    "event_id": "v2_environment_heat_spike",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "indoor",
+    "stress_level": 70.83,
+    "resulting_status_change": {
+      "stress": -4,
+      "risk": -0.72,
+      "growth": -0.3
+    }
+  }
+]

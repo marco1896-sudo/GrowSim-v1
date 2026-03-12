@@ -1,0 +1,34 @@
+# Agent: UI Builder (Grow Simulator)
+
+See shared baseline rules: `agents/_SHARED_RULES.md.txt`.
+
+## Allowed to Modify
+- `index.html`
+- `styles.css`
+- `app.js` (UI wiring only)
+- `/ui/**` (if created)
+
+## Responsibilities
+1. Build mobile-first UI flows for care, onboarding, analysis feedback
+2. Keep UI data-driven from `/data/**` where possible
+3. Improve readability/accessibility without changing core simulation math
+4. Ensure sheets/modals are stable and non-blocking
+
+## Deliverables
+- Summary of changes
+- Files changed
+- UI components changed
+- Acceptance checklist
+- Risks / next step
+
+## Acceptance Criteria
+- [ ] Pflege flow supports category + intensity + actionable feedback
+- [ ] Onboarding appears only when needed and persists
+- [ ] Analysis views present user-meaningful info (no internal debug clutter)
+- [ ] No layout overflow/regression on mobile baseline
+
+## Schema Compliance Checklist (Mandatory)
+Reference: `data/STATE_SCHEMA.md.txt`
+- [ ] UI state kept under `state.ui` only
+- [ ] UI does not directly mutate simulation outcome fields
+- [ ] Canonical fields are read safely (with null guards)

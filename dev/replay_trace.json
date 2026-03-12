@@ -1,0 +1,1770 @@
+{
+  "seed": 123,
+  "ticks": [
+    {
+      "tick": 1,
+      "state": {
+        "phase": "seedling",
+        "water": 94.894,
+        "nutrients": 48.143,
+        "vitality": 69.963,
+        "stress": 21.702,
+        "pestPressure": 16.758
+      },
+      "activeFlags": [],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterFrustrationGuard": [
+        "drooping_leaves_warning"
+      ],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 4.166769,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 4.318403,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 2,
+      "state": {
+        "phase": "seedling",
+        "water": 100,
+        "nutrients": 47.052,
+        "vitality": 70.878,
+        "stress": 29.554,
+        "pestPressure": 13.642
+      },
+      "activeFlags": [
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "pending_chain_override",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 3,
+      "state": {
+        "phase": "seedling",
+        "water": 100,
+        "nutrients": 45.317,
+        "vitality": 71.047,
+        "stress": 30.99,
+        "pestPressure": 10.75
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 2.540978,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 3.404721,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 4,
+      "state": {
+        "phase": "seedling",
+        "water": 88.98,
+        "nutrients": 40.667,
+        "vitality": 71.286,
+        "stress": 36.106,
+        "pestPressure": 8.369
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 2.837336,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 4.639833,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 5,
+      "state": {
+        "phase": "seedling",
+        "water": 99.855,
+        "nutrients": 35.618,
+        "vitality": 72.092,
+        "stress": 34.71,
+        "pestPressure": 11.522
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "pending_chain_override",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 6,
+      "state": {
+        "phase": "seedling",
+        "water": 100,
+        "nutrients": 31.987,
+        "vitality": 75.52,
+        "stress": 36.087,
+        "pestPressure": 8.783
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 1.283765,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 1.687619,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 7,
+      "state": {
+        "phase": "seedling",
+        "water": 100,
+        "nutrients": 37.301,
+        "vitality": 75.484,
+        "stress": 33.373,
+        "pestPressure": 4.526
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 1.701434,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 2.985438,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 8,
+      "state": {
+        "phase": "seedling",
+        "water": 100,
+        "nutrients": 36.979,
+        "vitality": 77.88,
+        "stress": 30.195,
+        "pestPressure": 8.458
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 0.841463,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 2.805795,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 9,
+      "state": {
+        "phase": "seedling",
+        "water": 95.15,
+        "nutrients": 37.352,
+        "vitality": 77.185,
+        "stress": 24.963,
+        "pestPressure": 4.963
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "pending_chain_override",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 10,
+      "state": {
+        "phase": "seedling",
+        "water": 100,
+        "nutrients": 41.058,
+        "vitality": 75.853,
+        "stress": 21.036,
+        "pestPressure": 2.215
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 4.467195,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 0.973118,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 11,
+      "state": {
+        "phase": "seedling",
+        "water": 97.301,
+        "nutrients": 46.735,
+        "vitality": 76.235,
+        "stress": 28.185,
+        "pestPressure": 2.579
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 2.511352,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 0.910117,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 12,
+      "state": {
+        "phase": "seedling",
+        "water": 97.388,
+        "nutrients": 52.485,
+        "vitality": 77.888,
+        "stress": 25.484,
+        "pestPressure": 3.554
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "pending_chain_override",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 13,
+      "state": {
+        "phase": "seedling",
+        "water": 97.527,
+        "nutrients": 49.918,
+        "vitality": 74.605,
+        "stress": 30.026,
+        "pestPressure": 4.151
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 1.078695,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 4.393625,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 14,
+      "state": {
+        "phase": "seedling",
+        "water": 100,
+        "nutrients": 52.657,
+        "vitality": 73.642,
+        "stress": 25.716,
+        "pestPressure": 2.325
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 1.653403,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 0.410423,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 15,
+      "state": {
+        "phase": "seedling",
+        "water": 100,
+        "nutrients": 46.691,
+        "vitality": 70.001,
+        "stress": 25.553,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 3.794195,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 0.829375,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 16,
+      "state": {
+        "phase": "seedling",
+        "water": 88.038,
+        "nutrients": 48.103,
+        "vitality": 67.688,
+        "stress": 23.563,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "pending_chain_override",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 17,
+      "state": {
+        "phase": "seedling",
+        "water": 86.938,
+        "nutrients": 45.142,
+        "vitality": 64.408,
+        "stress": 26.062,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 1.139804,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 2.540131,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 18,
+      "state": {
+        "phase": "seedling",
+        "water": 84.469,
+        "nutrients": 43.103,
+        "vitality": 66.688,
+        "stress": 19.795,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "pending_chain_override",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 19,
+      "state": {
+        "phase": "seedling",
+        "water": 86.224,
+        "nutrients": 41.297,
+        "vitality": 65.716,
+        "stress": 20.337,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 1.624759,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 1.693313,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 20,
+      "state": {
+        "phase": "seedling",
+        "water": 88.342,
+        "nutrients": 41.309,
+        "vitality": 62.699,
+        "stress": 15.023,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 0.738383,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 2.77578,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 21,
+      "state": {
+        "phase": "seedling",
+        "water": 81.395,
+        "nutrients": 39.324,
+        "vitality": 60.409,
+        "stress": 20.326,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 22,
+      "state": {
+        "phase": "seedling",
+        "water": 82.683,
+        "nutrients": 44.198,
+        "vitality": 57.256,
+        "stress": 28.064,
+        "pestPressure": 2.428
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "warning"
+      ],
+      "selectedPool": "warning",
+      "poolWeights": {
+        "warning": 5
+      },
+      "poolRoll": 4.410933,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "drooping_leaves_warning": 5
+      },
+      "weightedRoll": 1.815428,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 23,
+      "state": {
+        "phase": "seedling",
+        "water": 76.222,
+        "nutrients": 44.704,
+        "vitality": 61.103,
+        "stress": 24.04,
+        "pestPressure": 7.008
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "pending_chain_override",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 24,
+      "state": {
+        "phase": "seedling",
+        "water": 66.325,
+        "nutrients": 39.791,
+        "vitality": 61.659,
+        "stress": 17.28,
+        "pestPressure": 11.711
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 25,
+      "state": {
+        "phase": "seedling",
+        "water": 69.939,
+        "nutrients": 42.043,
+        "vitality": 65.06,
+        "stress": 11.904,
+        "pestPressure": 10.555
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 26,
+      "state": {
+        "phase": "seedling",
+        "water": 73.401,
+        "nutrients": 44.102,
+        "vitality": 63.35,
+        "stress": 10.054,
+        "pestPressure": 12.525
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 27,
+      "state": {
+        "phase": "seedling",
+        "water": 61.526,
+        "nutrients": 49.579,
+        "vitality": 65.877,
+        "stress": 8.551,
+        "pestPressure": 9.977
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "stable_growth_reward"
+      ],
+      "afterPhaseGuard": [
+        "stable_growth_reward"
+      ],
+      "afterRepeatGuard": [
+        "stable_growth_reward"
+      ],
+      "afterFrustrationGuard": [
+        "stable_growth_reward"
+      ],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "reward"
+      ],
+      "selectedPool": "reward",
+      "poolWeights": {
+        "reward": 2.5
+      },
+      "poolRoll": 2.166935,
+      "poolReason": "negative_heavy_prefers_recovery_reward",
+      "weights": {
+        "stable_growth_reward": 1
+      },
+      "weightedRoll": 0.626193,
+      "selectedEvent": "stable_growth_reward",
+      "selectedReason": "condition:stable_growth",
+      "selectedOptionId": "keep_current_plan"
+    },
+    {
+      "tick": 28,
+      "state": {
+        "phase": "seedling",
+        "water": 73.104,
+        "nutrients": 51.286,
+        "vitality": 66.962,
+        "stress": 4.321,
+        "pestPressure": 6.331
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [
+        "stable_growth_reward"
+      ],
+      "afterPhaseGuard": [
+        "stable_growth_reward"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "reward"
+      ],
+      "selectedPool": "reward",
+      "poolWeights": {
+        "reward": 1
+      },
+      "poolRoll": 0.240982,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "stable_growth_reward": 1
+      },
+      "weightedRoll": 0.436639,
+      "selectedEvent": "stable_growth_reward",
+      "selectedReason": "condition:stable_growth",
+      "selectedOptionId": "keep_current_plan"
+    },
+    {
+      "tick": 29,
+      "state": {
+        "phase": "seedling",
+        "water": 71.854,
+        "nutrients": 52.959,
+        "vitality": 68.333,
+        "stress": 0,
+        "pestPressure": 5.812
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [
+        "stable_growth_reward"
+      ],
+      "afterPhaseGuard": [
+        "stable_growth_reward"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "reward"
+      ],
+      "selectedPool": "reward",
+      "poolWeights": {
+        "reward": 1
+      },
+      "poolRoll": 0.783116,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "stable_growth_reward": 1
+      },
+      "weightedRoll": 0.822895,
+      "selectedEvent": "stable_growth_reward",
+      "selectedReason": "condition:stable_growth",
+      "selectedOptionId": "keep_current_plan"
+    },
+    {
+      "tick": 30,
+      "state": {
+        "phase": "seedling",
+        "water": 69.356,
+        "nutrients": 53.035,
+        "vitality": 66.635,
+        "stress": 0,
+        "pestPressure": 3.632
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [
+        "stable_growth_reward"
+      ],
+      "afterPhaseGuard": [
+        "stable_growth_reward"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "reward"
+      ],
+      "selectedPool": "reward",
+      "poolWeights": {
+        "reward": 1
+      },
+      "poolRoll": 0.606907,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "stable_growth_reward": 1
+      },
+      "weightedRoll": 0.249507,
+      "selectedEvent": "stable_growth_reward",
+      "selectedReason": "condition:stable_growth",
+      "selectedOptionId": "keep_current_plan"
+    },
+    {
+      "tick": 31,
+      "state": {
+        "phase": "seedling",
+        "water": 63.724,
+        "nutrients": 50.307,
+        "vitality": 64.62,
+        "stress": 5.519,
+        "pestPressure": 6.129
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 32,
+      "state": {
+        "phase": "seedling",
+        "water": 54.942,
+        "nutrients": 53.016,
+        "vitality": 67.917,
+        "stress": 7.2,
+        "pestPressure": 7.787
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [
+        "stable_growth_reward"
+      ],
+      "afterPhaseGuard": [
+        "stable_growth_reward"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "reward"
+      ],
+      "selectedPool": "reward",
+      "poolWeights": {
+        "reward": 1
+      },
+      "poolRoll": 0.288612,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "stable_growth_reward": 1
+      },
+      "weightedRoll": 0.261226,
+      "selectedEvent": "stable_growth_reward",
+      "selectedReason": "condition:stable_growth",
+      "selectedOptionId": "keep_current_plan"
+    },
+    {
+      "tick": 33,
+      "state": {
+        "phase": "seedling",
+        "water": 54.691,
+        "nutrients": 48.117,
+        "vitality": 65.121,
+        "stress": 11.271,
+        "pestPressure": 10.257
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [
+        "stable_growth_reward"
+      ],
+      "afterPhaseGuard": [
+        "stable_growth_reward"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "reward"
+      ],
+      "selectedPool": "reward",
+      "poolWeights": {
+        "reward": 1
+      },
+      "poolRoll": 0.830891,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "stable_growth_reward": 1
+      },
+      "weightedRoll": 0.633046,
+      "selectedEvent": "stable_growth_reward",
+      "selectedReason": "condition:stable_growth",
+      "selectedOptionId": "keep_current_plan"
+    },
+    {
+      "tick": 34,
+      "state": {
+        "phase": "seedling",
+        "water": 52.987,
+        "nutrients": 48.378,
+        "vitality": 64.684,
+        "stress": 11.163,
+        "pestPressure": 8.056
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 35,
+      "state": {
+        "phase": "seedling",
+        "water": 42.882,
+        "nutrients": 51.507,
+        "vitality": 62.618,
+        "stress": 4.693,
+        "pestPressure": 6.547
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 36,
+      "state": {
+        "phase": "seedling",
+        "water": 53.368,
+        "nutrients": 49.29,
+        "vitality": 65.069,
+        "stress": 9.346,
+        "pestPressure": 5.639
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [
+        "stable_growth_reward"
+      ],
+      "afterPhaseGuard": [
+        "stable_growth_reward"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "reward"
+      ],
+      "selectedPool": "reward",
+      "poolWeights": {
+        "reward": 1
+      },
+      "poolRoll": 0.086323,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "stable_growth_reward": 1
+      },
+      "weightedRoll": 0.483346,
+      "selectedEvent": "stable_growth_reward",
+      "selectedReason": "condition:stable_growth",
+      "selectedOptionId": "keep_current_plan"
+    },
+    {
+      "tick": 37,
+      "state": {
+        "phase": "seedling",
+        "water": 51.108,
+        "nutrients": 48.073,
+        "vitality": 67.247,
+        "stress": 16.267,
+        "pestPressure": 4.84
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [
+        "stable_growth_reward"
+      ],
+      "afterPhaseGuard": [
+        "stable_growth_reward"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [
+        "reward"
+      ],
+      "selectedPool": "reward",
+      "poolWeights": {
+        "reward": 1
+      },
+      "poolRoll": 0.633269,
+      "poolReason": "weighted_pool_selection",
+      "weights": {
+        "stable_growth_reward": 1
+      },
+      "weightedRoll": 0.93634,
+      "selectedEvent": "stable_growth_reward",
+      "selectedReason": "condition:stable_growth",
+      "selectedOptionId": "keep_current_plan"
+    },
+    {
+      "tick": 38,
+      "state": {
+        "phase": "seedling",
+        "water": 44.541,
+        "nutrients": 54.058,
+        "vitality": 70.942,
+        "stress": 14.414,
+        "pestPressure": 8.381
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 39,
+      "state": {
+        "phase": "seedling",
+        "water": 41.104,
+        "nutrients": 56.806,
+        "vitality": 69.936,
+        "stress": 10.62,
+        "pestPressure": 4.727
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 40,
+      "state": {
+        "phase": "seedling",
+        "water": 42.572,
+        "nutrients": 60.58,
+        "vitality": 69.182,
+        "stress": 4.15,
+        "pestPressure": 1.694
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 41,
+      "state": {
+        "phase": "seedling",
+        "water": 30.734,
+        "nutrients": 63.313,
+        "vitality": 67.951,
+        "stress": 4.512,
+        "pestPressure": 2.986
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 42,
+      "state": {
+        "phase": "seedling",
+        "water": 19.787,
+        "nutrients": 65.085,
+        "vitality": 65.387,
+        "stress": 6.006,
+        "pestPressure": 7.039
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 43,
+      "state": {
+        "phase": "seedling",
+        "water": 31.665,
+        "nutrients": 66.594,
+        "vitality": 61.567,
+        "stress": 8.529,
+        "pestPressure": 4.928
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 44,
+      "state": {
+        "phase": "seedling",
+        "water": 24.191,
+        "nutrients": 70.556,
+        "vitality": 61.54,
+        "stress": 6.904,
+        "pestPressure": 7.59
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 45,
+      "state": {
+        "phase": "seedling",
+        "water": 32.235,
+        "nutrients": 73.302,
+        "vitality": 59.949,
+        "stress": 5.336,
+        "pestPressure": 7.802
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 46,
+      "state": {
+        "phase": "seedling",
+        "water": 31.606,
+        "nutrients": 67.551,
+        "vitality": 58.725,
+        "stress": 0,
+        "pestPressure": 11.258
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 47,
+      "state": {
+        "phase": "seedling",
+        "water": 26.226,
+        "nutrients": 72.123,
+        "vitality": 57.071,
+        "stress": 0,
+        "pestPressure": 14.856
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 48,
+      "state": {
+        "phase": "seedling",
+        "water": 29.925,
+        "nutrients": 74.526,
+        "vitality": 58.158,
+        "stress": 7.103,
+        "pestPressure": 13.252
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 49,
+      "state": {
+        "phase": "seedling",
+        "water": 20.533,
+        "nutrients": 76.787,
+        "vitality": 55.811,
+        "stress": 3.148,
+        "pestPressure": 14.39
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 50,
+      "state": {
+        "phase": "seedling",
+        "water": 23.651,
+        "nutrients": 73.264,
+        "vitality": 56.302,
+        "stress": 6.995,
+        "pestPressure": 11.297
+      },
+      "activeFlags": [
+        "recovery_window",
+        "mastery_streak"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "availablePools": [],
+      "selectedPool": null,
+      "poolWeights": {},
+      "poolRoll": null,
+      "poolReason": "no_candidates",
+      "weights": {},
+      "weightedRoll": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    }
+  ]
+}

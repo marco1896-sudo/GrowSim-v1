@@ -1,0 +1,278 @@
+﻿[
+    {
+        "index":  1,
+        "original":  "plant (1).png",
+        "renamed":  "plant_001_seed.png",
+        "stage":  "seed"
+    },
+    {
+        "index":  2,
+        "original":  "plant (2).png",
+        "renamed":  "plant_002_seed.png",
+        "stage":  "seed"
+    },
+    {
+        "index":  3,
+        "original":  "plant (3).png",
+        "renamed":  "plant_003_seed.png",
+        "stage":  "seed"
+    },
+    {
+        "index":  4,
+        "original":  "plant (4).png",
+        "renamed":  "plant_004_sprout.png",
+        "stage":  "sprout"
+    },
+    {
+        "index":  5,
+        "original":  "plant (5).png",
+        "renamed":  "plant_005_sprout.png",
+        "stage":  "sprout"
+    },
+    {
+        "index":  6,
+        "original":  "plant (6).png",
+        "renamed":  "plant_006_sprout.png",
+        "stage":  "sprout"
+    },
+    {
+        "index":  7,
+        "original":  "plant (7).png",
+        "renamed":  "plant_007_sprout.png",
+        "stage":  "sprout"
+    },
+    {
+        "index":  8,
+        "original":  "plant (8).png",
+        "renamed":  "plant_008_seedling.png",
+        "stage":  "seedling"
+    },
+    {
+        "index":  9,
+        "original":  "plant (9).png",
+        "renamed":  "plant_009_seedling.png",
+        "stage":  "seedling"
+    },
+    {
+        "index":  10,
+        "original":  "plant (10).png",
+        "renamed":  "plant_010_seedling.png",
+        "stage":  "seedling"
+    },
+    {
+        "index":  11,
+        "original":  "plant (11).png",
+        "renamed":  "plant_011_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  12,
+        "original":  "plant (12).png",
+        "renamed":  "plant_012_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  13,
+        "original":  "plant (13).png",
+        "renamed":  "plant_013_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  14,
+        "original":  "plant (14).png",
+        "renamed":  "plant_014_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  15,
+        "original":  "plant (15).png",
+        "renamed":  "plant_015_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  16,
+        "original":  "plant (16).png",
+        "renamed":  "plant_016_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  17,
+        "original":  "plant (17).png",
+        "renamed":  "plant_017_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  18,
+        "original":  "plant (18).png",
+        "renamed":  "plant_018_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  19,
+        "original":  "plant (19).png",
+        "renamed":  "plant_019_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  20,
+        "original":  "plant (20).png",
+        "renamed":  "plant_020_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  21,
+        "original":  "plant (21).png",
+        "renamed":  "plant_021_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  22,
+        "original":  "plant (22).png",
+        "renamed":  "plant_022_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  23,
+        "original":  "plant (23).png",
+        "renamed":  "plant_023_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  24,
+        "original":  "plant (24).png",
+        "renamed":  "plant_024_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  25,
+        "original":  "plant (25).png",
+        "renamed":  "plant_025_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  26,
+        "original":  "plant (26).png",
+        "renamed":  "plant_026_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  27,
+        "original":  "plant (27).png",
+        "renamed":  "plant_027_vegetative.png",
+        "stage":  "vegetative"
+    },
+    {
+        "index":  28,
+        "original":  "plant (28).png",
+        "renamed":  "plant_028_preflower.png",
+        "stage":  "preflower"
+    },
+    {
+        "index":  29,
+        "original":  "plant (29).png",
+        "renamed":  "plant_029_preflower.png",
+        "stage":  "preflower"
+    },
+    {
+        "index":  30,
+        "original":  "plant (30).png",
+        "renamed":  "plant_030_preflower.png",
+        "stage":  "preflower"
+    },
+    {
+        "index":  31,
+        "original":  "plant (31).png",
+        "renamed":  "plant_031_preflower.png",
+        "stage":  "preflower"
+    },
+    {
+        "index":  32,
+        "original":  "plant (32).png",
+        "renamed":  "plant_032_flowering.png",
+        "stage":  "flowering"
+    },
+    {
+        "index":  33,
+        "original":  "plant (33).png",
+        "renamed":  "plant_033_flowering.png",
+        "stage":  "flowering"
+    },
+    {
+        "index":  34,
+        "original":  "plant (34).png",
+        "renamed":  "plant_034_flowering.png",
+        "stage":  "flowering"
+    },
+    {
+        "index":  35,
+        "original":  "plant (35).png",
+        "renamed":  "plant_035_flowering.png",
+        "stage":  "flowering"
+    },
+    {
+        "index":  36,
+        "original":  "plant (36).png",
+        "renamed":  "plant_036_flowering.png",
+        "stage":  "flowering"
+    },
+    {
+        "index":  37,
+        "original":  "plant (37).png",
+        "renamed":  "plant_037_flowering.png",
+        "stage":  "flowering"
+    },
+    {
+        "index":  38,
+        "original":  "plant (38).png",
+        "renamed":  "plant_038_flowering.png",
+        "stage":  "flowering"
+    },
+    {
+        "index":  39,
+        "original":  "plant (39).png",
+        "renamed":  "plant_039_late_flowering.png",
+        "stage":  "late_flowering"
+    },
+    {
+        "index":  40,
+        "original":  "plant (40).png",
+        "renamed":  "plant_040_late_flowering.png",
+        "stage":  "late_flowering"
+    },
+    {
+        "index":  41,
+        "original":  "plant (41).png",
+        "renamed":  "plant_041_late_flowering.png",
+        "stage":  "late_flowering"
+    },
+    {
+        "index":  42,
+        "original":  "plant (42).png",
+        "renamed":  "plant_042_late_flowering.png",
+        "stage":  "late_flowering"
+    },
+    {
+        "index":  43,
+        "original":  "plant (43).png",
+        "renamed":  "plant_043_late_flowering.png",
+        "stage":  "late_flowering"
+    },
+    {
+        "index":  44,
+        "original":  "plant (44).png",
+        "renamed":  "plant_044_harvest.png",
+        "stage":  "harvest"
+    },
+    {
+        "index":  45,
+        "original":  "plant (45).png",
+        "renamed":  "plant_045_harvest.png",
+        "stage":  "harvest"
+    },
+    {
+        "index":  46,
+        "original":  "plant (46).png",
+        "renamed":  "plant_046_harvest.png",
+        "stage":  "harvest"
+    }
+]

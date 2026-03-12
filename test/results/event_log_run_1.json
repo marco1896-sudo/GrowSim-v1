@@ -1,0 +1,221 @@
+[
+  {
+    "day": 5.38,
+    "stage": 3,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -0.03,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 8.25,
+    "stage": 3,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 10.9,
+    "stage": 4,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -0.17,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 13.9,
+    "stage": 4,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -1.21,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 16.49,
+    "stage": 5,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -1.28
+    }
+  },
+  {
+    "day": 19.4,
+    "stage": 5,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -1.04
+    }
+  },
+  {
+    "day": 22.28,
+    "stage": 6,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -2.16
+    }
+  },
+  {
+    "day": 24.64,
+    "stage": 6,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -1.34
+    }
+  },
+  {
+    "day": 27.3,
+    "stage": 7,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -2.26
+    }
+  },
+  {
+    "day": 29.81,
+    "stage": 7,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -0.47
+    }
+  },
+  {
+    "day": 32.65,
+    "stage": 8,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -1.4
+    }
+  },
+  {
+    "day": 35.83,
+    "stage": 8,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -0.6
+    }
+  },
+  {
+    "day": 38.28,
+    "stage": 9,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -2.12
+    }
+  },
+  {
+    "day": 40.64,
+    "stage": 9,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -1.34
+    }
+  },
+  {
+    "day": 43.62,
+    "stage": 10,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -0.55
+    }
+  },
+  {
+    "day": 46.73,
+    "stage": 10,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -0.35
+    }
+  },
+  {
+    "day": 49.62,
+    "stage": 11,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -0.81
+    }
+  },
+  {
+    "day": 52.37,
+    "stage": 11,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "indoor",
+    "stress_level": 0,
+    "resulting_status_change": {
+      "stress": -0.27
+    }
+  }
+]

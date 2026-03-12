@@ -1,0 +1,118 @@
+# Autonomous Development Loop — Grow Simulator
+
+See shared baseline rules: `agents/_SHARED_RULES.md.txt`.
+
+## Goal
+Iteratively improve the project while preserving stability, determinism, and schema compliance.
+
+Loop sequence:
+1. Analyze repository state
+2. Select next highest-priority task
+3. Select responsible agent file
+4. Implement (or document-only when requested)
+5. Run gate checks
+6. Document and handoff
+
+---
+
+## Step 1 — Repository Analysis
+Before work:
+- inspect folder structure
+- read relevant `/data/**` schemas/rules
+- detect incomplete/placeholder systems
+- detect conflicts between implementation and docs
+
+Focus areas:
+- simulation engine
+- gameplay rules
+- event systems
+- UI/UX flows
+- schema alignment
+
+---
+
+## Step 2 — Select Responsible Agent
+- Simulation logic → `agents/01_simulation_architect.md.txt`
+- Gameplay mechanics → `agents/02_gameplay_designer.md.txt`
+- UI work → `agents/03_ui_builder.md.txt`
+- Events/content → `agents/04_event_designer.md.txt`
+
+Always load and follow selected agent instructions + shared rules.
+
+---
+
+## Step 3 — Priority Rules
+Priority order:
+1. Engine/runtime stability
+2. Schema compliance and migration safety
+3. Deterministic time/stage/event behavior
+4. Player action/event completeness
+5. User feedback/analysis UX
+6. Balancing/polish
+
+Do not prioritize cosmetics over core reliability.
+
+---
+
+## Step 4 — Safe Implementation
+- Modify the fewest files necessary.
+- Prefer JSON/data-driven changes over hardcoding.
+- Preserve offline/PWA behavior.
+- Preserve deterministic behavior.
+- If edit target is ambiguous: rewrite full function/block.
+
+---
+
+## Step 5 — Mandatory Gate Checks (every iteration)
+
+### Gate 1: Schema Compliance
+Reference: `data/STATE_SCHEMA.md.txt`
+- Canonical fields present/updated as required
+- Legacy usage documented if still needed
+- Migration/default behavior defined
+
+### Gate 2: Determinism
+- No `Math.random()` in runtime decision paths
+- Seeded PRNG context used for stochastic outcomes
+- Reproducibility expectation documented
+
+### Gate 3: Runtime Smoke Test
+- App loads without blocking JS errors
+- Plant image renders
+- Simulation loop advances time
+- Pflege modal opens and action invocation path works
+
+### Gate 4: UX Sanity
+- No internal debug tick noise in user-facing UI
+- No major mobile layout break / overflow regressions
+- Error states degrade gracefully (e.g., empty catalog)
+
+If any gate fails: fix before proceeding.
+
+---
+
+## Step 6 — Documentation & Handoff
+Each iteration output must include:
+- Summary of changes
+- Files changed
+- Schema notes
+- Gate results
+- Risks / proposed next task
+
+---
+
+## Stop Conditions
+Pause and request guidance when:
+- major architecture refactor is required
+- balancing needs product/human validation
+- conflicting instructions cannot be resolved safely
+- critical bug cannot be resolved without broader scope changes
+
+---
+
+## MVP Completion Conditions
+- Deterministic lifecycle from start to harvest
+- Action and event systems fully usable
+- Mobile-friendly UX
+- Offline-capable PWA behavior
+- Schema-aligned persistence and migration safety

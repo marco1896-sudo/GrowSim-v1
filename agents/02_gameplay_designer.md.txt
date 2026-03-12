@@ -1,0 +1,33 @@
+# Agent: Gameplay Designer (Grow Simulator)
+
+See shared baseline rules: `agents/_SHARED_RULES.md.txt`.
+
+## Allowed to Modify
+- `/data/**` (actions, rules, balance docs/schemas)
+- `/engine/**` only when required to support approved new data fields
+- UI text wiring only when explicitly requested
+
+## Responsibilities
+1. Design data-driven action/effect systems with tradeoffs and cooldowns
+2. Maintain risk/reward balance aligned to `data/GAME_BALANCE.md.txt`
+3. Ensure recovery paths exist and perfect path requires sustained good decisions
+4. Define/maintain balancing notes and test scenarios
+
+## Deliverables
+- Summary of changes
+- Files changed
+- Schema notes (new/updated/deprecated fields)
+- Acceptance checklist
+- Risks / next step
+
+## Acceptance Criteria
+- [ ] Every action has upside + downside
+- [ ] Cooldowns prevent spam
+- [ ] Failure recovery remains possible (unless repeatedly ignored)
+- [ ] Perfect outcome requires consistent high-quality play
+
+## Schema Compliance Checklist (Mandatory)
+Reference: `data/STATE_SCHEMA.md.txt`
+- [ ] `state.actions` shape and semantics match schema
+- [ ] Effects/clamping assumptions documented
+- [ ] Any legacy coupling documented for migration

@@ -1,0 +1,549 @@
+{
+  "generatedAt": "2026-03-12T14:57:08.950Z",
+  "simulationSpec": {
+    "ticksPerSeed": 1000,
+    "seeds": [
+      1,
+      42,
+      123,
+      999
+    ],
+    "eventRollWindowMinutes": [
+      30,
+      90
+    ],
+    "noEligibleRetrySeconds": [
+      20,
+      90
+    ]
+  },
+  "catalogSummary": {
+    "totalEvents": 38,
+    "sourceVersions": [
+      "v1",
+      "foundation",
+      "v2"
+    ],
+    "explicitRareEvents": [
+      "v2_environment_cold_night",
+      "v2_positive_ideal_mild_days",
+      "v2_special_weather_shift"
+    ]
+  },
+  "perSeed": [
+    {
+      "seed": 1,
+      "mode": "indoor",
+      "ticks": 1000,
+      "totalEventsTriggered": 335,
+      "eventPoolDistribution": {
+        "reward": 85,
+        "warning": 226,
+        "recovery": 24
+      },
+      "eventFrequencyById": {
+        "stable_growth_reward": 85,
+        "drooping_leaves_warning": 27,
+        "root_stress_followup": 24,
+        "soil_too_wet": 5,
+        "watering_gap": 3,
+        "dry_pocket": 4,
+        "beneficial_fungi_colonized": 2,
+        "soil_compaction": 4,
+        "thrips_early": 3,
+        "topsoil_mold": 3,
+        "fungus_gnat_wave": 7,
+        "soil_life_decline": 3,
+        "ph_drift_high": 5,
+        "v2_environment_heat_spike": 3,
+        "nitrogen_lockout": 5,
+        "v2_pest_mites_spotted": 5,
+        "mite_hotspot": 2,
+        "overfeeding_warning": 2,
+        "hot_dry_day": 2,
+        "calcium_spotting": 5,
+        "v2_nutrition_n_deficit": 1,
+        "v2_pest_thrips_wave": 43,
+        "cold_root_zone": 1,
+        "magnesium_deficit": 1,
+        "v2_water_dry_pot": 1,
+        "salt_buildup": 2,
+        "late_flower_humidity": 87
+      },
+      "eventFrequencyByCategory": {
+        "positive": 85,
+        "water": 37,
+        "disease": 24,
+        "nutrition": 131,
+        "pest": 55,
+        "environment": 3
+      },
+      "followUpChainsTriggered": 11,
+      "followUpChainsConsumed": 11,
+      "rareEventsTriggered": 0,
+      "averageMinutesBetweenEvents": 65.35,
+      "longestEventChain": 1,
+      "repeatedEvents": 0,
+      "eventsSuppressedByGuards": {
+        "phaseGuard": 0,
+        "repeatGuard": 1,
+        "frustrationGuard": 0,
+        "fellBackToOriginal": 1
+      },
+      "eventsSelectedByResolver": {
+        "total": 12,
+        "forcedByPendingChainOrFlag": 11,
+        "forcedByResolverCandidate": 1,
+        "fallbackLegacyWeighted": 323,
+        "resolverNoMatch": 601
+      },
+      "poolRoutingDistribution": {
+        "reward": 2
+      },
+      "weightedSelectionDistribution": {
+        "resolver_weight:stable_growth_reward": 2,
+        "pool_selected:reward": 2,
+        "legacy_weight:drooping_leaves_warning": 555,
+        "legacy_weight:dry_pocket": 179.25,
+        "legacy_weight:root_stress_followup": 114.6,
+        "legacy_weight:soil_too_wet": 199,
+        "legacy_weight:watering_gap": 186.75,
+        "legacy_weight:stable_growth_reward": 254.399999999999,
+        "legacy_weight:beneficial_fungi_colonized": 102.5,
+        "legacy_weight:cold_root_zone": 161.25,
+        "legacy_weight:fungus_gnat_wave": 270,
+        "legacy_weight:hot_dry_day": 180,
+        "legacy_weight:soil_compaction": 101.25,
+        "legacy_weight:thrips_early": 170,
+        "legacy_weight:topsoil_mold": 97.5,
+        "legacy_weight:calcium_spotting": 135,
+        "legacy_weight:nitrogen_lockout": 170,
+        "legacy_weight:ph_drift_high": 245,
+        "legacy_weight:root_bound_warning": 110,
+        "legacy_weight:soil_life_decline": 157.5,
+        "legacy_weight:v2_environment_heat_spike": 104.80000000000011,
+        "legacy_weight:v2_nutrition_n_deficit": 60.31000000000003,
+        "legacy_weight:v2_water_dry_pot": 68.93000000000004,
+        "legacy_weight:v2_pest_mites_spotted": 87.5,
+        "legacy_weight:magnesium_deficit": 138.75,
+        "legacy_weight:mite_hotspot": 180,
+        "legacy_weight:overfeeding_warning": 138.75,
+        "legacy_weight:salt_buildup": 161.25,
+        "legacy_weight:v2_pest_thrips_wave": 158.26999999999978,
+        "legacy_weight:late_flower_humidity": 535
+      },
+      "suppressedReasons": {
+        "nighttimeDeferral": 64,
+        "noEligibleEvents": 601
+      },
+      "resolverTraceSummary": {
+        "pendingChainOverride": 11,
+        "forcedFlagOverride": 0,
+        "noCandidates": 923
+      },
+      "timeline": {
+        "firstEventAtMs": 1773327428615,
+        "lastEventAtMs": 1774636958101
+      },
+      "pendingChainsRemaining": 0,
+      "activeFlags": [
+        "mastery_streak",
+        "recovery_window"
+      ]
+    },
+    {
+      "seed": 42,
+      "mode": "greenhouse",
+      "ticks": 1000,
+      "totalEventsTriggered": 403,
+      "eventPoolDistribution": {
+        "reward": 107,
+        "warning": 273,
+        "recovery": 18,
+        "rare": 5
+      },
+      "eventFrequencyById": {
+        "stable_growth_reward": 107,
+        "drooping_leaves_warning": 20,
+        "watering_gap": 7,
+        "dry_pocket": 9,
+        "root_stress_followup": 18,
+        "soil_too_wet": 5,
+        "soil_compaction": 4,
+        "hot_dry_day": 2,
+        "fungus_gnat_wave": 8,
+        "beneficial_fungi_colonized": 3,
+        "thrips_early": 4,
+        "v2_water_dry_pot": 2,
+        "soil_life_decline": 5,
+        "mite_hotspot": 3,
+        "v2_special_weather_shift": 4,
+        "root_bound_warning": 1,
+        "v2_outdoor_storm_front": 3,
+        "ph_drift_high": 5,
+        "v2_pest_thrips_wave": 60,
+        "cold_root_zone": 2,
+        "topsoil_mold": 1,
+        "salt_buildup": 4,
+        "overfeeding_warning": 2,
+        "calcium_spotting": 1,
+        "magnesium_deficit": 2,
+        "v2_environment_cold_night": 1,
+        "v2_pest_mites_spotted": 3,
+        "late_flower_humidity": 117
+      },
+      "eventFrequencyByCategory": {
+        "positive": 107,
+        "water": 36,
+        "nutrition": 163,
+        "disease": 18,
+        "pest": 71,
+        "environment": 8
+      },
+      "followUpChainsTriggered": 10,
+      "followUpChainsConsumed": 10,
+      "rareEventsTriggered": 5,
+      "averageMinutesBetweenEvents": 63.42,
+      "longestEventChain": 1,
+      "repeatedEvents": 0,
+      "eventsSuppressedByGuards": {
+        "phaseGuard": 0,
+        "repeatGuard": 1,
+        "frustrationGuard": 0,
+        "fellBackToOriginal": 1
+      },
+      "eventsSelectedByResolver": {
+        "total": 11,
+        "forcedByPendingChainOrFlag": 10,
+        "forcedByResolverCandidate": 1,
+        "fallbackLegacyWeighted": 392,
+        "resolverNoMatch": 540
+      },
+      "poolRoutingDistribution": {
+        "reward": 2
+      },
+      "weightedSelectionDistribution": {
+        "resolver_weight:stable_growth_reward": 2,
+        "pool_selected:reward": 2,
+        "legacy_weight:drooping_leaves_warning": 617.5,
+        "legacy_weight:dry_pocket": 168,
+        "legacy_weight:root_stress_followup": 128.35,
+        "legacy_weight:soil_too_wet": 189,
+        "legacy_weight:watering_gap": 194.25,
+        "legacy_weight:stable_growth_reward": 296.3999999999986,
+        "legacy_weight:beneficial_fungi_colonized": 115,
+        "legacy_weight:cold_root_zone": 176.25,
+        "legacy_weight:fungus_gnat_wave": 285,
+        "legacy_weight:hot_dry_day": 195,
+        "legacy_weight:soil_compaction": 131.25,
+        "legacy_weight:thrips_early": 205,
+        "legacy_weight:topsoil_mold": 131.25,
+        "legacy_weight:v2_environment_cold_night": 89.0400000000001,
+        "legacy_weight:v2_water_dry_pot": 71.19000000000003,
+        "legacy_weight:calcium_spotting": 153.75,
+        "legacy_weight:nitrogen_lockout": 210,
+        "legacy_weight:ph_drift_high": 260,
+        "legacy_weight:root_bound_warning": 145,
+        "legacy_weight:soil_life_decline": 172.5,
+        "legacy_weight:v2_nutrition_n_deficit": 68.46000000000002,
+        "legacy_weight:magnesium_deficit": 153.75,
+        "legacy_weight:mite_hotspot": 205,
+        "legacy_weight:overfeeding_warning": 146.25,
+        "legacy_weight:salt_buildup": 180,
+        "legacy_weight:v2_pest_mites_spotted": 96.25,
+        "legacy_weight:v2_special_weather_shift": 56.16000000000005,
+        "legacy_weight:v2_outdoor_storm_front": 80.91999999999992,
+        "legacy_weight:v2_pest_thrips_wave": 176.11999999999975,
+        "legacy_weight:late_flower_humidity": 670
+      },
+      "suppressedReasons": {
+        "nighttimeDeferral": 57,
+        "noEligibleEvents": 540
+      },
+      "resolverTraceSummary": {
+        "pendingChainOverride": 11,
+        "forcedFlagOverride": 0,
+        "noCandidates": 930
+      },
+      "timeline": {
+        "firstEventAtMs": 1773327428743,
+        "lastEventAtMs": 1774857113425
+      },
+      "pendingChainsRemaining": 0,
+      "activeFlags": [
+        "mastery_streak",
+        "recovery_window"
+      ]
+    },
+    {
+      "seed": 123,
+      "mode": "outdoor",
+      "ticks": 1000,
+      "totalEventsTriggered": 425,
+      "eventPoolDistribution": {
+        "reward": 114,
+        "warning": 284,
+        "recovery": 23,
+        "rare": 4
+      },
+      "eventFrequencyById": {
+        "stable_growth_reward": 114,
+        "soil_too_wet": 9,
+        "drooping_leaves_warning": 28,
+        "root_stress_followup": 23,
+        "watering_gap": 4,
+        "topsoil_mold": 2,
+        "cold_root_zone": 4,
+        "fungus_gnat_wave": 10,
+        "root_bound_warning": 1,
+        "nitrogen_lockout": 5,
+        "dry_pocket": 4,
+        "beneficial_fungi_colonized": 1,
+        "hot_dry_day": 5,
+        "salt_buildup": 1,
+        "ph_drift_high": 7,
+        "mite_hotspot": 4,
+        "calcium_spotting": 3,
+        "overfeeding_warning": 4,
+        "v2_nutrition_n_deficit": 1,
+        "v2_outdoor_storm_front": 4,
+        "v2_water_dry_pot": 2,
+        "v2_special_weather_shift": 2,
+        "magnesium_deficit": 3,
+        "thrips_early": 1,
+        "soil_life_decline": 2,
+        "v2_environment_cold_night": 2,
+        "v2_pest_thrips_wave": 60,
+        "late_flower_humidity": 119
+      },
+      "eventFrequencyByCategory": {
+        "positive": 114,
+        "water": 43,
+        "disease": 23,
+        "nutrition": 167,
+        "pest": 70,
+        "environment": 8
+      },
+      "followUpChainsTriggered": 15,
+      "followUpChainsConsumed": 15,
+      "rareEventsTriggered": 4,
+      "averageMinutesBetweenEvents": 63.25,
+      "longestEventChain": 1,
+      "repeatedEvents": 0,
+      "eventsSuppressedByGuards": {
+        "phaseGuard": 0,
+        "repeatGuard": 1,
+        "frustrationGuard": 0,
+        "fellBackToOriginal": 1
+      },
+      "eventsSelectedByResolver": {
+        "total": 16,
+        "forcedByPendingChainOrFlag": 15,
+        "forcedByResolverCandidate": 1,
+        "fallbackLegacyWeighted": 409,
+        "resolverNoMatch": 529
+      },
+      "poolRoutingDistribution": {
+        "reward": 2
+      },
+      "weightedSelectionDistribution": {
+        "resolver_weight:stable_growth_reward": 2,
+        "pool_selected:reward": 2,
+        "legacy_weight:drooping_leaves_warning": 573.75,
+        "legacy_weight:dry_pocket": 186.75,
+        "legacy_weight:root_stress_followup": 121.95,
+        "legacy_weight:soil_too_wet": 194,
+        "legacy_weight:watering_gap": 197.55,
+        "legacy_weight:stable_growth_reward": 304.79999999999853,
+        "legacy_weight:fungus_gnat_wave": 275,
+        "legacy_weight:v2_environment_cold_night": 92.22000000000011,
+        "legacy_weight:beneficial_fungi_colonized": 110,
+        "legacy_weight:cold_root_zone": 157.5,
+        "legacy_weight:hot_dry_day": 180,
+        "legacy_weight:soil_compaction": 123.75,
+        "legacy_weight:thrips_early": 190,
+        "legacy_weight:topsoil_mold": 123.75,
+        "legacy_weight:v2_water_dry_pot": 70.06000000000003,
+        "legacy_weight:calcium_spotting": 135,
+        "legacy_weight:nitrogen_lockout": 170,
+        "legacy_weight:ph_drift_high": 235,
+        "legacy_weight:root_bound_warning": 125,
+        "legacy_weight:soil_life_decline": 165,
+        "legacy_weight:v2_nutrition_n_deficit": 58.68000000000003,
+        "legacy_weight:magnesium_deficit": 138.75,
+        "legacy_weight:mite_hotspot": 185,
+        "legacy_weight:overfeeding_warning": 142.5,
+        "legacy_weight:salt_buildup": 172.5,
+        "legacy_weight:v2_special_weather_shift": 61.62000000000006,
+        "legacy_weight:v2_outdoor_storm_front": 76.15999999999993,
+        "legacy_weight:v2_pest_thrips_wave": 195.1599999999997,
+        "legacy_weight:late_flower_humidity": 705
+      },
+      "suppressedReasons": {
+        "nighttimeDeferral": 46,
+        "noEligibleEvents": 529
+      },
+      "resolverTraceSummary": {
+        "pendingChainOverride": 16,
+        "forcedFlagOverride": 0,
+        "noCandidates": 936
+      },
+      "timeline": {
+        "firstEventAtMs": 1773327428829,
+        "lastEventAtMs": 1774936542249
+      },
+      "pendingChainsRemaining": 0,
+      "activeFlags": [
+        "mastery_streak",
+        "recovery_window"
+      ]
+    },
+    {
+      "seed": 999,
+      "mode": "indoor",
+      "ticks": 1000,
+      "totalEventsTriggered": 368,
+      "eventPoolDistribution": {
+        "reward": 90,
+        "warning": 255,
+        "recovery": 23
+      },
+      "eventFrequencyById": {
+        "stable_growth_reward": 90,
+        "drooping_leaves_warning": 28,
+        "root_stress_followup": 23,
+        "watering_gap": 4,
+        "soil_too_wet": 4,
+        "topsoil_mold": 3,
+        "fungus_gnat_wave": 9,
+        "beneficial_fungi_colonized": 3,
+        "cold_root_zone": 2,
+        "dry_pocket": 6,
+        "soil_compaction": 1,
+        "thrips_early": 4,
+        "v2_environment_heat_spike": 5,
+        "root_bound_warning": 2,
+        "v2_water_dry_pot": 2,
+        "calcium_spotting": 2,
+        "hot_dry_day": 4,
+        "nitrogen_lockout": 2,
+        "v2_pest_thrips_wave": 52,
+        "mite_hotspot": 8,
+        "magnesium_deficit": 1,
+        "ph_drift_high": 5,
+        "v2_pest_mites_spotted": 4,
+        "salt_buildup": 4,
+        "soil_life_decline": 1,
+        "late_flower_humidity": 99
+      },
+      "eventFrequencyByCategory": {
+        "positive": 90,
+        "water": 40,
+        "disease": 23,
+        "nutrition": 145,
+        "pest": 65,
+        "environment": 5
+      },
+      "followUpChainsTriggered": 15,
+      "followUpChainsConsumed": 15,
+      "rareEventsTriggered": 0,
+      "averageMinutesBetweenEvents": 63.26,
+      "longestEventChain": 1,
+      "repeatedEvents": 0,
+      "eventsSuppressedByGuards": {
+        "phaseGuard": 0,
+        "repeatGuard": 1,
+        "frustrationGuard": 0,
+        "fellBackToOriginal": 1
+      },
+      "eventsSelectedByResolver": {
+        "total": 16,
+        "forcedByPendingChainOrFlag": 15,
+        "forcedByResolverCandidate": 1,
+        "fallbackLegacyWeighted": 352,
+        "resolverNoMatch": 578
+      },
+      "poolRoutingDistribution": {
+        "reward": 2
+      },
+      "weightedSelectionDistribution": {
+        "resolver_weight:stable_growth_reward": 2,
+        "pool_selected:reward": 2,
+        "legacy_weight:drooping_leaves_warning": 592.5,
+        "legacy_weight:dry_pocket": 183,
+        "legacy_weight:root_stress_followup": 120.85,
+        "legacy_weight:soil_too_wet": 209,
+        "legacy_weight:watering_gap": 194.25,
+        "legacy_weight:stable_growth_reward": 281.99999999999875,
+        "legacy_weight:beneficial_fungi_colonized": 112.5,
+        "legacy_weight:cold_root_zone": 168.75,
+        "legacy_weight:fungus_gnat_wave": 265,
+        "legacy_weight:hot_dry_day": 191.25,
+        "legacy_weight:soil_compaction": 123.75,
+        "legacy_weight:thrips_early": 195,
+        "legacy_weight:topsoil_mold": 116.25,
+        "legacy_weight:calcium_spotting": 146.25,
+        "legacy_weight:nitrogen_lockout": 185,
+        "legacy_weight:ph_drift_high": 250,
+        "legacy_weight:root_bound_warning": 130,
+        "legacy_weight:soil_life_decline": 168.75,
+        "legacy_weight:v2_environment_heat_spike": 106.11000000000011,
+        "legacy_weight:v2_nutrition_n_deficit": 63.570000000000036,
+        "legacy_weight:v2_water_dry_pot": 68.93000000000004,
+        "legacy_weight:magnesium_deficit": 138.75,
+        "legacy_weight:mite_hotspot": 180,
+        "legacy_weight:overfeeding_warning": 142.5,
+        "legacy_weight:salt_buildup": 168.75,
+        "legacy_weight:v2_pest_mites_spotted": 86.25,
+        "legacy_weight:v2_pest_thrips_wave": 157.07999999999979,
+        "legacy_weight:late_flower_humidity": 580
+      },
+      "suppressedReasons": {
+        "nighttimeDeferral": 54,
+        "noEligibleEvents": 578
+      },
+      "resolverTraceSummary": {
+        "pendingChainOverride": 15,
+        "forcedFlagOverride": 0,
+        "noCandidates": 929
+      },
+      "timeline": {
+        "firstEventAtMs": 1773327428896,
+        "lastEventAtMs": 1774720499933
+      },
+      "pendingChainsRemaining": 0,
+      "activeFlags": [
+        "mastery_streak",
+        "recovery_window"
+      ]
+    }
+  ],
+  "aggregate": {
+    "seeds": [
+      1,
+      42,
+      123,
+      999
+    ],
+    "totalEventsTriggered": 1531,
+    "eventPoolDistribution": {
+      "reward": 396,
+      "warning": 1038,
+      "recovery": 88,
+      "rare": 9
+    },
+    "rareEventsTriggered": 9,
+    "averageMinutesBetweenEvents": 63.82,
+    "longestEventChain": 1,
+    "repeatedEvents": 0,
+    "followUpChainsTriggered": 51,
+    "followUpChainsConsumed": 51,
+    "eventsSelectedByResolver": {
+      "total": 55,
+      "forcedByPendingChainOrFlag": 51,
+      "forcedByResolverCandidate": 4,
+      "fallbackLegacyWeighted": 1476,
+      "resolverNoMatch": 2248
+    }
+  }
+}

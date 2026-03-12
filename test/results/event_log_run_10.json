@@ -1,0 +1,670 @@
+[
+  {
+    "day": 5.38,
+    "stage": 3,
+    "event_id": "v2_positive_ideal_mild_days",
+    "event_category": "positive",
+    "event_polarity": "positive",
+    "environment": "outdoor",
+    "stress_level": 50.02,
+    "resulting_status_change": {
+      "health": 3,
+      "stress": -3,
+      "growth": 0.9
+    }
+  },
+  {
+    "day": 6.39,
+    "stage": 3,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 62.08,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 8.68,
+    "stage": 3,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 91.6,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 10.56,
+    "stage": 4,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 11.5,
+    "stage": 4,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 13.77,
+    "stage": 4,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 14.4,
+    "stage": 4,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 15.28,
+    "stage": 5,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "health": 1,
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 15.77,
+    "stage": 5,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "health": 1,
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 16.89,
+    "stage": 5,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 17.5,
+    "stage": 5,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 18.72,
+    "stage": 5,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "health": 1,
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 19.63,
+    "stage": 5,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "health": 1,
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 20.8,
+    "stage": 6,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 21.28,
+    "stage": 6,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 22.65,
+    "stage": 6,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "health": 0.2,
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 23.33,
+    "stage": 6,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 24.75,
+    "stage": 6,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 25.36,
+    "stage": 7,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 25.83,
+    "stage": 7,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 26.53,
+    "stage": 7,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 27.58,
+    "stage": 7,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 29.31,
+    "stage": 7,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 29.69,
+    "stage": 7,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 30.43,
+    "stage": 8,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 30.71,
+    "stage": 8,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 32.49,
+    "stage": 8,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 32.82,
+    "stage": 8,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 33.77,
+    "stage": 8,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 34.55,
+    "stage": 8,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 34.83,
+    "stage": 8,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 35.25,
+    "stage": 8,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 36.33,
+    "stage": 9,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 37.28,
+    "stage": 9,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 38.3,
+    "stage": 9,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 39.73,
+    "stage": 9,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 40.61,
+    "stage": 9,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 41.3,
+    "stage": 9,
+    "event_id": "v2_water_dry_pot",
+    "event_category": "water",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 97,
+    "resulting_status_change": {
+      "water": 14,
+      "stress": -3,
+      "risk": -1
+    }
+  },
+  {
+    "day": 42.68,
+    "stage": 10,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 43.26,
+    "stage": 10,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 43.6,
+    "stage": 10,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 44.91,
+    "stage": 10,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 46.68,
+    "stage": 10,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 47.29,
+    "stage": 10,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 47.82,
+    "stage": 10,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 49.34,
+    "stage": 11,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 50.87,
+    "stage": 11,
+    "event_id": "v2_special_weather_shift",
+    "event_category": "environment",
+    "event_polarity": "neutral",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -2
+    }
+  },
+  {
+    "day": 51.65,
+    "stage": 11,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  },
+  {
+    "day": 52.33,
+    "stage": 11,
+    "event_id": "v2_outdoor_storm_front",
+    "event_category": "environment",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 98,
+    "resulting_status_change": {
+      "stress": -2,
+      "risk": -4
+    }
+  },
+  {
+    "day": 54.48,
+    "stage": 12,
+    "event_id": "v2_pest_thrips_wave",
+    "event_category": "pest",
+    "event_polarity": "negative",
+    "environment": "outdoor",
+    "stress_level": 99,
+    "resulting_status_change": {
+      "stress": -1,
+      "risk": -9
+    }
+  }
+]

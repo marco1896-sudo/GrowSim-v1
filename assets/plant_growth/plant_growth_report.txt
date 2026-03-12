@@ -1,0 +1,127 @@
+GrowSim Plant Growth Asset Processing Report
+===========================================
+Input folder: assets\Plant_png
+Output folder: assets\plant_growth
+
+Input PNG frames found: 46
+Output aligned frames created: 46
+Target pot width (median): 345.000px
+Pot width min/max before normalization: 294.000px / 376.000px
+Output canvas size: 2048x2048
+Preferred 2048x2048 used: yes
+Aligned pot center X (all frames): 1011
+Aligned pot top rim Y (all frames): 1225
+Canvas size identical across all frames: yes
+Pot top rim identical across all frames: yes
+Pot center identical across all frames: yes
+Temporal smoothing applied: yes
+
+Sprite sheet path: assets\plant_growth\plant_growth_sprite.png
+Sprite sheet size: 16384x12288
+Sprite grid: 8 columns x 6 rows
+
+GIF preview path: assets\plant_growth\plant_growth_preview.gif
+MP4 preview path: (not created)
+
+Detection methods by frame:
+
+Per-frame pot anchors (raw -> corrected):
+- frame_001: method=lower_35_largest_component, potWidth=324.000, scale=1.064815, centerX=421.880->421.880, topRimY=813.519->813.519, bottomCenter=(432.315,1041.389)->(434.569,1041.389)
+- frame_002: method=lower_35_largest_component, potWidth=325.000, scale=1.061538, centerX=420.051->419.826, topRimY=811.015->810.401, bottomCenter=(436.823,1040.308)->(433.673,1040.042)
+- frame_003: method=lower_35_largest_component, potWidth=327.000, scale=1.055046, centerX=417.323->414.058, topRimY=806.055->800.162, bottomCenter=(430.986,1038.165)->(427.686,1037.401)
+- frame_004: method=lower_35_largest_component, potWidth=339.000, scale=1.017699, centerX=401.533->404.474, topRimY=777.522->782.950, bottomCenter=(414.204,1032.965)->(418.626,1034.269)
+- frame_005: method=lower_35_largest_component, potWidth=342.000, scale=1.008772, centerX=397.507->398.224, topRimY=770.702->771.845, bottomCenter=(415.110,1032.982)->(413.952,1032.982)
+- frame_006: method=lower_35_largest_component, potWidth=343.000, scale=1.005831, centerX=396.348->395.796, topRimY=768.455->767.626, bottomCenter=(411.385,1036.006)->(411.845,1032.613)
+- frame_007: method=lower_35_largest_component, potWidth=345.500, scale=0.998553, centerX=392.980->394.002, topRimY=762.894->764.561, bottomCenter=(404.913,1031.505)->(409.971,1031.998)
+- frame_008: method=lower_35_largest_component, potWidth=345.000, scale=1.000000, centerX=393.700->393.700, topRimY=764.000->763.724, bottomCenter=(409.500,1032.000)->(410.125,1032.000)
+- frame_009: method=lower_35_largest_component, potWidth=345.000, scale=1.000000, centerX=393.875->393.875, topRimY=764.000->764.000, bottomCenter=(412.000,1033.000)->(411.500,1032.750)
+- frame_010: method=lower_35_largest_component, potWidth=345.000, scale=1.000000, centerX=393.700->393.700, topRimY=764.000->763.724, bottomCenter=(412.500,1033.000)->(410.104,1032.626)
+- frame_011: method=lower_35_largest_component, potWidth=345.500, scale=0.998553, centerX=393.305->393.305, topRimY=762.894->763.447, bottomCenter=(403.415,1031.505)->(406.083,1032.253)
+- frame_012: method=lower_35_largest_component, potWidth=345.000, scale=1.000000, centerX=393.700->393.700, topRimY=764.000->763.724, bottomCenter=(405.000,1033.000)->(403.729,1032.626)
+- frame_013: method=lower_35_largest_component, potWidth=345.000, scale=1.000000, centerX=393.700->393.700, topRimY=764.000->764.000, bottomCenter=(401.500,1033.000)->(402.250,1033.000)
+- frame_014: method=lower_35_largest_component, potWidth=345.000, scale=1.000000, centerX=393.550->393.550, topRimY=764.000->764.000, bottomCenter=(401.000,1033.000)->(402.125,1033.000)
+- frame_015: method=lower_35_largest_component, potWidth=345.000, scale=1.000000, centerX=393.550->393.550, topRimY=764.000->764.000, bottomCenter=(405.000,1033.000)->(403.625,1033.000)
+- frame_016: method=lower_35_largest_component, potWidth=345.000, scale=1.000000, centerX=393.550->393.550, topRimY=764.000->764.000, bottomCenter=(403.500,1033.000)->(404.125,1033.000)
+- frame_017: method=lower_35_largest_component, potWidth=345.000, scale=1.000000, centerX=393.550->392.983, topRimY=764.000->762.899, bottomCenter=(404.500,1033.000)->(404.250,1032.754)
+- frame_018: method=lower_35_largest_component, potWidth=347.000, scale=0.994236, centerX=391.282->390.850, topRimY=759.597->759.070, bottomCenter=(407.140,1032.017)->(403.548,1033.009)
+- frame_019: method=lower_35_largest_component, potWidth=350.000, scale=0.985714, centerX=387.287->388.446, topRimY=753.086->754.713, bottomCenter=(396.257,1035.000)->(401.645,1035.486)
+- frame_020: method=lower_35_largest_component, potWidth=350.000, scale=0.985714, centerX=387.928->387.681, topRimY=753.086->753.086, bottomCenter=(400.693,1039.929)->(400.693,1041.900)
+- frame_021: method=lower_35_largest_component, potWidth=350.000, scale=0.985714, centerX=387.583->387.341, topRimY=753.086->752.282, bottomCenter=(400.200,1052.743)->(400.200,1049.643)
+- frame_022: method=lower_35_largest_component, potWidth=351.500, scale=0.981508, centerX=386.272->385.955, topRimY=749.872->749.351, bottomCenter=(403.400,1053.158)->(399.435,1052.657)
+- frame_023: method=lower_35_largest_component, potWidth=354.000, scale=0.974576, centerX=383.691->384.079, topRimY=744.576->745.638, bottomCenter=(397.140,1051.568)->(398.008,1053.541)
+- frame_024: method=lower_35_largest_component, potWidth=354.500, scale=0.973202, centerX=382.663->382.870, topRimY=743.526->743.526, bottomCenter=(397.553,1057.870)->(397.553,1057.623)
+- frame_025: method=lower_35_largest_component, potWidth=355.000, scale=0.971831, centerX=382.464->382.464, topRimY=742.479->742.741, bottomCenter=(398.451,1063.183)->(397.862,1064.258)
+- frame_026: method=lower_35_largest_component, potWidth=355.000, scale=0.971831, centerX=382.318->382.318, topRimY=742.479->742.479, bottomCenter=(396.993,1075.817)->(397.200,1070.392)
+- frame_027: method=lower_35_largest_component, potWidth=356.000, scale=0.969101, centerX=380.614->388.923, topRimY=740.393->755.938, bottomCenter=(396.362,1072.795)->(401.529,1093.833)
+- frame_028: method=lower_35_largest_component, potWidth=331.000, scale=1.042296, centerX=408.736->408.736, topRimY=796.314->797.781, bottomCenter=(416.397,1156.949)->(420.758,1159.548)
+- frame_029: method=lower_50_largest_component+median_width_fallback, potWidth=345.000, scale=1.000000, centerX=298.150->434.903, topRimY=588.000->856.016, bottomCenter=(20.500,1156.000)->(453.874,1251.500)
+- frame_030: method=lower_35_largest_component, potWidth=376.000, scale=0.917553, centerX=461.070->454.529, topRimY=915.718->900.793, bottomCenter=(491.350,1346.051)->(481.981,1322.413)
+- frame_031: method=lower_35_largest_component, potWidth=374.000, scale=0.922460, centerX=463.536->459.380, topRimY=920.615->910.921, bottomCenter=(493.516,1353.249)->(484.686,1339.283)
+- frame_032: method=lower_35_largest_component, potWidth=294.000, scale=1.173469, centerX=454.309->454.707, topRimY=896.531->899.813, bottomCenter=(464.694,1318.980)->(469.990,1323.228)
+- frame_033: method=lower_35_largest_component, potWidth=296.000, scale=1.165541, centerX=449.141->448.282, topRimY=890.473->889.940, bottomCenter=(459.223,1308.902)->(460.474,1308.267)
+- frame_034: method=lower_35_largest_component, potWidth=299.500, scale=1.151920, centerX=437.960->442.689, topRimY=880.067->884.330, bottomCenter=(456.160,1293.606)->(458.755,1299.438)
+- frame_035: method=lower_50_largest_component+median_width_fallback, potWidth=345.000, scale=1.000000, centerX=310.875->441.183, topRimY=588.000->882.835, bottomCenter=(397.000,1123.000)->(459.404,1296.952)
+- frame_036: method=lower_35_largest_component, potWidth=298.000, scale=1.157718, centerX=443.117->443.117, topRimY=884.497->883.943, bottomCenter=(461.351,1298.960)->(460.557,1298.580)
+- frame_037: method=lower_35_largest_component, potWidth=298.000, scale=1.157718, centerX=445.085->446.901, topRimY=884.497->885.615, bottomCenter=(460.772,1300.117)->(461.063,1301.472)
+- frame_038: method=lower_35_largest_component, potWidth=296.500, scale=1.163575, centerX=454.318->451.944, topRimY=888.971->888.228, bottomCenter=(461.358,1306.695)->(462.675,1305.311)
+- frame_039: method=lower_35_largest_component, potWidth=295.000, scale=1.169492, centerX=454.055->453.650, topRimY=893.492->890.098, bottomCenter=(467.212,1313.339)->(465.936,1307.476)
+- frame_040: method=lower_35_largest_component, potWidth=296.000, scale=1.165541, centerX=452.171->452.861, topRimY=890.473->890.473, bottomCenter=(467.965,1307.736)->(467.631,1307.736)
+- frame_041: method=lower_35_largest_component, potWidth=296.000, scale=1.165541, centerX=453.046->452.827, topRimY=890.473->889.723, bottomCenter=(467.382,1307.736)->(464.440,1306.636)
+- frame_042: method=lower_35_largest_component, potWidth=297.000, scale=1.161616, centerX=465.634->453.046, topRimY=887.475->888.224, bottomCenter=(440.833,1303.333)->(458.120,1304.434)
+- frame_043: method=lower_35_largest_component, potWidth=301.000, scale=1.146179, centerX=448.213->453.046, topRimY=875.681->887.475, bottomCenter=(455.033,1287.159)->(461.294,1304.018)
+- frame_044: method=lower_35_largest_component, potWidth=295.000, scale=1.169492, centerX=466.335->452.839, topRimY=893.492->880.949, bottomCenter=(480.076,1309.831)->(473.816,1305.387)
+- frame_045: method=lower_35_largest_component, potWidth=308.000, scale=1.120130, centerX=449.676->452.427, topRimY=855.779->867.898, bottomCenter=(519.740,1306.071)->(475.171,1306.857)
+- frame_046: method=lower_35_largest_component, potWidth=306.000, scale=1.127451, centerX=452.221->452.221, topRimY=861.373->861.373, bottomCenter=(440.833,1312.353)->(460.455,1309.212)
+
+Bottom-center placement validation (final canvas coords):
+- frame_001: bottomCenterFinal=(1024,1453)
+- frame_002: bottomCenterFinal=(1025,1455)
+- frame_003: bottomCenterFinal=(1025,1462)
+- frame_004: bottomCenterFinal=(1025,1476)
+- frame_005: bottomCenterFinal=(1027,1487)
+- frame_006: bottomCenterFinal=(1027,1491)
+- frame_007: bottomCenterFinal=(1027,1493)
+- frame_008: bottomCenterFinal=(1027,1494)
+- frame_009: bottomCenterFinal=(1028,1494)
+- frame_010: bottomCenterFinal=(1027,1495)
+- frame_011: bottomCenterFinal=(1024,1494)
+- frame_012: bottomCenterFinal=(1021,1495)
+- frame_013: bottomCenterFinal=(1019,1494)
+- frame_014: bottomCenterFinal=(1019,1494)
+- frame_015: bottomCenterFinal=(1021,1494)
+- frame_016: bottomCenterFinal=(1021,1494)
+- frame_017: bottomCenterFinal=(1022,1495)
+- frame_018: bottomCenterFinal=(1024,1499)
+- frame_019: bottomCenterFinal=(1024,1506)
+- frame_020: bottomCenterFinal=(1024,1514)
+- frame_021: bottomCenterFinal=(1024,1523)
+- frame_022: bottomCenterFinal=(1024,1529)
+- frame_023: bottomCenterFinal=(1025,1534)
+- frame_024: bottomCenterFinal=(1026,1540)
+- frame_025: bottomCenterFinal=(1026,1547)
+- frame_026: bottomCenterFinal=(1026,1553)
+- frame_027: bottomCenterFinal=(1024,1563)
+- frame_028: bottomCenterFinal=(1023,1588)
+- frame_029: bottomCenterFinal=(1030,1620)
+- frame_030: bottomCenterFinal=(1038,1647)
+- frame_031: bottomCenterFinal=(1037,1653)
+- frame_032: bottomCenterFinal=(1026,1649)
+- frame_033: bottomCenterFinal=(1023,1643)
+- frame_034: bottomCenterFinal=(1027,1640)
+- frame_035: bottomCenterFinal=(1029,1640)
+- frame_036: bottomCenterFinal=(1029,1640)
+- frame_037: bottomCenterFinal=(1025,1641)
+- frame_038: bottomCenterFinal=(1022,1642)
+- frame_039: bottomCenterFinal=(1023,1642)
+- frame_040: bottomCenterFinal=(1026,1643)
+- frame_041: bottomCenterFinal=(1022,1643)
+- frame_042: bottomCenterFinal=(1016,1641)
+- frame_043: bottomCenterFinal=(1019,1642)
+- frame_044: bottomCenterFinal=(1032,1649)
+- frame_045: bottomCenterFinal=(1033,1664)
+- frame_046: bottomCenterFinal=(1019,1673)
+
+Warnings:
+- frame_029: detection outlier after retry; using median width fallback (345.000)
+- frame_035: detection outlier after retry; using median width fallback (345.000)
+- MP4 preview skipped: TiffWriter.write() got an unexpected keyword argument 'fps'
