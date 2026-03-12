@@ -423,6 +423,7 @@
       const poolGroups = groupCandidatesByPool(guarded, catalog);
       const poolSelection = selectWeightedPool(poolGroups, catalog, memory, random);
       const weightedSelection = selectWeightedCandidate(poolSelection.selectedCandidates, catalog, random);
+      const weightedSelection = selectWeightedCandidate(guarded, catalog, random);
       const selected = weightedSelection.selected;
 
       return {
