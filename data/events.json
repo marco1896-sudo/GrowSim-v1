@@ -44,8 +44,9 @@
         "seedling",
         "vegetative"
       ],
-      "pool": "warning",
-      "tone": "negative",
+      "pool": "recovery",
+      "tone": "neutral",
+      "weight": 0.95,
       "triggers": {
         "stage": {
           "min": 2,
@@ -99,8 +100,9 @@
         "flowering"
       ],
       "category": "pest",
-      "pool": "warning",
-      "tone": "negative",
+      "pool": "recovery",
+      "tone": "neutral",
+      "weight": 0.95,
       "triggers": {
         "stage": {
           "min": 2,
@@ -217,6 +219,7 @@
     },
     {
       "id": "salt_buildup",
+      "weight": 0.95,
       "title": "Salzkruste am Topfrand",
       "description": "Durch Verdunstung haben sich Naehrsalze am Rand des Behaelters abgesetzt.",
       "severity": 3,
@@ -261,8 +264,8 @@
         "harvest"
       ],
       "category": "nutrition",
-      "pool": "warning",
-      "tone": "negative",
+      "pool": "recovery",
+      "tone": "neutral",
       "triggers": {
         "stage": {
           "min": 4,
@@ -379,6 +382,7 @@
     },
     {
       "id": "ph_drift_high",
+      "weight": 0.95,
       "title": "Boden-pH driftet nach oben",
       "description": "Der Drain zeigt alkalische Drift; die Aufnahme von Mikronaehrstoffen wird schlechter.",
       "severity": 4,
@@ -422,8 +426,8 @@
         "harvest"
       ],
       "category": "nutrition",
-      "pool": "warning",
-      "tone": "negative",
+      "pool": "recovery",
+      "tone": "neutral",
       "triggers": {
         "stage": {
           "min": 3,
@@ -433,6 +437,10 @@
     },
     {
       "id": "topsoil_mold",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "disease",
+      "weight": 0.92,
       "title": "Schimmel auf der Oberflaeche",
       "description": "Weisser Flaum auf der Oberflaeche durch hohe Feuchte und wenig Luftbewegung.",
       "severity": 3,
@@ -685,6 +693,10 @@
     },
     {
       "id": "cold_root_zone",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "environment",
+      "weight": 0.9,
       "title": "Kalte Wurzelzone in der Nacht",
       "description": "Die Topftemperatur ist nachts gefallen und bremst die Naehrstoffaufnahme.",
       "severity": 3,
@@ -735,6 +747,10 @@
     },
     {
       "id": "hot_dry_day",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "environment",
+      "weight": 0.92,
       "title": "Heisser, trockener Tag",
       "description": "Bei Hitze und niedriger Luftfeuchte fiel die Bodenfeuchte sehr schnell ab.",
       "severity": 3,
@@ -786,6 +802,10 @@
     },
     {
       "id": "overfeeding_warning",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "nutrition",
+      "weight": 0.9,
       "title": "Warnung vor Blattspitzenbrand",
       "description": "Frueher Spitzenbrand deutet auf zu hohe Naehrstoffkonzentration hin.",
       "severity": 3,
@@ -838,6 +858,10 @@
     },
     {
       "id": "beneficial_fungi_colonized",
+      "pool": "rare",
+      "tone": "positive",
+      "category": "positive",
+      "weight": 1.05,
       "title": "Mykorrhiza erfolgreich etabliert",
       "description": "Die Wurzelprobe zeigt eine starke Aktivitaet nuetzlicher Pilze in der Rhizosphaere.",
       "severity": 2,
@@ -889,6 +913,10 @@
     },
     {
       "id": "watering_gap",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "water",
+      "weight": 0.9,
       "title": "Unerwartete Giessluecke",
       "description": "Die geplante Bewaesserung verzog sich, das Medium trocknete staerker aus als erwartet.",
       "severity": 3,
@@ -940,6 +968,10 @@
     },
     {
       "id": "soil_life_decline",
+      "pool": "recovery",
+      "tone": "neutral",
+      "category": "nutrition",
+      "weight": 0.95,
       "title": "Rueckgang des Bodenlebens",
       "description": "Geruch und Struktur deuten auf eine geringere mikrobielle Aktivitaet hin.",
       "severity": 3,
@@ -990,6 +1022,10 @@
     },
     {
       "id": "late_flower_humidity",
+      "pool": "warning",
+      "tone": "negative",
+      "category": "disease",
+      "weight": 0.6,
       "title": "Luftfeuchte-Druck in spaeter Bluete",
       "description": "Dichte Krone und feuchtes Medium erhoehen das Schimmelrisiko in der spaeten Phase.",
       "severity": 4,

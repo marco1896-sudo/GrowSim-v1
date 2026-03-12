@@ -331,14 +331,23 @@
     };
   }
 
-  function resolveNextEventWithTrace({ state, flags, memory, catalog, random }) {
+  function resolveNextEventWithTrace({ state, flags, memory, catalog, random, sourceCandidates }) {
     const flagSet = new Set(Array.isArray(flags) ? flags : []);
     const phase = String((state && state.phase) || 'seedling');
+    const sourceCandidateIds = new Set(
+      (Array.isArray(sourceCandidates) ? sourceCandidates : [])
+        .map((candidate) => String(candidate && candidate.eventId || ''))
+        .filter(Boolean)
+    );
 
     const pendingChain = getMostRecentPendingChain(memory);
-    if (pendingChain && pendingChain.targetEventId) {
+    const pendingTargetId = pendingChain && pendingChain.targetEventId
+      ? String(pendingChain.targetEventId)
+      : '';
+    const pendingTargetAllowed = !sourceCandidateIds.size || sourceCandidateIds.has(pendingTargetId);
+    if (pendingChain && pendingTargetId && pendingTargetAllowed) {
       const decision = finalizeCandidate({
-        eventId: String(pendingChain.targetEventId),
+        eventId: pendingTargetId,
         reason: `pending_chain:${String(pendingChain.chainId || pendingChain.targetEventId)}`,
         priority: 95,
         followUpForced: true,
@@ -364,7 +373,8 @@
       };
     }
 
-    if (flagSet.has('root_stress_pending')) {
+    const forcedFlagTargetAllowed = !sourceCandidateIds.size || sourceCandidateIds.has('root_stress_followup');
+    if (flagSet.has('root_stress_pending') && forcedFlagTargetAllowed) {
       const decision = finalizeCandidate({
         eventId: 'root_stress_followup',
         reason: 'flag:root_stress_pending',
@@ -393,22 +403,39 @@
     }
 
     const candidates = [];
-    if (Number(state && state.water) > DEFAULT_THRESHOLDS.highWater) {
-      candidates.push({
-        eventId: 'drooping_leaves_warning',
-        reason: 'condition:high_water',
-        priority: 80,
-        isFollowUp: false
-      });
-    }
+    const externalCandidates = Array.isArray(sourceCandidates) ? sourceCandidates : [];
+    if (externalCandidates.length) {
+      for (const candidate of externalCandidates) {
+        if (!candidate || !candidate.eventId) {
+          continue;
+        }
+        candidates.push({
+          eventId: String(candidate.eventId),
+          reason: candidate.reason || 'eligible_catalog',
+          priority: Number.isFinite(Number(candidate.priority)) ? Number(candidate.priority) : 20,
+          isFollowUp: candidate.isFollowUp === true,
+          followUpForced: candidate.followUpForced === true,
+          allowNegativeStreakOverride: candidate.allowNegativeStreakOverride === true
+        });
+      }
+    } else {
+      if (Number(state && state.water) > DEFAULT_THRESHOLDS.highWater) {
+        candidates.push({
+          eventId: 'drooping_leaves_warning',
+          reason: 'condition:high_water',
+          priority: 80,
+          isFollowUp: false
+        });
+      }
 
-    if (isStableGrowthCondition(state)) {
-      candidates.push({
-        eventId: 'stable_growth_reward',
-        reason: 'condition:stable_growth',
-        priority: 40,
-        isFollowUp: false
-      });
+      if (isStableGrowthCondition(state)) {
+        candidates.push({
+          eventId: 'stable_growth_reward',
+          reason: 'condition:stable_growth',
+          priority: 40,
+          isFollowUp: false
+        });
+      }
     }
 
     const pipelineTrace = traceGuardPipeline(candidates, {
@@ -423,7 +450,6 @@
       const poolGroups = groupCandidatesByPool(guarded, catalog);
       const poolSelection = selectWeightedPool(poolGroups, catalog, memory, random);
       const weightedSelection = selectWeightedCandidate(poolSelection.selectedCandidates, catalog, random);
-      const weightedSelection = selectWeightedCandidate(guarded, catalog, random);
       const selected = weightedSelection.selected;
 
       return {
