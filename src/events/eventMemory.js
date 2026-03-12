@@ -98,6 +98,7 @@
   function setPendingChain(eventsState, chainId, data) {
     if (!chainId) return;
     const memory = ensureMemory(eventsState);
+    memory.pendingChains[String(chainId)] = data;
     const normalized = normalizePendingChain(chainId, data || {});
     if (!normalized) return;
     memory.pendingChains[String(chainId)] = normalized;
@@ -143,6 +144,7 @@
     getLastDecision,
     setPendingChain,
     getPendingChain,
+    clearPendingChain
     getPendingChains,
     consumePendingChain,
     clearPendingChain,

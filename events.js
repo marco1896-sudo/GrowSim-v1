@@ -168,6 +168,11 @@ function applyFoundationFollowUps(choice, eventId) {
   for (const followUp of followUps) {
     const token = String(followUp || '');
     if (token.startsWith('set_flag:')) {
+      api.flags.setFlag(state.events, token.slice('set_flag:'.length), true);
+      continue;
+    }
+    if (token.startsWith('clear_flag:')) {
+      api.flags.clearFlag(state.events, token.slice('clear_flag:'.length));
       const flagId = token.slice('set_flag:'.length);
       api.flags.setFlag(state.events, flagId, true);
       if (flagId === 'root_stress_pending') {
@@ -192,6 +197,7 @@ function applyFoundationFollowUps(choice, eventId) {
     }
     if (token.startsWith('set_chain:')) {
       const chainId = token.slice('set_chain:'.length);
+      api.memory.setPendingChain(state.events, chainId, { eventId, optionId: choice.id, atRealTimeMs: Date.now() });
       api.memory.setPendingChain(state.events, chainId, {
         targetEventId: chainId,
         sourceEventId: eventId,
@@ -291,6 +297,12 @@ function activateEvent(nowMs) {
     return false;
   }
 
+  const foundationCandidate = resolveFoundationCandidateEvent();
+  const forcedEvent = foundationCandidate && foundationCandidate.eventId
+    ? pool.find((eventDef) => eventDef && eventDef.id === foundationCandidate.eventId)
+    : null;
+
+  const eventDef = forcedEvent || selectEventDeterministically(pool, nowMs);
   const foundationOutcome = resolveFoundationDecisionForPool(pool, nowMs);
   const foundationCandidate = foundationOutcome && foundationOutcome.decision
     ? foundationOutcome.decision
@@ -357,6 +369,14 @@ function activateEvent(nowMs) {
     title: eventDef.title,
     severity: state.events.activeSeverity,
     category: eventDef.category || 'generic',
+    foundationReason: foundationCandidate && foundationCandidate.eventId === eventDef.id ? foundationCandidate.reason : null
+  });
+
+  const foundationApi = getEventFoundationApis();
+  if (foundationApi.memory) {
+    foundationApi.memory.addEvent(state.events, eventDef.id, {
+      phase: state.plant.phase,
+      reason: foundationCandidate && foundationCandidate.eventId === eventDef.id ? foundationCandidate.reason : 'default_selection'
     foundationReason: foundationCandidate && foundationCandidate.eventId === eventDef.id ? foundationCandidate.reason : null,
     consumedPendingChainId: consumedPendingChain ? consumedPendingChain.chainId : null
   });
@@ -600,6 +620,7 @@ function onEventOptionClick(optionId) {
       atSimTimeMs: state.simulation.simTimeMs,
       tick: state.simulation.tickCount,
       relatedFlags: foundationApi.flags.getActiveFlags(state.events),
+      normalizedState: foundationApi.plantState.buildNormalizedPlantState(state)
       normalizedState: foundationApi.plantState.buildNormalizedPlantState(state),
       relatedChainId
     });

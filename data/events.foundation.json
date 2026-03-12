@@ -37,6 +37,8 @@
           ]
         }
       ],
+      "tone": "warning",
+      "isFollowUp": false
       "tone": "negative",
       "isFollowUp": false,
       "weight": 5,
@@ -73,6 +75,7 @@
         }
       ],
       "tone": "negative",
+      "isFollowUp": true
       "isFollowUp": true,
       "weight": 1,
       "pool": "recovery"
@@ -107,6 +110,7 @@
         }
       ],
       "tone": "positive",
+      "isFollowUp": false
       "isFollowUp": false,
       "weight": 1,
       "pool": "reward"
