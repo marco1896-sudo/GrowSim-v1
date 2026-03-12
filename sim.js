@@ -57,6 +57,10 @@ function resolveEffectiveSimulationNowMs(candidateNowMs, elapsedRealMs) {
 }
 
 function applySimulationDelta(elapsedRealMs, effectiveNowMs, wallNowMs = effectiveNowMs) {
+  const options = arguments[3] && typeof arguments[3] === 'object' ? arguments[3] : {};
+  const suppressEvents = Boolean(options.suppressEvents);
+  const suppressDeath = Boolean(options.suppressDeath);
+  const persistWallNowAsLastTick = Boolean(options.persistWallNowAsLastTick);
   const safeElapsedRealMs = Number.isFinite(elapsedRealMs) && elapsedRealMs > 0 ? elapsedRealMs : 0;
   const safeEffectiveNowMs = resolveEffectiveSimulationNowMs(effectiveNowMs, safeElapsedRealMs);
   const safeWallNowMs = Number.isFinite(Number(wallNowMs)) ? Number(wallNowMs) : safeEffectiveNowMs;
@@ -67,7 +71,7 @@ function applySimulationDelta(elapsedRealMs, effectiveNowMs, wallNowMs = effecti
 
   state.simulation.simTimeMs = plantTime.simTimeMs;
   state.simulation.isDaytime = isDaytimeAtSimTime(state.simulation.simTimeMs);
-  state.simulation.lastTickRealTimeMs = safeEffectiveNowMs;
+  state.simulation.lastTickRealTimeMs = persistWallNowAsLastTick ? safeWallNowMs : safeEffectiveNowMs;
 
   applyStatusDrift(safeElapsedRealMs);
   const criticalNow = Number(state.status.health) < 20;
@@ -76,8 +80,10 @@ function applySimulationDelta(elapsedRealMs, effectiveNowMs, wallNowMs = effecti
   }
   wasCriticalHealth = criticalNow;
   applyActiveActionEffects(elapsedSimMs);
-  advanceGrowthTick(elapsedSimMs);
-  runEventStateMachine(safeEffectiveNowMs);
+  advanceGrowthTick(elapsedSimMs, { suppressDeath });
+  if (!suppressEvents) {
+    runEventStateMachine(safeEffectiveNowMs);
+  }
   resetBoostDaily(safeWallNowMs);
   updateVisibleOverlays();
   syncCanonicalStateShape();
@@ -85,35 +91,115 @@ function applySimulationDelta(elapsedRealMs, effectiveNowMs, wallNowMs = effecti
 }
 
 function syncSimulationFromElapsedTime(nowMs) {
-  state.simulation.nowMs = nowMs;
+  const requestedNowMs = Number(nowMs);
+  const safeNowMs = Number.isFinite(requestedNowMs) ? requestedNowMs : Date.now();
+  state.simulation.nowMs = safeNowMs;
 
-  if (syncDeathState() && FREEZE_SIM_ON_DEATH) {
-    state.simulation.lastTickRealTimeMs = nowMs;
-    state.simulation.growthImpulse = 0;
-    syncCanonicalStateShape();
-    return;
-  }
+  try {
+    if (syncDeathState() && FREEZE_SIM_ON_DEATH) {
+      state.simulation.lastTickRealTimeMs = safeNowMs;
+      state.simulation.growthImpulse = 0;
+      syncCanonicalStateShape();
+      return;
+    }
 
-  const previousTickMs = Number(state.simulation.lastTickRealTimeMs);
-  const safePreviousTickMs = Number.isFinite(previousTickMs) ? previousTickMs : nowMs;
-  const elapsedRealMs = Math.max(0, nowMs - safePreviousTickMs);
-  const effectiveElapsedRealMs = Math.min(elapsedRealMs, MAX_OFFLINE_SIM_MS);
-  const effectiveNowMs = safePreviousTickMs + effectiveElapsedRealMs;
-  const wasDeadBeforeCatchUp = isPlantDead();
+    const previousTickMs = Number(state.simulation.lastTickRealTimeMs);
+    const safePreviousTickMs = Number.isFinite(previousTickMs) ? previousTickMs : safeNowMs;
+    const elapsedRealMs = Math.max(0, safeNowMs - safePreviousTickMs);
+    const effectiveElapsedRealMs = Math.min(elapsedRealMs, MAX_OFFLINE_SIM_MS);
+    const effectiveNowMs = safePreviousTickMs + effectiveElapsedRealMs;
+    const discardedElapsedRealMs = Math.max(0, elapsedRealMs - effectiveElapsedRealMs);
+    const wasDeadBeforeCatchUp = isPlantDead();
+    const beforeStats = {
+      health: round2(state.status.health),
+      stress: round2(state.status.stress),
+      risk: round2(state.status.risk),
+      water: round2(state.status.water)
+    };
 
-  if (elapsedRealMs > MAX_OFFLINE_SIM_MS) {
-    addLog('system', 'Du warst lange weg. Es wurden maximal 8 Stunden simuliert.', {
-      offlineElapsedHours: round2(elapsedRealMs / (60 * 60 * 1000)),
-      simulatedHours: round2(MAX_OFFLINE_SIM_MS / (60 * 60 * 1000))
+    if (state.debug && state.debug.enabled) {
+      console.debug('[offline]', {
+        requestedNowMs: safeNowMs,
+        previousTickMs: safePreviousTickMs,
+        elapsedRealMs,
+        effectiveElapsedRealMs,
+        maxOfflineSimMs: MAX_OFFLINE_SIM_MS,
+        discardMs: discardedElapsedRealMs,
+        eventsSuppressed: true
+      });
+    }
+
+    if (elapsedRealMs > MAX_OFFLINE_SIM_MS) {
+      addLog('system', 'Du warst lange weg. Offline-Simulation wurde begrenzt.', {
+        offlineElapsedHours: round2(elapsedRealMs / (60 * 60 * 1000)),
+        simulatedHours: round2(MAX_OFFLINE_SIM_MS / (60 * 60 * 1000))
+      });
+    }
+
+    applySimulationDelta(effectiveElapsedRealMs, effectiveNowMs, safeNowMs, {
+      suppressEvents: true,
+      suppressDeath: true,
+      persistWallNowAsLastTick: true
     });
-  }
 
-  applySimulationDelta(effectiveElapsedRealMs, effectiveNowMs, nowMs);
+    if (discardedElapsedRealMs > 0 && Number.isFinite(Number(state.simulation.startRealTimeMs))) {
+      state.simulation.startRealTimeMs += discardedElapsedRealMs;
+    }
 
-  if (!wasDeadBeforeCatchUp && isPlantDead() && shouldProtectOfflineNightDeath(safePreviousTickMs, nowMs)) {
-    applyOfflineNightSurvivalClamp();
+    if (!wasDeadBeforeCatchUp) {
+      applyOfflineFairnessFloor();
+      if (isPlantDead() && shouldProtectOfflineNightDeath(safePreviousTickMs, safeNowMs)) {
+        applyOfflineNightSurvivalClamp();
+      }
+      syncCanonicalStateShape();
+    }
+
+    if (state.debug && state.debug.enabled) {
+      console.debug('[offline:result]', {
+        healthBefore: beforeStats.health,
+        healthAfter: round2(state.status.health),
+        stressBefore: beforeStats.stress,
+        stressAfter: round2(state.status.stress),
+        riskBefore: beforeStats.risk,
+        riskAfter: round2(state.status.risk),
+        waterBefore: beforeStats.water,
+        waterAfter: round2(state.status.water),
+        deathProtected: !wasDeadBeforeCatchUp && !isPlantDead(),
+        lastTickRealTimeMs: state.simulation.lastTickRealTimeMs
+      });
+    }
+  } catch (error) {
+    console.error('[offline] catch-up failed', error);
+    state.simulation.lastTickRealTimeMs = safeNowMs;
+    state.simulation.growthImpulse = 0;
+    addLog('system', 'Offline-Fortschritt konnte nicht vollständig berechnet werden.', {
+      error: error && error.message ? error.message : String(error)
+    });
     syncCanonicalStateShape();
   }
+}
+
+function applyOfflineFairnessFloor() {
+  if (!isPlantDead()) {
+    state.status.health = Math.max(12, Number(state.status.health) || 0);
+  }
+  state.status.water = Math.max(5, Number(state.status.water) || 0);
+  state.status.nutrition = Math.max(5, Number(state.status.nutrition) || 0);
+  if (Number(state.status.stress) >= 100) {
+    state.status.stress = 98;
+  }
+  if (Number(state.status.risk) >= 100) {
+    state.status.risk = 98;
+  }
+
+  if (!isPlantDead()) {
+    state.plant.isDead = false;
+    if (state.plant.phase === 'dead') {
+      state.plant.phase = getStageTimeline()[clampInt(Number(state.plant.stageIndex) || 0, 0, Math.max(0, getStageTimeline().length - 1))]?.phase || 'seedling';
+    }
+    state.ui.deathOverlayOpen = false;
+  }
+  clampStatus();
 }
 
 
@@ -225,16 +311,27 @@ function applyStatusDrift(elapsedMs) {
   clampStatus();
 }
 
-function advanceGrowthTick(elapsedSimMs) {
+function advanceGrowthTick(elapsedSimMs, options = {}) {
+  const suppressDeath = Boolean(options && options.suppressDeath);
   const prevGrowth = Number(state.status.growth) || 0;
 
   if (isPlantDead()) {
+    if (suppressDeath) {
+      state.plant.isDead = false;
+      state.ui.deathOverlayOpen = false;
+      return;
+    }
     state.plant.isDead = true;
     state.plant.stageProgress = 1;
     return;
   }
 
   if (state.status.health <= 0 || state.status.risk >= 100 || state.plant.isDead === true) {
+    if (suppressDeath) {
+      state.plant.isDead = false;
+      state.ui.deathOverlayOpen = false;
+      return;
+    }
     enterDeadPhase();
     return;
   }

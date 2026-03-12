@@ -105,8 +105,8 @@ function loadSimContext() {
   assert.strictEqual(calls.drift.length, 1, 'status drift should be applied once');
   assert.strictEqual(calls.drift[0], capMs, 'status drift should use capped elapsed time');
   assert.ok(Math.abs(ctx.state.simulation.simTimeMs - expectedSimMs) < 0.001, 'sim time should advance using capped effective time');
-  assert.strictEqual(calls.eventNow[0], capMs, 'event state machine should receive effective capped now');
-  assert.strictEqual(ctx.state.simulation.lastTickRealTimeMs, capMs, 'last tick should persist effective capped now');
+  assert.strictEqual(calls.eventNow.length, 0, 'offline catch-up should suppress event state machine');
+  assert.strictEqual(ctx.state.simulation.lastTickRealTimeMs, offlineElapsedMs, 'last tick should persist wall-clock now to prevent duplicate replay');
 })();
 
 (function testElapsedSimMsAlignedWithCappedProgression() {
@@ -131,6 +131,34 @@ function loadSimContext() {
 
   assert.ok(Math.abs(elapsedToEffects - expectedSimMs) < 0.001, 'action over-time effects should use capped-derived sim delta');
   assert.ok(Math.abs(elapsedToGrowth - expectedSimMs) < 0.001, 'growth tick should use capped-derived sim delta');
+})();
+
+(function testOfflineCapPreventsDoubleProcessingOnQuickReopen() {
+  const ctx = loadSimContext();
+
+  ctx.applyStatusDrift = () => {};
+  ctx.applyActiveActionEffects = () => {};
+  ctx.advanceGrowthTick = () => {};
+
+  const firstOpenMs = 24 * 60 * 60 * 1000;
+  ctx.state.simulation.lastTickRealTimeMs = 0;
+  ctx.state.simulation.startRealTimeMs = 0;
+  ctx.state.simulation.simEpochMs = 1000;
+  ctx.state.simulation.simTimeMs = 1000;
+
+  ctx.syncSimulationFromElapsedTime(firstOpenMs);
+
+  assert.strictEqual(ctx.state.simulation.lastTickRealTimeMs, firstOpenMs, 'first reopen should persist wall-clock now');
+
+  const startAfterFirstCatchUp = ctx.state.simulation.startRealTimeMs;
+  const simAfterFirstCatchUp = ctx.state.simulation.simTimeMs;
+
+  ctx.syncSimulationFromElapsedTime(firstOpenMs + 2000);
+
+  const simDeltaOnSecondOpen = ctx.state.simulation.simTimeMs - simAfterFirstCatchUp;
+  assert.ok(simDeltaOnSecondOpen > 0, 'second reopen should still progress');
+  assert.ok(simDeltaOnSecondOpen < 100_000_000, 'second reopen should not replay capped offline time again');
+  assert.ok(startAfterFirstCatchUp > 0, 'run start should be shifted when offline time is discarded to avoid jump replay');
 })();
 
 (function testLiveTickBelowCapUsesRealElapsed() {
