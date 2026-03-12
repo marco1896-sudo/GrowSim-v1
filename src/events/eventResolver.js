@@ -114,17 +114,36 @@
     });
   }
 
-  function applyGuardPipeline(candidates, context) {
+  function traceGuardPipeline(candidates, context) {
     const original = Array.isArray(candidates) ? candidates.slice() : [];
     if (!original.length) {
-      return [];
+      return {
+        original,
+        afterPhaseGuard: [],
+        afterRepeatGuard: [],
+        afterFrustrationGuard: [],
+        final: [],
+        fellBackToOriginal: false
+      };
     }
 
-    let filtered = applyPhaseGuard(original, context);
-    filtered = applyRepeatGuard(filtered, context);
-    filtered = applyFrustrationGuard(filtered, context);
+    const afterPhaseGuard = applyPhaseGuard(original, context);
+    const afterRepeatGuard = applyRepeatGuard(afterPhaseGuard, context);
+    const afterFrustrationGuard = applyFrustrationGuard(afterRepeatGuard, context);
+    const fellBackToOriginal = !afterFrustrationGuard.length;
 
-    return filtered.length ? filtered : original;
+    return {
+      original,
+      afterPhaseGuard,
+      afterRepeatGuard,
+      afterFrustrationGuard,
+      final: fellBackToOriginal ? original : afterFrustrationGuard,
+      fellBackToOriginal
+    };
+  }
+
+  function applyGuardPipeline(candidates, context) {
+    return traceGuardPipeline(candidates, context).final;
   }
 
   function finalizeCandidate(candidate, phase, catalog) {
@@ -146,29 +165,51 @@
     };
   }
 
-  function resolveNextEvent({ state, flags, memory, catalog }) {
+  function resolveNextEventWithTrace({ state, flags, memory, catalog }) {
     const flagSet = new Set(Array.isArray(flags) ? flags : []);
     const phase = String((state && state.phase) || 'seedling');
 
     const pendingChain = getMostRecentPendingChain(memory);
     if (pendingChain && pendingChain.targetEventId) {
-      return finalizeCandidate({
+      const decision = finalizeCandidate({
         eventId: String(pendingChain.targetEventId),
         reason: `pending_chain:${String(pendingChain.chainId || pendingChain.targetEventId)}`,
         priority: 95,
         followUpForced: true,
         isFollowUp: true
       }, phase, catalog);
+      return {
+        decision,
+        trace: {
+          pendingChainOverride: true,
+          pendingChainId: String(pendingChain.chainId || pendingChain.targetEventId),
+          candidates: [],
+          afterPhaseGuard: [],
+          afterRepeatGuard: [],
+          afterFrustrationGuard: []
+        }
+      };
     }
 
     if (flagSet.has('root_stress_pending')) {
-      return finalizeCandidate({
+      const decision = finalizeCandidate({
         eventId: 'root_stress_followup',
         reason: 'flag:root_stress_pending',
         priority: 100,
         followUpForced: true,
         isFollowUp: true
       }, phase, catalog);
+      return {
+        decision,
+        trace: {
+          pendingChainOverride: false,
+          forcedByFlag: 'root_stress_pending',
+          candidates: [],
+          afterPhaseGuard: [],
+          afterRepeatGuard: [],
+          afterFrustrationGuard: []
+        }
+      };
     }
 
     const candidates = [];
@@ -190,19 +231,30 @@
       });
     }
 
-    const guarded = applyGuardPipeline(candidates, {
+    const pipelineTrace = traceGuardPipeline(candidates, {
       phase,
       catalog,
       memory,
       repeatWindow: DEFAULT_THRESHOLDS.repeatWindow
     });
+    const guarded = pipelineTrace.final;
 
     if (guarded.length) {
       const selected = guarded
         .slice()
         .sort((a, b) => Number(b.priority || 0) - Number(a.priority || 0))[0];
 
-      return finalizeCandidate(selected, phase, catalog);
+      return {
+        decision: finalizeCandidate(selected, phase, catalog),
+        trace: {
+          pendingChainOverride: false,
+          candidates: pipelineTrace.original,
+          afterPhaseGuard: pipelineTrace.afterPhaseGuard,
+          afterRepeatGuard: pipelineTrace.afterRepeatGuard,
+          afterFrustrationGuard: pipelineTrace.afterFrustrationGuard,
+          fellBackToOriginal: pipelineTrace.fellBackToOriginal
+        }
+      };
     }
 
     const lastDecision = memory && typeof memory.getLastDecision === 'function'
@@ -210,10 +262,24 @@
       : null;
 
     return {
-      eventId: null,
-      reason: lastDecision ? 'no_match_after_decision' : 'no_match',
-      priority: 0
+      decision: {
+        eventId: null,
+        reason: lastDecision ? 'no_match_after_decision' : 'no_match',
+        priority: 0
+      },
+      trace: {
+        pendingChainOverride: false,
+        candidates: pipelineTrace.original,
+        afterPhaseGuard: pipelineTrace.afterPhaseGuard,
+        afterRepeatGuard: pipelineTrace.afterRepeatGuard,
+        afterFrustrationGuard: pipelineTrace.afterFrustrationGuard,
+        fellBackToOriginal: pipelineTrace.fellBackToOriginal
+      }
     };
+  }
+
+  function resolveNextEvent(input) {
+    return resolveNextEventWithTrace(input).decision;
   }
 
   const api = Object.freeze({
@@ -221,7 +287,9 @@
     isStableGrowthCondition,
     isPhaseAllowed,
     resolveNextEvent,
-    applyGuardPipeline
+    resolveNextEventWithTrace,
+    applyGuardPipeline,
+    traceGuardPipeline
   });
 
   globalScope.GrowSimEventResolver = api;
