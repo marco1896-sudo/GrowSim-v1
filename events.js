@@ -32,11 +32,14 @@ function resolveFoundationCandidateEvent() {
     }
   };
 
+  const selectionRandom = () => deterministicUnitFloat(`foundation_resolver:${state.simulation.tickCount}:${state.events.history.length}`);
+
   return api.resolver.resolveNextEvent({
     state: normalizedState,
     flags: activeFlags,
     memory: memoryFacade,
-    catalog: state.events.catalog
+    catalog: state.events.catalog,
+    random: selectionRandom
   });
 }
 

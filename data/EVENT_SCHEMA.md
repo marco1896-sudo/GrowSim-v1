@@ -50,7 +50,7 @@ If a plain array is used, each object must still follow the event object schema 
     }
   },
 
-  "weight": 1.2,
+  "weight": 1.2, // optional, defaults to 1
   "cooldownRealMinutes": 180,
 
   "options": [
@@ -100,10 +100,11 @@ Per event:
 - `title`
 - `description`
 - `triggers`
-- `weight`
 - `cooldownRealMinutes`
 - `options` (2-3 recommended)
 - `learningNote`
+
+- `weight` is optional. If omitted or invalid, resolver uses default weight `1`.
 
 Per option:
 - `id`

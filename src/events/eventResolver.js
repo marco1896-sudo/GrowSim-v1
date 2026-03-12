@@ -165,7 +165,60 @@
     };
   }
 
-  function resolveNextEventWithTrace({ state, flags, memory, catalog }) {
+  function getCandidateWeight(candidate, catalog) {
+    const eventDef = findCatalogEvent(catalog, candidate && candidate.eventId);
+    const rawWeight = Number(eventDef && eventDef.weight);
+    if (!Number.isFinite(rawWeight) || rawWeight <= 0) {
+      return 1;
+    }
+    return rawWeight;
+  }
+
+  function selectWeightedCandidate(candidates, catalog, randomFn) {
+    const list = Array.isArray(candidates) ? candidates : [];
+    if (!list.length) {
+      return {
+        selected: null,
+        weightedRoll: null,
+        weights: {}
+      };
+    }
+
+    const normalizedRandomFn = typeof randomFn === 'function' ? randomFn : (() => 0);
+    const weighted = list.map((candidate) => ({
+      candidate,
+      weight: getCandidateWeight(candidate, catalog)
+    }));
+    const totalWeight = weighted.reduce((sum, row) => sum + row.weight, 0);
+    const rollUnit = Math.max(0, Math.min(1 - Number.EPSILON, Number(normalizedRandomFn()) || 0));
+    const weightedRoll = rollUnit * totalWeight;
+
+    let cursor = weightedRoll;
+    for (const row of weighted) {
+      cursor -= row.weight;
+      if (cursor < 0) {
+        return {
+          selected: row.candidate,
+          weightedRoll,
+          weights: weighted.reduce((acc, entry) => {
+            acc[entry.candidate.eventId] = entry.weight;
+            return acc;
+          }, {})
+        };
+      }
+    }
+
+    return {
+      selected: weighted[weighted.length - 1].candidate,
+      weightedRoll,
+      weights: weighted.reduce((acc, entry) => {
+        acc[entry.candidate.eventId] = entry.weight;
+        return acc;
+      }, {})
+    };
+  }
+
+  function resolveNextEventWithTrace({ state, flags, memory, catalog, random }) {
     const flagSet = new Set(Array.isArray(flags) ? flags : []);
     const phase = String((state && state.phase) || 'seedling');
 
@@ -186,7 +239,9 @@
           candidates: [],
           afterPhaseGuard: [],
           afterRepeatGuard: [],
-          afterFrustrationGuard: []
+          afterFrustrationGuard: [],
+          weights: {},
+          weightedRoll: null
         }
       };
     }
@@ -207,7 +262,9 @@
           candidates: [],
           afterPhaseGuard: [],
           afterRepeatGuard: [],
-          afterFrustrationGuard: []
+          afterFrustrationGuard: [],
+          weights: {},
+          weightedRoll: null
         }
       };
     }
@@ -240,9 +297,8 @@
     const guarded = pipelineTrace.final;
 
     if (guarded.length) {
-      const selected = guarded
-        .slice()
-        .sort((a, b) => Number(b.priority || 0) - Number(a.priority || 0))[0];
+      const weightedSelection = selectWeightedCandidate(guarded, catalog, random);
+      const selected = weightedSelection.selected;
 
       return {
         decision: finalizeCandidate(selected, phase, catalog),
@@ -252,7 +308,9 @@
           afterPhaseGuard: pipelineTrace.afterPhaseGuard,
           afterRepeatGuard: pipelineTrace.afterRepeatGuard,
           afterFrustrationGuard: pipelineTrace.afterFrustrationGuard,
-          fellBackToOriginal: pipelineTrace.fellBackToOriginal
+          fellBackToOriginal: pipelineTrace.fellBackToOriginal,
+          weights: weightedSelection.weights,
+          weightedRoll: Number(weightedSelection.weightedRoll)
         }
       };
     }
@@ -273,7 +331,9 @@
         afterPhaseGuard: pipelineTrace.afterPhaseGuard,
         afterRepeatGuard: pipelineTrace.afterRepeatGuard,
         afterFrustrationGuard: pipelineTrace.afterFrustrationGuard,
-        fellBackToOriginal: pipelineTrace.fellBackToOriginal
+        fellBackToOriginal: pipelineTrace.fellBackToOriginal,
+        weights: {},
+        weightedRoll: null
       }
     };
   }
@@ -289,7 +349,9 @@
     resolveNextEvent,
     resolveNextEventWithTrace,
     applyGuardPipeline,
-    traceGuardPipeline
+    traceGuardPipeline,
+    getCandidateWeight,
+    selectWeightedCandidate
   });
 
   globalScope.GrowSimEventResolver = api;

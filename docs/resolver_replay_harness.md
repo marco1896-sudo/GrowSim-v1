@@ -35,6 +35,7 @@ The runner writes a structured JSON trace (default: `dev/replay_trace.json`) wit
 - `afterRepeatGuard`
 - `afterFrustrationGuard`
 - `pendingChainOverride` / `pendingChainId`
+- `weights` / `weightedRoll`
 - `selectedEvent`
 - `selectedReason`
 - `selectedOptionId`
