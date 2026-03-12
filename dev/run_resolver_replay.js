@@ -197,7 +197,8 @@ function runReplay({ ticks, seed, phase, catalogFiles }) {
       state: plantState,
       flags: activeFlags,
       memory,
-      catalog
+      catalog,
+      random: rng
     });
 
     const decision = resolution.decision;
@@ -240,6 +241,10 @@ function runReplay({ ticks, seed, phase, catalogFiles }) {
       afterFrustrationGuard: (resolution.trace.afterFrustrationGuard || []).map((entry) => entry.eventId),
       pendingChainOverride: Boolean(resolution.trace.pendingChainOverride),
       pendingChainId: resolution.trace.pendingChainId || null,
+      weights: resolution.trace.weights || {},
+      weightedRoll: resolution.trace.weightedRoll === null || resolution.trace.weightedRoll === undefined
+        ? null
+        : Number(Number(resolution.trace.weightedRoll).toFixed(6)),
       selectedEvent: decision ? decision.eventId : null,
       selectedReason: decision ? decision.reason : 'no_decision',
       selectedOptionId: selectedOption ? selectedOption.id : null
@@ -249,7 +254,20 @@ function runReplay({ ticks, seed, phase, catalogFiles }) {
   return trace;
 }
 
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    runReplay,
+    parseArgs,
+    loadCatalog,
+    mulberry32
+  };
+}
+
 (function main() {
+  if (require.main !== module) {
+    return;
+  }
+
   const args = parseArgs(process.argv);
   const trace = runReplay(args);
 

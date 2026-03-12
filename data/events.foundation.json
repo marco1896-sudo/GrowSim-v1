@@ -38,7 +38,8 @@
         }
       ],
       "tone": "negative",
-      "isFollowUp": false
+      "isFollowUp": false,
+      "weight": 5
     },
     {
       "id": "root_stress_followup",
@@ -71,7 +72,8 @@
         }
       ],
       "tone": "negative",
-      "isFollowUp": true
+      "isFollowUp": true,
+      "weight": 1
     },
     {
       "id": "stable_growth_reward",
@@ -103,7 +105,8 @@
         }
       ],
       "tone": "positive",
-      "isFollowUp": false
+      "isFollowUp": false,
+      "weight": 1
     }
   ]
 }
