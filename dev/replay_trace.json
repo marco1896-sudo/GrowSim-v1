@@ -1,0 +1,1198 @@
+{
+  "seed": 123,
+  "ticks": [
+    {
+      "tick": 1,
+      "state": {
+        "phase": "seedling",
+        "water": 94.894,
+        "nutrients": 48.143,
+        "vitality": 69.963,
+        "stress": 21.702,
+        "pestPressure": 16.758
+      },
+      "activeFlags": [],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterFrustrationGuard": [
+        "drooping_leaves_warning"
+      ],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 2,
+      "state": {
+        "phase": "seedling",
+        "water": 100,
+        "nutrients": 53.292,
+        "vitality": 72.237,
+        "stress": 20.247,
+        "pestPressure": 17.902
+      },
+      "activeFlags": [
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 3,
+      "state": {
+        "phase": "seedling",
+        "water": 92.522,
+        "nutrients": 47.42,
+        "vitality": 72.963,
+        "stress": 17.934,
+        "pestPressure": 18.113
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 4,
+      "state": {
+        "phase": "seedling",
+        "water": 85.581,
+        "nutrients": 47.519,
+        "vitality": 74.411,
+        "stress": 12.38,
+        "pestPressure": 13.521
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 5,
+      "state": {
+        "phase": "seedling",
+        "water": 86.3,
+        "nutrients": 51.356,
+        "vitality": 72.506,
+        "stress": 13.46,
+        "pestPressure": 17.801
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 6,
+      "state": {
+        "phase": "seedling",
+        "water": 97.176,
+        "nutrients": 46.307,
+        "vitality": 73.312,
+        "stress": 12.063,
+        "pestPressure": 20.954
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 7,
+      "state": {
+        "phase": "seedling",
+        "water": 98.071,
+        "nutrients": 42.676,
+        "vitality": 76.74,
+        "stress": 13.44,
+        "pestPressure": 18.215
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 8,
+      "state": {
+        "phase": "seedling",
+        "water": 94.172,
+        "nutrients": 42.197,
+        "vitality": 79.49,
+        "stress": 20.525,
+        "pestPressure": 18.171
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 9,
+      "state": {
+        "phase": "seedling",
+        "water": 83.955,
+        "nutrients": 40.28,
+        "vitality": 80.267,
+        "stress": 12.858,
+        "pestPressure": 18.708
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "reduce_watering_now"
+    },
+    {
+      "tick": 10,
+      "state": {
+        "phase": "seedling",
+        "water": 91.143,
+        "nutrients": 37.896,
+        "vitality": 83.412,
+        "stress": 7.551,
+        "pestPressure": 19.319
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 11,
+      "state": {
+        "phase": "seedling",
+        "water": 86.292,
+        "nutrients": 38.269,
+        "vitality": 82.716,
+        "stress": 2.32,
+        "pestPressure": 15.825
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 12,
+      "state": {
+        "phase": "seedling",
+        "water": 91.979,
+        "nutrients": 41.975,
+        "vitality": 81.385,
+        "stress": 0,
+        "pestPressure": 13.076
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 13,
+      "state": {
+        "phase": "seedling",
+        "water": 84.65,
+        "nutrients": 36.831,
+        "vitality": 80.485,
+        "stress": 7.57,
+        "pestPressure": 13.554
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 14,
+      "state": {
+        "phase": "seedling",
+        "water": 85.525,
+        "nutrients": 36.858,
+        "vitality": 77.942,
+        "stress": 11.472,
+        "pestPressure": 13.59
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [
+        "drooping_leaves_warning"
+      ],
+      "afterPhaseGuard": [
+        "drooping_leaves_warning"
+      ],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": "drooping_leaves_warning",
+      "selectedReason": "condition:high_water",
+      "selectedOptionId": "ignore_signals"
+    },
+    {
+      "tick": 15,
+      "state": {
+        "phase": "seedling",
+        "water": 90.484,
+        "nutrients": 34.832,
+        "vitality": 78.722,
+        "stress": 10.435,
+        "pestPressure": 13.648
+      },
+      "activeFlags": [
+        "recovery_window",
+        "root_stress_pending"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": true,
+      "pendingChainId": "root_stress_followup",
+      "selectedEvent": "root_stress_followup",
+      "selectedReason": "pending_chain:root_stress_followup",
+      "selectedOptionId": "recover_root_zone"
+    },
+    {
+      "tick": 16,
+      "state": {
+        "phase": "seedling",
+        "water": 80.635,
+        "nutrients": 38.239,
+        "vitality": 79.199,
+        "stress": 5.887,
+        "pestPressure": 17.436
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 17,
+      "state": {
+        "phase": "seedling",
+        "water": 75.021,
+        "nutrients": 39.662,
+        "vitality": 81.025,
+        "stress": 3.96,
+        "pestPressure": 14.742
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 18,
+      "state": {
+        "phase": "seedling",
+        "water": 70.64,
+        "nutrients": 37.631,
+        "vitality": 77.681,
+        "stress": 0,
+        "pestPressure": 15.157
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 19,
+      "state": {
+        "phase": "seedling",
+        "water": 58.707,
+        "nutrients": 32.169,
+        "vitality": 77.6,
+        "stress": 0,
+        "pestPressure": 17.745
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 20,
+      "state": {
+        "phase": "seedling",
+        "water": 50.688,
+        "nutrients": 34.874,
+        "vitality": 73.613,
+        "stress": 1.883,
+        "pestPressure": 14.854
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 21,
+      "state": {
+        "phase": "seedling",
+        "water": 47.702,
+        "nutrients": 32.334,
+        "vitality": 77.153,
+        "stress": 1.15,
+        "pestPressure": 12.387
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 22,
+      "state": {
+        "phase": "seedling",
+        "water": 37.86,
+        "nutrients": 34.209,
+        "vitality": 76.645,
+        "stress": 0,
+        "pestPressure": 12.467
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 23,
+      "state": {
+        "phase": "seedling",
+        "water": 47.536,
+        "nutrients": 32.974,
+        "vitality": 75.286,
+        "stress": 4.561,
+        "pestPressure": 8.55
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 24,
+      "state": {
+        "phase": "seedling",
+        "water": 37.169,
+        "nutrients": 29.931,
+        "vitality": 75.871,
+        "stress": 2.152,
+        "pestPressure": 7.335
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 25,
+      "state": {
+        "phase": "seedling",
+        "water": 37.982,
+        "nutrients": 27.24,
+        "vitality": 74.471,
+        "stress": 0,
+        "pestPressure": 5.743
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 26,
+      "state": {
+        "phase": "seedling",
+        "water": 40.1,
+        "nutrients": 27.253,
+        "vitality": 71.454,
+        "stress": 0,
+        "pestPressure": 1.44
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 27,
+      "state": {
+        "phase": "seedling",
+        "water": 31.644,
+        "nutrients": 27.914,
+        "vitality": 67.616,
+        "stress": 0,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 28,
+      "state": {
+        "phase": "seedling",
+        "water": 24.774,
+        "nutrients": 31.892,
+        "vitality": 66.375,
+        "stress": 0.859,
+        "pestPressure": 4.062
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 29,
+      "state": {
+        "phase": "seedling",
+        "water": 15.316,
+        "nutrients": 37.695,
+        "vitality": 68.317,
+        "stress": 6.974,
+        "pestPressure": 2.693
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 30,
+      "state": {
+        "phase": "seedling",
+        "water": 24.139,
+        "nutrients": 34.464,
+        "vitality": 68.654,
+        "stress": 14.668,
+        "pestPressure": 0.178
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 31,
+      "state": {
+        "phase": "seedling",
+        "water": 35.132,
+        "nutrients": 31.275,
+        "vitality": 65.356,
+        "stress": 8.117,
+        "pestPressure": 0.873
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 32,
+      "state": {
+        "phase": "seedling",
+        "water": 24.993,
+        "nutrients": 36.918,
+        "vitality": 66.56,
+        "stress": 11.121,
+        "pestPressure": 5.124
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 33,
+      "state": {
+        "phase": "seedling",
+        "water": 16.929,
+        "nutrients": 35.531,
+        "vitality": 67.714,
+        "stress": 13.866,
+        "pestPressure": 2.986
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 34,
+      "state": {
+        "phase": "seedling",
+        "water": 14.154,
+        "nutrients": 37.894,
+        "vitality": 63.756,
+        "stress": 21.169,
+        "pestPressure": 6.145
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 35,
+      "state": {
+        "phase": "seedling",
+        "water": 11.899,
+        "nutrients": 34.837,
+        "vitality": 66.69,
+        "stress": 23.188,
+        "pestPressure": 9.291
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 36,
+      "state": {
+        "phase": "seedling",
+        "water": 23.477,
+        "nutrients": 36.543,
+        "vitality": 67.775,
+        "stress": 18.958,
+        "pestPressure": 5.646
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 37,
+      "state": {
+        "phase": "seedling",
+        "water": 17.261,
+        "nutrients": 35.783,
+        "vitality": 71.489,
+        "stress": 18.125,
+        "pestPressure": 7.04
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 38,
+      "state": {
+        "phase": "seedling",
+        "water": 21.374,
+        "nutrients": 30.511,
+        "vitality": 71.074,
+        "stress": 22.655,
+        "pestPressure": 10.269
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 39,
+      "state": {
+        "phase": "seedling",
+        "water": 29.991,
+        "nutrients": 29.262,
+        "vitality": 71.125,
+        "stress": 19.259,
+        "pestPressure": 9.46
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 40,
+      "state": {
+        "phase": "seedling",
+        "water": 24.757,
+        "nutrients": 30.545,
+        "vitality": 69.121,
+        "stress": 21.121,
+        "pestPressure": 7.113
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 41,
+      "state": {
+        "phase": "seedling",
+        "water": 19.3,
+        "nutrients": 27.523,
+        "vitality": 71.88,
+        "stress": 25.116,
+        "pestPressure": 3.453
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 42,
+      "state": {
+        "phase": "seedling",
+        "water": 24.718,
+        "nutrients": 32.467,
+        "vitality": 72.721,
+        "stress": 27.769,
+        "pestPressure": 1.34
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 43,
+      "state": {
+        "phase": "seedling",
+        "water": 18.987,
+        "nutrients": 32.872,
+        "vitality": 72.637,
+        "stress": 21.237,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 44,
+      "state": {
+        "phase": "seedling",
+        "water": 25.095,
+        "nutrients": 35.836,
+        "vitality": 75.285,
+        "stress": 23.366,
+        "pestPressure": 3.858
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 45,
+      "state": {
+        "phase": "seedling",
+        "water": 23.39,
+        "nutrients": 36.097,
+        "vitality": 74.848,
+        "stress": 23.257,
+        "pestPressure": 1.657
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 46,
+      "state": {
+        "phase": "seedling",
+        "water": 13.285,
+        "nutrients": 39.226,
+        "vitality": 72.781,
+        "stress": 16.787,
+        "pestPressure": 0.148
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 47,
+      "state": {
+        "phase": "seedling",
+        "water": 23.772,
+        "nutrients": 37.01,
+        "vitality": 75.232,
+        "stress": 21.44,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 48,
+      "state": {
+        "phase": "seedling",
+        "water": 13.843,
+        "nutrients": 36.81,
+        "vitality": 79.102,
+        "stress": 19.933,
+        "pestPressure": 0
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 49,
+      "state": {
+        "phase": "seedling",
+        "water": 20.379,
+        "nutrients": 42.001,
+        "vitality": 78.463,
+        "stress": 22.066,
+        "pestPressure": 4.363
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    },
+    {
+      "tick": 50,
+      "state": {
+        "phase": "seedling",
+        "water": 16.233,
+        "nutrients": 38.717,
+        "vitality": 82.454,
+        "stress": 29.455,
+        "pestPressure": 3.205
+      },
+      "activeFlags": [
+        "recovery_window"
+      ],
+      "candidates": [],
+      "afterPhaseGuard": [],
+      "afterRepeatGuard": [],
+      "afterFrustrationGuard": [],
+      "pendingChainOverride": false,
+      "pendingChainId": null,
+      "selectedEvent": null,
+      "selectedReason": "no_match_after_decision",
+      "selectedOptionId": null
+    }
+  ]
+}
