@@ -25,12 +25,11 @@
           <span id="phaseProgressMarker" class="phase-progress-marker" aria-hidden="true"></span>
         </div>
       </article>
-      <div class="top-row-actions">
-        <span class="pill pro-pill">Pro</span>
-        <button id="menuToggleBtn" class="menu-toggle-btn" type="button" aria-label="Menü öffnen" aria-haspopup="dialog" aria-expanded="false">
-          <span class="visually-hidden">Menü öffnen</span>
-        </button>
-      </div>
+      <button id="menuToggleBtn" class="menu-toggle-btn" type="button" aria-label="Menü öffnen" aria-haspopup="dialog" aria-expanded="false">
+        <span class="menu-toggle-label" aria-hidden="true">Menü</span>
+        <span class="menu-toggle-icon" aria-hidden="true"><span></span></span>
+        <span class="visually-hidden">Menü öffnen</span>
+      </button>
     </header>
 
     <main class="hud-main">
@@ -122,7 +121,7 @@
           <strong>Erweiterte Diagnose verfügbar</strong>
           <p>Schalte mit Pro frei oder sieh eine Anzeige.</p>
         </div>
-        <button id="openDiagnosisBtn" class="pill pro-pill" type="button">Pro</button>
+        <button id="openDiagnosisBtn" class="locked-card-btn" type="button">Öffnen</button>
       </section>
     </main>
   </div>
