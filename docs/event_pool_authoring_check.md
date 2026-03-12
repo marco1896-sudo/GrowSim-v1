@@ -63,3 +63,46 @@ Prefer explicit authoring for routing-critical metadata:
 ```bash
 node dev/verify_event_pool_authoring.js
 ```
+
+## First focused authoring pass
+
+### Scope and selection rationale
+A small first tranche targeted high-frequency early-cycle stress/warning events in `data/events.json` that were previously defaulting ambiguously:
+- `soil_compaction`
+- `fungus_gnat_wave`
+- `nitrogen_lockout`
+- `magnesium_deficit`
+- `salt_buildup`
+- `soil_too_wet`
+- `dry_pocket`
+- `ph_drift_high`
+
+These were chosen because they strongly shape early gameplay feel and were prominent in inferred/fallback warning output.
+
+### Metadata added
+For this tranche:
+- Added explicit `pool: "warning"` to all eight events.
+- Added explicit `tone: "negative"` to all eight events.
+- Added `category` where clearly unambiguous:
+  - `pest`: `fungus_gnat_wave`
+  - `water`: `soil_too_wet`, `dry_pocket`
+  - `nutrition`: `nitrogen_lockout`, `magnesium_deficit`, `salt_buildup`, `ph_drift_high`
+- Left `soil_compaction` category unchanged to avoid forcing a potentially ambiguous label.
+
+Additionally, a narrow structural fix was applied to `data/events.foundation.json` so the optional source parses again (duplicate `"weight"` keys without separators were removed).
+
+### Measured lint improvement
+After this pass and the foundation parse fix:
+- Runtime sources skipped due to parse/shape issues: **1 -> 0**
+- Runtime events analyzed: **35 -> 38**
+- Explicit pool events: **0 -> 11**
+- Ambiguous inferred pool events: **20 -> 12**
+- Missing tone: **35 -> 27**
+- Missing category: **20 -> 13**
+- Guard metadata parse errors: **1 -> 0**
+- Guard metadata tone warnings: **35 -> 27**
+
+### Remaining gaps for later passes
+- Rare pool coverage remains absent across all phases.
+- Remaining v1 events still rely on inferred category/tone/pool metadata.
+- Most v2 events still rely on defaulted tone and inferred pool routing.
