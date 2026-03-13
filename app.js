@@ -1423,7 +1423,7 @@ function applyAction(actionId) {
 
   const before = snapshotStatus();
 
-  applyEffectsObject(action.effects.immediate || {});
+  applyActionImmediateEffects(action);
   scheduleActionOverTimeEffect(action, nowMs);
 
   const triggeredSideEffects = [];
@@ -1565,6 +1565,68 @@ function applyOverTimeRates(rates, elapsedSimMs) {
       state.status[metric] += delta;
     }
   }
+}
+
+function applyActionImmediateEffects(action) {
+  const immediate = action && action.effects ? action.effects.immediate : null;
+  if (Array.isArray(immediate)) {
+    applyStructuredEffects(immediate);
+    return;
+  }
+  applyEffectsObject(immediate || {});
+}
+
+function applyStructuredEffects(effectsList) {
+  for (const effect of effectsList || []) {
+    if (!effect || typeof effect !== 'object') {
+      continue;
+    }
+
+    const metric = String(effect.stat || '').trim();
+    const mode = String(effect.mode || 'add').trim();
+    const value = Number(effect.value);
+
+    if (!metric || (!Object.prototype.hasOwnProperty.call(state.status, metric) && metric !== 'growth')) {
+      continue;
+    }
+
+    if ((mode !== 'clamp_min' && mode !== 'clamp_max' && mode !== 'reduce_risk' && mode !== 'reduce_salt_load') && !Number.isFinite(value)) {
+      continue;
+    }
+
+    if (metric === 'growth') {
+      if (mode === 'add') {
+        applyGrowthPercentDelta(value);
+      } else if (mode === 'subtract') {
+        applyGrowthPercentDelta(-Math.abs(value));
+      } else if (mode === 'set') {
+        state.plant.progress = clamp(Number(value), 0, 100);
+      }
+      continue;
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(state.status, metric)) {
+      continue;
+    }
+
+    if (mode === 'add') {
+      state.status[metric] += value;
+    } else if (mode === 'subtract') {
+      state.status[metric] -= Math.abs(value);
+    } else if (mode === 'set') {
+      state.status[metric] = value;
+    } else if (mode === 'clamp_min') {
+      state.status[metric] = Math.max(state.status[metric], Number(effect.min));
+    } else if (mode === 'clamp_max') {
+      state.status[metric] = Math.min(state.status[metric], Number(effect.max));
+    } else if (mode === 'reduce_risk') {
+      state.status.risk -= Math.abs(Number.isFinite(value) ? value : 0);
+    } else if (mode === 'reduce_salt_load') {
+      state.status.risk -= Math.abs(Number.isFinite(value) ? value : 0);
+    }
+  }
+
+  clampStatus();
 }
 
 function applyEffectsObject(effects) {
@@ -2226,6 +2288,13 @@ function renderCareActionButtons(category) {
 
 function formatEffectsInline(action) {
   const immediate = action && action.effects && action.effects.immediate ? action.effects.immediate : {};
+  if (Array.isArray(immediate)) {
+    return immediate
+      .map((effect) => (effect && effect.label ? String(effect.label) : null))
+      .filter(Boolean)
+      .slice(0, 2)
+      .join(' · ') || 'Keine direkten Effekte';
+  }
   const map = [
     ['water', 'Feuchtigkeit'],
     ['nutrition', 'Nährstoffe'],
@@ -2254,6 +2323,32 @@ function renderCareEffectsPanel() {
   }
 
   const immediate = selected.effects && selected.effects.immediate ? selected.effects.immediate : {};
+  if (Array.isArray(immediate)) {
+    const labels = {
+      water: 'Feuchtigkeit',
+      nutrition: 'Nährstoffe',
+      growth: 'Wachstum',
+      stress: 'Stress',
+      risk: 'Risiko',
+      health: 'Gesundheit'
+    };
+    for (const effect of immediate) {
+      if (!effect || typeof effect !== 'object') {
+        continue;
+      }
+      const li = document.createElement('li');
+      const statLabel = labels[String(effect.stat || '')] || 'System';
+      li.innerHTML = `<span>${escapeHtml(statLabel)}</span><strong>${escapeHtml(String(effect.label || 'Systemeingriff'))}</strong>`;
+      ui.careEffectsList.appendChild(li);
+    }
+
+    if (!ui.careEffectsList.children.length) {
+      const li = document.createElement('li');
+      li.textContent = 'Keine unmittelbaren Effekte.';
+      ui.careEffectsList.appendChild(li);
+    }
+    return;
+  }
   const effectRows = [
     ['water', 'Feuchtigkeit'],
     ['nutrition', 'Nährstoffe'],
@@ -4979,7 +5074,21 @@ function normalizeAction(rawAction) {
     sideEffects: Array.isArray(rawAction.sideEffects) ? rawAction.sideEffects : []
   };
 
-  base.effects.immediate = base.effects.immediate && typeof base.effects.immediate === 'object' ? base.effects.immediate : {};
+  const immediateRaw = base.effects.immediate;
+  if (Array.isArray(immediateRaw)) {
+    base.effects.immediate = immediateRaw
+      .filter((entry) => entry && typeof entry === 'object' && entry.stat)
+      .map((entry) => ({
+        stat: String(entry.stat),
+        mode: String(entry.mode || 'add'),
+        value: Number(entry.value),
+        min: Number(entry.min),
+        max: Number(entry.max),
+        label: entry.label ? String(entry.label) : ''
+      }));
+  } else {
+    base.effects.immediate = immediateRaw && typeof immediateRaw === 'object' ? immediateRaw : {};
+  }
   base.effects.overTime = base.effects.overTime && typeof base.effects.overTime === 'object' ? base.effects.overTime : {};
   base.effects.durationSimMinutes = clamp(base.effects.durationSimMinutes, 0, 24 * 60);
 
