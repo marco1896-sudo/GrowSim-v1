@@ -1,5 +1,7 @@
 'use strict';
 
+const FAIRNESS_REACTION_GRACE_MS = 2 * 60 * 1000;
+
 function tick() {
   const nowMs = Date.now();
   const prevOpenSheet = state.ui.openSheet;
@@ -68,10 +70,22 @@ function applySimulationDelta(elapsedRealMs, effectiveNowMs, wallNowMs = effecti
   const plantTime = getPlantTimeFromElapsed(safeEffectiveNowMs);
   const previousSimTimeMs = Number(state.simulation.simTimeMs) || Number(state.simulation.simEpochMs) || plantTime.simTimeMs;
   const elapsedSimMs = Math.max(0, plantTime.simTimeMs - previousSimTimeMs);
+  const wasDaytimeBefore = isDaytimeAtSimTime(previousSimTimeMs);
+  const nowDaytime = isDaytimeAtSimTime(plantTime.simTimeMs);
 
   state.simulation.simTimeMs = plantTime.simTimeMs;
-  state.simulation.isDaytime = isDaytimeAtSimTime(state.simulation.simTimeMs);
+  state.simulation.isDaytime = nowDaytime;
   state.simulation.lastTickRealTimeMs = persistWallNowAsLastTick ? safeWallNowMs : safeEffectiveNowMs;
+
+  if (!wasDaytimeBefore && nowDaytime) {
+    state.simulation.fairnessGraceUntilRealMs = Math.max(
+      Number(state.simulation.fairnessGraceUntilRealMs) || 0,
+      safeWallNowMs + FAIRNESS_REACTION_GRACE_MS
+    );
+    addLog('system', 'Tagphase erreicht: kurze Reaktionszeit aktiv', {
+      graceUntilRealMs: state.simulation.fairnessGraceUntilRealMs
+    });
+  }
 
   applyStatusDrift(safeElapsedRealMs);
   const criticalNow = Number(state.status.health) < 20;
@@ -80,7 +94,9 @@ function applySimulationDelta(elapsedRealMs, effectiveNowMs, wallNowMs = effecti
   }
   wasCriticalHealth = criticalNow;
   applyActiveActionEffects(elapsedSimMs);
-  advanceGrowthTick(elapsedSimMs, { suppressDeath });
+  const suppressDeathForLockedWindow = suppressDeath || isDeathSuppressedForFairness(safeWallNowMs);
+  advanceGrowthTick(elapsedSimMs, { suppressDeath: suppressDeathForLockedWindow });
+  applyFairnessSurvivalGuard(safeWallNowMs);
   if (!suppressEvents) {
     runEventStateMachine(safeEffectiveNowMs);
   }
@@ -88,6 +104,40 @@ function applySimulationDelta(elapsedRealMs, effectiveNowMs, wallNowMs = effecti
   updateVisibleOverlays();
   syncCanonicalStateShape();
   evaluateNotificationTriggers(safeWallNowMs);
+}
+
+function isDeathSuppressedForFairness(nowMs) {
+  if (!state.simulation.isDaytime) {
+    return true;
+  }
+  const graceUntil = Number(state.simulation.fairnessGraceUntilRealMs) || 0;
+  return Number.isFinite(graceUntil) && Number(nowMs) < graceUntil;
+}
+
+function applyFairnessSurvivalGuard(nowMs) {
+  if (state.plant.phase === 'dead' || state.plant.isDead === true) {
+    return;
+  }
+  if (!isDeathSuppressedForFairness(nowMs)) {
+    return;
+  }
+
+  const wouldDie = Number(state.status.health) <= 0 || Number(state.status.risk) >= 100;
+  if (!wouldDie) {
+    return;
+  }
+
+  state.status.health = Math.max(1, Number(state.status.health) || 0);
+  state.status.water = Math.max(3, Number(state.status.water) || 0);
+  state.status.nutrition = Math.max(3, Number(state.status.nutrition) || 0);
+  state.status.stress = Math.min(99, Number(state.status.stress) || 0);
+  state.status.risk = Math.min(99, Number(state.status.risk) || 0);
+  state.plant.isDead = false;
+  if (state.plant.phase === 'dead') {
+    state.plant.phase = getStageTimeline()[clampInt(Number(state.plant.stageIndex) || 0, 0, Math.max(0, getStageTimeline().length - 1))]?.phase || 'seedling';
+  }
+  state.ui.deathOverlayOpen = false;
+  clampStatus();
 }
 
 function syncSimulationFromElapsedTime(nowMs) {
@@ -421,6 +471,15 @@ function isPlantDead() {
 }
 
 function syncDeathState() {
+  if (isDeathSuppressedForFairness(Date.now())) {
+    applyFairnessSurvivalGuard(Date.now());
+    state.plant.isDead = false;
+    if (state.plant.phase === 'dead') {
+      state.plant.phase = getStageTimeline()[clampInt(Number(state.plant.stageIndex) || 0, 0, Math.max(0, getStageTimeline().length - 1))]?.phase || 'seedling';
+    }
+    return false;
+  }
+
   if (!isPlantDead()) {
     state.plant.isDead = false;
     return false;
