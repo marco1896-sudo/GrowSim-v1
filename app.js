@@ -1643,6 +1643,27 @@ function summarizeDelta(before, after) {
   return out;
 }
 
+function consumeBoostUsage(nowMs, actionLabel) {
+  resetBoostDaily(nowMs);
+
+  if (state.boost.boostUsedToday >= state.boost.boostMaxPerDay) {
+    addLog('action', `${actionLabel} wegen Tageslimit blockiert`, { cap: state.boost.boostMaxPerDay });
+    return { ok: false, reason: 'limit_reached' };
+  }
+
+  state.boost.boostUsedToday += 1;
+  return { ok: true, usedToday: state.boost.boostUsedToday };
+}
+
+function getNextDayStartSimTime(simTimeMs) {
+  const shifted = new Date(simTimeMs);
+  if (simHour(simTimeMs) >= SIM_NIGHT_START_HOUR) {
+    shifted.setDate(shifted.getDate() + 1);
+  }
+  shifted.setHours(SIM_DAY_START_HOUR, 0, 0, 0);
+  return shifted.getTime();
+}
+
 function onBoostAction() {
   if (isPlantDead()) {
     addLog('action', 'Boost blockiert: Pflanze ist eingegangen', null);
@@ -1651,15 +1672,12 @@ function onBoostAction() {
   }
 
   const nowMs = Date.now();
-  resetBoostDaily(nowMs);
-
-  if (state.boost.boostUsedToday >= state.boost.boostMaxPerDay) {
-    addLog('action', 'Boost wegen Tageslimit blockiert', { cap: state.boost.boostMaxPerDay });
+  const usage = consumeBoostUsage(nowMs, 'Boost');
+  if (!usage.ok) {
     renderAll();
     return;
   }
 
-  state.boost.boostUsedToday += 1;
   applyStatusDrift(BOOST_PLANT_EFFECT_MS);
   applyGrowthPercentDelta(BOOST_GROWTH_PERCENT_DELTA);
 
@@ -1681,6 +1699,82 @@ function onBoostAction() {
   addLog('action', 'Ereignis-Boost angewendet (Event-Timer -30 Min, Pflanze leicht angestoßen)', {
     usedToday: state.boost.boostUsedToday,
     nextEventAtMs: state.events.scheduler.nextEventRealTimeMs
+  });
+
+  renderAll();
+  schedulePersistState(true);
+}
+
+function onSkipNightAction() {
+  if (isPlantDead()) {
+    addLog('action', 'Nacht überspringen blockiert: Pflanze ist eingegangen', null);
+    renderAll();
+    return;
+  }
+
+  if (state.simulation.isDaytime) {
+    addLog('action', 'Nacht überspringen blockiert: Bereits Tagphase', null);
+    renderAll();
+    return;
+  }
+
+  const nowMs = Date.now();
+  const usage = consumeBoostUsage(nowMs, 'Nacht überspringen');
+  if (!usage.ok) {
+    renderAll();
+    return;
+  }
+
+  const currentSimTimeMs = Number(state.simulation.simTimeMs) || alignToSimStartHour(nowMs, SIM_START_HOUR);
+  const nextDayStartSimMs = getNextDayStartSimTime(currentSimTimeMs);
+  const remainingNightSimMs = Math.max(0, nextDayStartSimMs - currentSimTimeMs);
+
+  if (remainingNightSimMs <= 0) {
+    state.simulation.simTimeMs = nextDayStartSimMs;
+    state.simulation.nowMs = nowMs;
+    state.simulation.lastTickRealTimeMs = nowMs;
+    state.simulation.isDaytime = true;
+    runEventStateMachine(nowMs);
+    renderAll();
+    schedulePersistState(true);
+    return;
+  }
+
+  const ratio = REAL_RUN_DURATION_MS / TOTAL_LIFECYCLE_SIM_MS;
+  const elapsedRealMs = Math.ceil(remainingNightSimMs * ratio);
+  const targetRealMs = nowMs + elapsedRealMs;
+  const wasDeadBeforeSkip = isPlantDead();
+
+  applySimulationDelta(elapsedRealMs, targetRealMs, targetRealMs, {
+    suppressDeath: true,
+    persistWallNowAsLastTick: true
+  });
+
+  if (!wasDeadBeforeSkip) {
+    state.status.health = Math.max(8, Number(state.status.health) || 0);
+    state.status.water = Math.max(6, Number(state.status.water) || 0);
+    state.status.nutrition = Math.max(6, Number(state.status.nutrition) || 0);
+    state.status.stress = Math.min(98, Number(state.status.stress) || 0);
+    state.status.risk = Math.min(98, Number(state.status.risk) || 0);
+    state.plant.isDead = false;
+    if (state.plant.phase === 'dead') {
+      const safeIndex = clampInt(Number(state.plant.stageIndex) || 0, 0, Math.max(0, getStageTimeline().length - 1));
+      state.plant.phase = getStageTimeline()[safeIndex]?.phase || 'seedling';
+    }
+    state.ui.deathOverlayOpen = false;
+  }
+
+  state.simulation.simTimeMs = nextDayStartSimMs;
+  state.simulation.nowMs = targetRealMs;
+  state.simulation.lastTickRealTimeMs = targetRealMs;
+  state.simulation.isDaytime = true;
+  syncCanonicalStateShape();
+  runEventStateMachine(targetRealMs);
+
+  addLog('action', 'Nacht übersprungen: Tagesbeginn erreicht', {
+    usedToday: state.boost.boostUsedToday,
+    skippedNightSimMinutes: Math.round(remainingNightSimMs / 60000),
+    simTimeAfter: state.simulation.simTimeMs
   });
 
   renderAll();
@@ -1867,9 +1961,15 @@ function renderHud() {
   ui.growthImpulseValue.textContent = state.simulation.growthImpulse.toFixed(2);
   ui.simTimeValue.textContent = formatSimClock(state.simulation.simTimeMs);
 
+  const showSkipNight = !dead && !state.simulation.isDaytime;
+
   ui.careActionBtn.disabled = dead;
   ui.boostActionBtn.disabled = dead;
   ui.openDiagnosisBtn.disabled = dead;
+  if (ui.skipNightActionBtn) {
+    ui.skipNightActionBtn.disabled = dead || state.simulation.isDaytime;
+    ui.skipNightActionBtn.classList.toggle('hidden', !showSkipNight);
+  }
 
   renderOverlayVisibility();
 }
