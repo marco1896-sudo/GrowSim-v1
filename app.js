@@ -1749,7 +1749,7 @@ function onSkipNightAction() {
   const targetRealMs = nowMs + elapsedRealMs;
   const wasDeadBeforeSkip = isPlantDead();
 
-  applySimulationDelta(elapsedRealMs, targetRealMs, targetRealMs, {
+  applySimulationDelta(elapsedRealMs, targetRealMs, nowMs, {
     suppressDeath: true,
     persistWallNowAsLastTick: true
   });
@@ -1769,11 +1769,11 @@ function onSkipNightAction() {
   }
 
   state.simulation.simTimeMs = nextDayStartSimMs;
-  state.simulation.nowMs = targetRealMs;
-  state.simulation.lastTickRealTimeMs = targetRealMs;
+  state.simulation.nowMs = nowMs;
+  state.simulation.lastTickRealTimeMs = nowMs;
   state.simulation.isDaytime = true;
   syncCanonicalStateShape();
-  runEventStateMachine(targetRealMs);
+  runEventStateMachine(nowMs);
 
   addLog('action', 'Nacht übersprungen: Tagesbeginn erreicht', {
     usedToday: state.boost.boostUsedToday,
