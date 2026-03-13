@@ -66,6 +66,7 @@ function cacheUi() {
   ui.careActionBtn = document.getElementById('careActionBtn');
   ui.analyzeActionBtn = document.getElementById('analyzeActionBtn');
   ui.boostActionBtn = document.getElementById('boostActionBtn');
+  ui.skipNightActionBtn = document.getElementById('skipNightActionBtn');
   ui.openDiagnosisBtn = document.getElementById('openDiagnosisBtn');
   ui.menuToggleBtn = document.getElementById('menuToggleBtn');
 
@@ -149,6 +150,9 @@ function bindUi() {
   ui.careActionBtn.addEventListener('click', () => withDebouncedAction('care', ui.careActionBtn, () => openSheet('care')));
   ui.analyzeActionBtn.addEventListener('click', () => withDebouncedAction('analyze', ui.analyzeActionBtn, () => openSheet('dashboard')));
   ui.boostActionBtn.addEventListener('click', () => withDebouncedAction('boost', ui.boostActionBtn, onBoostAction));
+  if (ui.skipNightActionBtn) {
+    ui.skipNightActionBtn.addEventListener('click', () => withDebouncedAction('skipNight', ui.skipNightActionBtn, onSkipNightAction));
+  }
   ui.openDiagnosisBtn.addEventListener('click', () => openSheet('diagnosis'));
 
   const statRingBindings = [
@@ -231,7 +235,7 @@ function ensureRequiredUi() {
     'healthValue', 'stressValue', 'waterValue', 'nutritionValue', 'growthValue', 'riskValue',
     'plantImage', 'nextEventValue', 'growthImpulseValue', 'simTimeValue', 'boostUsageText',
     'overlayBurn', 'overlayDefMg', 'overlayDefN', 'overlayMoldWarning', 'overlayPestMites', 'overlayPestThrips',
-    'careActionBtn', 'analyzeActionBtn', 'boostActionBtn', 'openDiagnosisBtn', 'menuToggleBtn',
+    'careActionBtn', 'analyzeActionBtn', 'boostActionBtn', 'skipNightActionBtn', 'openDiagnosisBtn', 'menuToggleBtn',
     'backdrop', 'careSheet', 'eventSheet', 'dashboardSheet', 'diagnosisSheet', 'statDetailSheet',
     'statDetailTitle', 'statDetailValue', 'statDetailStatus', 'statDetailExplanation', 'statDetailRecommendation', 'statDetailPrimaryBtn',
     'menuBackdrop', 'gameMenu', 'menuCloseBtn', 'menuHeaderCloseBtn', 'menuNewRunBtn', 'menuRescueBtn', 'menuRescueSubtext',
