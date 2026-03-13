@@ -1,6 +1,11 @@
 'use strict';
 
 const FAIRNESS_REACTION_GRACE_MS = 2 * 60 * 1000;
+const OFFLINE_STATUS_DECAY_MULTIPLIER = 0.72;
+const WATER_STRESS_THRESHOLD = 45;
+const WATER_CRITICAL_THRESHOLD = 20;
+const NUTRITION_STRESS_THRESHOLD = 40;
+const NUTRITION_CRITICAL_THRESHOLD = 18;
 
 function tick() {
   const nowMs = Date.now();
@@ -313,14 +318,16 @@ function applyOfflineNightSurvivalClamp() {
 }
 
 function applyStatusDrift(elapsedMs) {
-  const minutes = elapsedMs / 60_000;
+  const minutesRaw = elapsedMs / 60_000;
+  const offlineCatchUp = elapsedMs > MAX_ELAPSED_PER_TICK_MS;
+  const minutes = minutesRaw * (offlineCatchUp ? OFFLINE_STATUS_DECAY_MULTIPLIER : 1);
   if (minutes <= 0) {
     state.simulation.growthImpulse = 0;
     return;
   }
 
-  state.status.water -= 0.33 * minutes;
-  state.status.nutrition -= 0.16 * minutes;
+  state.status.water -= 0.18 * minutes;
+  state.status.nutrition -= 0.11 * minutes;
 
   const inRecoveryBand = (
     state.status.water >= 45 && state.status.water <= 72 &&
@@ -328,30 +335,45 @@ function applyStatusDrift(elapsedMs) {
     state.status.stress < 42
   );
 
-  let stressDelta = 0.06 * minutes;
+  const waterDeficiency = clamp((WATER_STRESS_THRESHOLD - state.status.water) / (WATER_STRESS_THRESHOLD - WATER_CRITICAL_THRESHOLD), 0, 1);
+  const waterCritical = clamp((WATER_CRITICAL_THRESHOLD - state.status.water) / WATER_CRITICAL_THRESHOLD, 0, 1);
+  const nutritionDeficiency = clamp((NUTRITION_STRESS_THRESHOLD - state.status.nutrition) / (NUTRITION_STRESS_THRESHOLD - NUTRITION_CRITICAL_THRESHOLD), 0, 1);
+  const nutritionCritical = clamp((NUTRITION_CRITICAL_THRESHOLD - state.status.nutrition) / NUTRITION_CRITICAL_THRESHOLD, 0, 1);
+
+  let stressDelta = (-0.015 * minutes)
+    + (waterDeficiency * 0.14 * minutes)
+    + (waterCritical * 0.20 * minutes)
+    + (nutritionDeficiency * 0.08 * minutes)
+    + (nutritionCritical * 0.10 * minutes);
   if (inRecoveryBand) {
-    stressDelta -= 0.26 * minutes;
-  }
-  if (state.status.water < 30) {
-    stressDelta += 0.42 * minutes;
-  }
-  if (state.status.nutrition < 30) {
-    stressDelta += 0.32 * minutes;
+    stressDelta -= 0.10 * minutes;
   }
   state.status.stress += stressDelta;
 
-  let riskDelta = 0.05 * minutes + ((state.status.stress / 100) * 0.22 * minutes);
+  const stressPressure = clamp((state.status.stress - 40) / 60, 0, 1);
+  const deficiencyPressure = (waterDeficiency * 0.5) + (waterCritical * 0.9) + (nutritionDeficiency * 0.2);
+  let riskDelta = (0.008 * minutes)
+    + (stressPressure * 0.12 * minutes)
+    + (deficiencyPressure * 0.10 * minutes);
   if (inRecoveryBand) {
-    riskDelta -= 0.14 * minutes;
+    riskDelta -= 0.08 * minutes;
   }
-  if (state.status.water > 90 || state.status.water < 18) {
-    riskDelta += 0.32 * minutes;
+  if (state.status.water > 95 || state.status.water < 15) {
+    riskDelta += 0.08 * minutes;
   }
   state.status.risk += riskDelta;
 
-  let healthDelta = (-0.02 * minutes) - ((state.status.stress / 100) * 0.44 * minutes) - ((state.status.risk / 100) * 0.30 * minutes);
+  const stressHealthPressure = clamp((state.status.stress - 55) / 45, 0, 1);
+  const riskHealthPressure = clamp((state.status.risk - 60) / 40, 0, 1);
+  let healthDelta = (-0.008 * minutes)
+    - (stressHealthPressure * 0.13 * minutes)
+    - (riskHealthPressure * 0.11 * minutes)
+    - (waterCritical * 0.10 * minutes);
   if (inRecoveryBand && state.status.risk <= 45) {
-    healthDelta += 0.36 * minutes;
+    healthDelta += 0.20 * minutes;
+  }
+  if (state.status.water < 12) {
+    healthDelta -= 0.06 * minutes;
   }
   state.status.health += healthDelta;
 
