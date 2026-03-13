@@ -295,7 +295,8 @@ const state = {
     deathOverlayAcknowledged: false,
     care: {
       selectedCategory: null,
-      feedback: { kind: 'info', text: 'Bereit.' }
+      selectedActionId: null,
+      feedback: { kind: 'info', text: 'Wähle eine Aktion.' }
     },
     analysis: {
       activeTab: 'overview'
@@ -2107,15 +2108,23 @@ function renderCareSheet(force = false) {
   const categoryOrder = ['watering', 'fertilizing', 'training', 'environment'];
   const categoryLabels = {
     watering: 'Bewässerung',
-    fertilizing: 'Düngung',
+    fertilizing: 'Nährstoffe',
     training: 'Training',
     environment: 'Umgebung'
+  };
+  const categoryIcons = {
+    watering: '💧',
+    fertilizing: '◉',
+    training: '✦',
+    environment: '◌'
   };
 
   const availableCategories = categoryOrder.filter((category) => catalog.some((action) => action.category === category));
   if (!availableCategories.length) {
     ui.careCategoryList.replaceChildren();
     ui.careActionList.replaceChildren();
+    ui.careEffectsList.replaceChildren();
+    ui.careExecuteButton.disabled = true;
     setCareFeedback('error', 'Keine Aktionen geladen.');
     return;
   }
@@ -2125,12 +2134,14 @@ function renderCareSheet(force = false) {
     state.ui.care.selectedCategory = availableCategories[0];
   }
 
-  renderCareCategoryButtons(availableCategories, categoryLabels);
+  renderCareCategoryButtons(availableCategories, categoryLabels, categoryIcons);
   renderCareActionButtons(state.ui.care.selectedCategory);
+  renderCareEffectsPanel();
   renderCareFeedback();
+  renderCareExecuteButton();
 }
 
-function renderCareCategoryButtons(categories, labels) {
+function renderCareCategoryButtons(categories, labels, icons) {
   const signature = categories.join('|') + `|selected:${state.ui.care.selectedCategory}`;
   if (ui.careCategoryList.dataset.signature === signature) {
     return;
@@ -2142,14 +2153,19 @@ function renderCareCategoryButtons(categories, labels) {
   for (const category of categories) {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'care-category-btn';
+    btn.className = 'care-category-tab';
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', String(state.ui.care.selectedCategory === category));
     if (state.ui.care.selectedCategory === category) {
-      btn.classList.add('is-active');
+      btn.classList.add('care-category-tab-active');
     }
-    btn.textContent = labels[category] || category;
+    btn.innerHTML = `<span class="care-category-icon" aria-hidden="true">${icons[category] || '◌'}</span><span>${labels[category] || category}</span>`;
     btn.addEventListener('click', () => {
       state.ui.care.selectedCategory = category;
-      setCareFeedback('info', `${labels[category] || category} ausgewählt.`);
+      state.ui.care.selectedActionId = null;
+      ui.careCategoryList.dataset.signature = '';
+      ui.careActionList.dataset.signature = '';
+      setCareFeedback('info', `${labels[category] || category} bereit.`);
       renderCareSheet(true);
     });
     ui.careCategoryList.appendChild(btn);
@@ -2163,7 +2179,7 @@ function renderCareActionButtons(category) {
 
   const signature = actions.map((action) => {
     const cooldownUntil = Number(state.actions.cooldowns[action.id] || 0);
-    return `${action.id}:${cooldownUntil}`;
+    return `${action.id}:${cooldownUntil}:selected:${state.ui.care.selectedActionId === action.id}`;
   }).join('|');
 
   if (ui.careActionList.dataset.signature === signature) {
@@ -2174,34 +2190,124 @@ function renderCareActionButtons(category) {
   ui.careActionList.replaceChildren();
 
   for (const action of actions) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'care-action-btn';
-
     const cooldownLeft = Math.max(0, Number(state.actions.cooldowns[action.id] || 0) - Date.now());
     const cooldownText = cooldownLeft > 0
-      ? `Abklingzeit ${Math.ceil(cooldownLeft / 60000)}m`
-      : `Abklingzeit ${Math.round(action.cooldownRealMinutes || 0)}m`;
+      ? `${Math.ceil(cooldownLeft / 60000)} min`
+      : `${Math.round(action.cooldownRealMinutes || 0)} min`;
 
-    button.innerHTML = `<div><strong>${action.label}</strong><div class="care-action-meta">${labelForIntensity(action.intensity)}</div></div><span class="care-action-meta">${cooldownText}</span>`;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'care-action-card';
+    if (state.ui.care.selectedActionId === action.id) {
+      button.classList.add('is-selected');
+    }
+
+    button.innerHTML = `
+      <div class="care-action-media" aria-hidden="true">◇</div>
+      <div class="care-action-body">
+        <h4 class="care-action-title">${escapeHtml(action.label)}</h4>
+        <p class="care-action-subtitle">${escapeHtml(action.uxCopy && action.uxCopy.short ? action.uxCopy.short : labelForIntensity(action.intensity))}</p>
+        <div class="care-action-meta-row">
+          <span class="care-action-cooldown">Cooldown: ${cooldownText}</span>
+          <span class="care-action-effects">${formatEffectsInline(action)}</span>
+        </div>
+      </div>`;
 
     button.addEventListener('click', () => {
-      const result = applyAction(action.id);
-      if (result.ok) {
-        setCareFeedback('success', `${action.label} ausgeführt.`);
-      } else {
-        setCareFeedback('error', explainActionFailure(result.reason));
-      }
+      state.ui.care.selectedActionId = action.id;
+      ui.careActionList.dataset.signature = '';
+      setCareFeedback('info', `${action.label} ausgewählt.`);
       renderCareSheet(true);
-      renderHud();
     });
 
     ui.careActionList.appendChild(button);
   }
 }
 
+function formatEffectsInline(action) {
+  const immediate = action && action.effects && action.effects.immediate ? action.effects.immediate : {};
+  const map = [
+    ['water', 'Feuchtigkeit'],
+    ['nutrition', 'Nährstoffe'],
+    ['growth', 'Wachstum'],
+    ['stress', 'Stress'],
+    ['risk', 'Risiko']
+  ];
+  const parts = [];
+  for (const [key, label] of map) {
+    const value = Number(immediate[key] || 0);
+    if (!value) continue;
+    parts.push(`${label} ${value > 0 ? '+' : ''}${round2(value)}`);
+  }
+  return parts.slice(0, 2).join(' · ') || 'Keine direkten Effekte';
+}
+
+function renderCareEffectsPanel() {
+  ui.careEffectsList.replaceChildren();
+
+  const selected = state.actions.byId[state.ui.care.selectedActionId || ''];
+  if (!selected) {
+    const li = document.createElement('li');
+    li.textContent = 'Keine Aktion ausgewählt.';
+    ui.careEffectsList.appendChild(li);
+    return;
+  }
+
+  const immediate = selected.effects && selected.effects.immediate ? selected.effects.immediate : {};
+  const effectRows = [
+    ['water', 'Feuchtigkeit'],
+    ['nutrition', 'Nährstoffe'],
+    ['growth', 'Wachstum'],
+    ['stress', 'Stress'],
+    ['risk', 'Risiko'],
+    ['health', 'Gesundheit']
+  ];
+
+  for (const [key, label] of effectRows) {
+    const value = Number(immediate[key] || 0);
+    if (!value) {
+      continue;
+    }
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${label}</span><strong>${value > 0 ? '+' : ''}${round2(value)}</strong>`;
+    ui.careEffectsList.appendChild(li);
+  }
+
+  if (!ui.careEffectsList.children.length) {
+    const li = document.createElement('li');
+    li.textContent = 'Keine unmittelbaren Effekte.';
+    ui.careEffectsList.appendChild(li);
+  }
+}
+
+function renderCareExecuteButton() {
+  const selected = state.actions.byId[state.ui.care.selectedActionId || ''];
+  ui.careExecuteButton.disabled = !selected;
+}
+
+function onCareExecuteAction() {
+  const action = state.actions.byId[state.ui.care.selectedActionId || ''];
+  if (!action) {
+    setCareFeedback('error', 'Bitte zuerst eine Aktion wählen.');
+    renderCareSheet(true);
+    return;
+  }
+
+  const result = applyAction(action.id);
+  if (result.ok) {
+    setCareFeedback('success', action.uxCopy && action.uxCopy.success ? action.uxCopy.success : `${action.label} ausgeführt.`);
+    state.ui.care.selectedActionId = null;
+  } else {
+    setCareFeedback('error', explainActionFailure(result.reason));
+  }
+
+  ui.careActionList.dataset.signature = '';
+  renderCareSheet(true);
+  renderHud();
+}
+
 function renderCareFeedback() {
-  const feedback = (state.ui.care && state.ui.care.feedback) || { kind: 'info', text: 'Bereit.' };
+  const feedback = (state.ui.care && state.ui.care.feedback) || { kind: 'info', text: 'Wähle eine Aktion.' };
   ui.careFeedback.textContent = feedback.text;
   ui.careFeedback.classList.toggle('is-success', feedback.kind === 'success');
   ui.careFeedback.classList.toggle('is-error', feedback.kind === 'error');
@@ -4327,7 +4433,8 @@ function resetStateToDefaults() {
     deathOverlayAcknowledged: false,
     care: {
       selectedCategory: null,
-      feedback: { kind: 'info', text: 'Bereit.' }
+      selectedActionId: null,
+      feedback: { kind: 'info', text: 'Wähle eine Aktion.' }
     },
     analysis: {
       activeTab: 'overview'
@@ -4536,13 +4643,16 @@ function ensureStateIntegrity(nowMs) {
     state.ui.visibleOverlayIds = [];
   }
   if (!state.ui.care || typeof state.ui.care !== 'object') {
-    state.ui.care = { selectedCategory: null, feedback: { kind: 'info', text: 'Bereit.' } };
+    state.ui.care = { selectedCategory: null, selectedActionId: null, feedback: { kind: 'info', text: 'Wähle eine Aktion.' } };
   }
   if (typeof state.ui.care.selectedCategory !== 'string') {
     state.ui.care.selectedCategory = null;
   }
+  if (typeof state.ui.care.selectedActionId !== 'string') {
+    state.ui.care.selectedActionId = null;
+  }
   if (!state.ui.care.feedback || typeof state.ui.care.feedback !== 'object') {
-    state.ui.care.feedback = { kind: 'info', text: 'Bereit.' };
+    state.ui.care.feedback = { kind: 'info', text: 'Wähle eine Aktion.' };
   }
   if (!state.ui.analysis || typeof state.ui.analysis !== 'object') {
     state.ui.analysis = { activeTab: 'overview' };

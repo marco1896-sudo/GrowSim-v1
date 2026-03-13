@@ -106,6 +106,8 @@ function cacheUi() {
   ui.careCategoryList = document.getElementById('careCategoryList');
   ui.careActionList = document.getElementById('careActionList');
   ui.careFeedback = document.getElementById('careFeedback');
+  ui.careEffectsList = document.getElementById('careEffectsList');
+  ui.careExecuteButton = document.getElementById('careExecuteButton');
   ui.eventStateBadge = document.getElementById('eventStateBadge');
   ui.eventTitle = document.getElementById('eventTitle');
   ui.eventText = document.getElementById('eventText');
@@ -154,6 +156,7 @@ function bindUi() {
     ui.skipNightActionBtn.addEventListener('click', () => withDebouncedAction('skipNight', ui.skipNightActionBtn, onSkipNightAction));
   }
   ui.openDiagnosisBtn.addEventListener('click', () => openSheet('diagnosis'));
+  ui.careExecuteButton.addEventListener('click', onCareExecuteAction);
 
   const statRingBindings = [
     { node: ui.waterRing, key: 'water' },
@@ -241,7 +244,7 @@ function ensureRequiredUi() {
     'menuBackdrop', 'gameMenu', 'menuCloseBtn', 'menuHeaderCloseBtn', 'menuNewRunBtn', 'menuRescueBtn', 'menuRescueSubtext',
     'menuStatsBtn', 'menuPushBtn', 'menuPushStatus', 'menuLanguageBtn', 'menuSupportBtn', 'menuAboutBtn',
     'menuAchievementsBtn', 'menuLeaderboardBtn', 'menuDialog', 'menuDialogTitle', 'menuDialogText', 'menuDialogCancelBtn', 'menuDialogConfirmBtn',
-    'careCategoryList', 'careActionList', 'careFeedback', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
+    'careCategoryList', 'careActionList', 'careFeedback', 'careEffectsList', 'careExecuteButton', 'eventStateBadge', 'eventTitle', 'eventText', 'eventMeta', 'eventOptionList',
     'analysisTabOverview', 'analysisTabDiagnosis', 'analysisTabTimeline', 'analysisPanelOverview', 'analysisPanelDiagnosis', 'analysisPanelTimeline',
     'analysisResetBtn', 'pushToggleBtn', 'pushToggleStatus', 'pushToggleFeedback',
     'notifTypeEvents', 'notifTypeCritical', 'notifTypeReminder',

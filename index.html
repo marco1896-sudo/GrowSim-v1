@@ -132,16 +132,27 @@
 
   <div id="sheetBackdrop" class="sheet-backdrop hidden" aria-hidden="true"></div>
 
-  <section id="careSheet" class="bottom-sheet hidden" aria-hidden="true">
-    <header class="sheet-header">
-      <h2>Pflege</h2>
-      <button class="sheet-close" data-close-sheet type="button" aria-label="Schließen">X</button>
+  <section id="careSheet" class="bottom-sheet care-modal hidden" aria-hidden="true">
+    <header class="sheet-header care-modal-header">
+      <h2 class="care-modal-title">PFLEGE-KONSOLE</h2>
+      <button class="sheet-close care-modal-close" data-close-sheet type="button" aria-label="Schließen">X</button>
     </header>
-    <div class="sheet-content">
-      <p class="sheet-note">Kategorie wählen, Intensität antippen, Aktion direkt ausführen.</p>
-      <div id="careCategoryList" class="care-category-list" role="tablist" aria-label="Pflegekategorien"></div>
+    <div class="sheet-content care-modal-content">
+      <article class="care-preview-card" aria-hidden="true">
+        <div class="care-preview-media">◈</div>
+        <div class="care-preview-overlay">Vorschau-Slot · Artwork folgt</div>
+      </article>
+
+      <div id="careCategoryList" class="care-categories" role="tablist" aria-label="Pflegekategorien"></div>
       <div id="careActionList" class="care-action-list" aria-live="polite"></div>
-      <p id="careFeedback" class="care-feedback sheet-note" aria-live="polite">Bereit.</p>
+
+      <section class="care-effects-panel" aria-live="polite">
+        <h3 class="care-effects-title">Auswirkungen</h3>
+        <ul id="careEffectsList" class="care-effects-list"></ul>
+      </section>
+
+      <p id="careFeedback" class="care-feedback sheet-note" aria-live="polite">Wähle eine Aktion.</p>
+      <button id="careExecuteButton" class="care-execute-button" type="button" disabled>AUSFÜHREN</button>
     </div>
   </section>
 
