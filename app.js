@@ -325,6 +325,7 @@ const actionDebounceUntil = Object.create(null);
 wireDomainOwnership();
 
 window.__gsBootOk = false;
+window.__gsBootTrace = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   boot().catch((error) => {
@@ -435,26 +436,58 @@ function wireDomainOwnership() {
 }
 
 async function boot() {
+  let bootStep = 'start';
   try {
+    logBootStep('boot:start');
+    bootStep = 'cache_ui';
     cacheUi();
+    logBootStep('boot:cache_ui');
+    bootStep = 'validate_ui';
     if (!ensureRequiredUi()) {
       throw new Error('Required UI elements missing');
     }
+    logBootStep('boot:validate_ui');
 
+    bootStep = 'storage_adapter';
     storageAdapter = await createStorageAdapter();
+    logBootStep('boot:storage_adapter');
+    bootStep = 'state_restore';
     await initOrMigrateState();
+    logBootStep('boot:state_restore', {
+      simTimeMs: state.simulation.simTimeMs,
+      nextEventRealTimeMs: state.events.scheduler.nextEventRealTimeMs,
+      growthImpulse: state.simulation.growthImpulse
+    });
+
+    bootStep = 'catalogs';
     await loadCatalogs();
+    logBootStep('boot:catalogs', {
+      events: state.events.catalog.length,
+      actions: state.actions.catalog.length,
+      plantSpriteReady: plantSpriteRuntime.ready
+    });
 
+    bootStep = 'bind_ui';
     bindUi();
+    logBootStep('boot:bind_ui');
     applyBackgroundAsset();
+    bootStep = 'service_worker';
     await registerServiceWorker();
+    logBootStep('boot:service_worker');
 
+    bootStep = 'runtime_sync';
     const bootNowMs = Date.now();
     syncSimulationFromElapsedTime(bootNowMs);
     syncRuntimeClocks(bootNowMs);
     syncActiveEventFromCatalog();
     updateVisibleOverlays();
     syncCanonicalStateShape();
+    logBootStep('boot:runtime_sync', {
+      nowMs: state.simulation.nowMs,
+      simTimeMs: state.simulation.simTimeMs,
+      nextEventRealTimeMs: state.events.scheduler.nextEventRealTimeMs,
+      growthImpulse: state.simulation.growthImpulse
+    });
 
     addLog('system', 'Runtime initialisiert', {
       mode: state.simulation.mode,
@@ -465,19 +498,46 @@ async function boot() {
     window.__applyAction = (id) => applyAction(id);
     window.__devSelfTest = () => runDevSelfTest();
 
+    bootStep = 'loop_and_render';
     startLoopOnce();
     startHeartbeatWatchdog();
     renderAll();
     renderLanding();
     window.__gsBootOk = true;
     state.ui.lastRenderRealMs = Date.now();
+    logBootStep('boot:render_complete');
 
+    bootStep = 'persist';
     await schedulePushIfAllowed(true);
     await persistState();
+    logBootStep('boot:done');
   } catch (error) {
-    console.error('Boot failed', error);
+    logBootStep('boot:failed', {
+      step: bootStep,
+      message: error && error.message ? error.message : String(error)
+    });
+    console.error('Boot failed', { step: bootStep, error });
     showBootError(error);
   }
+}
+
+function logBootStep(step, details) {
+  const entry = {
+    atMs: Date.now(),
+    step: String(step || 'unknown')
+  };
+  if (details && typeof details === 'object') {
+    entry.details = details;
+  }
+  window.__gsBootTrace.push(entry);
+  if (window.__gsBootTrace.length > 80) {
+    window.__gsBootTrace.splice(0, window.__gsBootTrace.length - 80);
+  }
+  if (entry.details) {
+    console.info('[boot]', entry.step, entry.details);
+    return;
+  }
+  console.info('[boot]', entry.step);
 }
 
 async function initOrMigrateState() {
@@ -2001,7 +2061,7 @@ function renderHud() {
     ui.phaseCard.setAttribute('aria-label', `Phase ${phaseCard.title}. ${phaseCard.ageLabel}. ${phaseCard.subtitle}.`);
   }
 
-  if (ui.boostUsageText.textContent !== boostText) {
+  if (ui.boostUsageText && ui.boostUsageText.textContent !== boostText) {
     ui.boostUsageText.textContent = boostText;
   }
 
@@ -2013,11 +2073,18 @@ function renderHud() {
   setRing(ui.riskRing, ui.riskValue, state.status.risk);
 
   if (ui.plantImage) {
-    renderPlantFromSprite(ui.plantImage);
+    try {
+      renderPlantFromSprite(ui.plantImage);
+    } catch (error) {
+      console.error('[render] Plant rendering failed, using fallback.', error);
+      renderPlantFallback(ui.plantImage);
+    }
   }
 
   const eventStatus = eventStatusDisplay();
-  ui.nextEventValue.textContent = eventStatus.value;
+  if (ui.nextEventValue) {
+    ui.nextEventValue.textContent = eventStatus.value;
+  }
   if (ui.nextEventValue && ui.nextEventValue.dataset.label !== eventStatus.label) {
     const labelNode = ui.nextEventValue.closest('.info-tile')?.querySelector('.info-label');
     if (labelNode) {
@@ -2025,8 +2092,12 @@ function renderHud() {
     }
     ui.nextEventValue.dataset.label = eventStatus.label;
   }
-  ui.growthImpulseValue.textContent = state.simulation.growthImpulse.toFixed(2);
-  ui.simTimeValue.textContent = formatSimClock(state.simulation.simTimeMs);
+  if (ui.growthImpulseValue) {
+    ui.growthImpulseValue.textContent = state.simulation.growthImpulse.toFixed(2);
+  }
+  if (ui.simTimeValue) {
+    ui.simTimeValue.textContent = formatSimClock(state.simulation.simTimeMs);
+  }
 
   const showSkipNight = !dead && !state.simulation.isDaytime;
 
@@ -2065,6 +2136,9 @@ function triggerStatUpdateFeedback(ringNode, textNode) {
 }
 
 function setRing(ringNode, textNode, value) {
+  if (!ringNode || !textNode) {
+    return;
+  }
   const rounded = Math.round(value);
   const roundedText = String(rounded);
   const previousValueText = ringNode.dataset.value;
@@ -2094,9 +2168,33 @@ function renderOverlayVisibility() {
   };
 
   for (const [overlayId, node] of Object.entries(nodes)) {
+    if (!node) {
+      continue;
+    }
     const visible = state.ui.visibleOverlayIds.includes(overlayId);
     node.classList.toggle('hidden', !visible);
   }
+}
+
+function renderPlantFallback(targetNode) {
+  if (!targetNode || typeof targetNode.getContext !== 'function') {
+    return;
+  }
+  const canvasMetrics = syncPlantCanvasToContainer(targetNode);
+  const ctx = targetNode.getContext('2d', { alpha: true });
+  if (!ctx) {
+    return;
+  }
+  ctx.clearRect(0, 0, targetNode.width, targetNode.height);
+  const w = canvasMetrics.widthPx;
+  const h = canvasMetrics.heightPx;
+  ctx.fillStyle = 'rgba(134, 167, 94, 0.85)';
+  ctx.fillRect(Math.round(w * 0.48), Math.round(h * 0.45), Math.max(2, Math.round(w * 0.04)), Math.round(h * 0.3));
+  ctx.fillStyle = 'rgba(164, 205, 110, 0.78)';
+  ctx.beginPath();
+  ctx.ellipse(Math.round(w * 0.5), Math.round(h * 0.38), Math.round(w * 0.13), Math.round(h * 0.11), 0, 0, Math.PI * 2);
+  ctx.fill();
+  targetNode.dataset.stageName = normalizeStageKey(state.plant.stageKey);
 }
 
 function renderSheets() {
@@ -3924,6 +4022,7 @@ function renderPlantFromSprite(targetNode) {
     return;
   }
   if (!plantSpriteRuntime.ready || !plantSpriteRuntime.image || !plantSpriteRuntime.metadata) {
+    renderPlantFallback(targetNode);
     return;
   }
 
@@ -3959,6 +4058,11 @@ function renderPlantFromSprite(targetNode) {
   const dy = clampInt(centerDy + downOffset, 0, maxDy);
 
   const ctx = targetNode.getContext('2d', { alpha: true });
+  if (!ctx) {
+    console.warn('[plant] 2D context unavailable, using fallback render.');
+    renderPlantFallback(targetNode);
+    return;
+  }
   ctx.clearRect(0, 0, targetNode.width, targetNode.height);
   ctx.drawImage(
     plantSpriteRuntime.image,
@@ -4555,6 +4659,9 @@ function ensureStateIntegrity(nowMs) {
   if (!Number.isFinite(state.simulation.nowMs)) {
     state.simulation.nowMs = nowMs;
   }
+  if (!Number.isFinite(state.simulation.startRealTimeMs)) {
+    state.simulation.startRealTimeMs = nowMs;
+  }
   if (!Number.isFinite(state.simulation.simTimeMs)) {
     state.simulation.simTimeMs = alignToSimStartHour(nowMs, SIM_START_HOUR);
   }
@@ -4569,6 +4676,9 @@ function ensureStateIntegrity(nowMs) {
   }
   if (!Number.isFinite(state.simulation.lastPushScheduleAtMs)) {
     state.simulation.lastPushScheduleAtMs = 0;
+  }
+  if (!Number.isFinite(state.simulation.growthImpulse)) {
+    state.simulation.growthImpulse = 0;
   }
   state.simulation.isDaytime = isDaytimeAtSimTime(state.simulation.simTimeMs);
 
@@ -4760,6 +4870,9 @@ function ensureStateIntegrity(nowMs) {
   }
   if (typeof state.ui.deathOverlayAcknowledged !== 'boolean') {
     state.ui.deathOverlayAcknowledged = false;
+  }
+  if (typeof state.ui.statDetailKey !== 'string') {
+    state.ui.statDetailKey = null;
   }
 
   if (typeof state.events.scheduler.lastEventId !== 'string') {
