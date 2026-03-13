@@ -199,7 +199,8 @@ const state = {
     dayWindow: { startHour: SIM_DAY_START_HOUR, endHour: SIM_NIGHT_START_HOUR },
     isDaytime: isDaytimeAtSimTime(initialSimTimeMs),
     growthImpulse: 0,
-    lastPushScheduleAtMs: 0
+    lastPushScheduleAtMs: 0,
+    fairnessGraceUntilRealMs: 0
   },
   plant: {
     phase: 'seedling',
@@ -1679,6 +1680,9 @@ function onBoostAction() {
   }
 
   applyStatusDrift(BOOST_PLANT_EFFECT_MS);
+  if (typeof applyFairnessSurvivalGuard === 'function') {
+    applyFairnessSurvivalGuard(nowMs);
+  }
   applyGrowthPercentDelta(BOOST_GROWTH_PERCENT_DELTA);
 
   if (state.events.machineState === 'idle' || state.events.machineState === 'cooldown') {
@@ -3802,6 +3806,7 @@ function getCanonicalSimulation(snapshot) {
   if (typeof s.simulation.isDaytime !== 'boolean') s.simulation.isDaytime = isDaytimeAtSimTime(s.simulation.simTimeMs);
   if (!Number.isFinite(s.simulation.growthImpulse)) s.simulation.growthImpulse = 0;
   if (!Number.isFinite(s.simulation.lastPushScheduleAtMs)) s.simulation.lastPushScheduleAtMs = 0;
+  if (!Number.isFinite(s.simulation.fairnessGraceUntilRealMs)) s.simulation.fairnessGraceUntilRealMs = 0;
 
   return s.simulation;
 }
