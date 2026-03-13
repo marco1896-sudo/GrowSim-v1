@@ -2,8 +2,8 @@
 
 const FAIRNESS_REACTION_GRACE_MS = 2 * 60 * 1000;
 const OFFLINE_STATUS_DECAY_MULTIPLIER = 0.72;
-const WATER_STRESS_THRESHOLD = 45;
-const WATER_CRITICAL_THRESHOLD = 20;
+const WATER_STRESS_THRESHOLD = 40;
+const WATER_CRITICAL_THRESHOLD = 16;
 const NUTRITION_STRESS_THRESHOLD = 40;
 const NUTRITION_CRITICAL_THRESHOLD = 18;
 
@@ -326,7 +326,7 @@ function applyStatusDrift(elapsedMs) {
     return;
   }
 
-  state.status.water -= 0.18 * minutes;
+  state.status.water -= 0.13 * minutes;
   state.status.nutrition -= 0.11 * minutes;
 
   const inRecoveryBand = (
@@ -340,9 +340,9 @@ function applyStatusDrift(elapsedMs) {
   const nutritionDeficiency = clamp((NUTRITION_STRESS_THRESHOLD - state.status.nutrition) / (NUTRITION_STRESS_THRESHOLD - NUTRITION_CRITICAL_THRESHOLD), 0, 1);
   const nutritionCritical = clamp((NUTRITION_CRITICAL_THRESHOLD - state.status.nutrition) / NUTRITION_CRITICAL_THRESHOLD, 0, 1);
 
-  let stressDelta = (-0.015 * minutes)
-    + (waterDeficiency * 0.14 * minutes)
-    + (waterCritical * 0.20 * minutes)
+  let stressDelta = (-0.02 * minutes)
+    + (waterDeficiency * 0.10 * minutes)
+    + (waterCritical * 0.30 * minutes)
     + (nutritionDeficiency * 0.08 * minutes)
     + (nutritionCritical * 0.10 * minutes);
   if (inRecoveryBand) {
@@ -350,15 +350,15 @@ function applyStatusDrift(elapsedMs) {
   }
   state.status.stress += stressDelta;
 
-  const stressPressure = clamp((state.status.stress - 40) / 60, 0, 1);
-  const deficiencyPressure = (waterDeficiency * 0.5) + (waterCritical * 0.9) + (nutritionDeficiency * 0.2);
-  let riskDelta = (0.008 * minutes)
-    + (stressPressure * 0.12 * minutes)
-    + (deficiencyPressure * 0.10 * minutes);
+  const stressPressure = clamp((state.status.stress - 52) / 48, 0, 1);
+  const deficiencyPressure = (waterDeficiency * 0.25) + (waterCritical * 1.0) + (nutritionDeficiency * 0.1);
+  let riskDelta = (-0.004 * minutes)
+    + (stressPressure * 0.08 * minutes)
+    + (deficiencyPressure * 0.06 * minutes);
   if (inRecoveryBand) {
-    riskDelta -= 0.08 * minutes;
+    riskDelta -= 0.05 * minutes;
   }
-  if (state.status.water > 95 || state.status.water < 15) {
+  if (state.status.water > 97 || state.status.water < 12) {
     riskDelta += 0.08 * minutes;
   }
   state.status.risk += riskDelta;
